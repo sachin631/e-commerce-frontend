@@ -50,10 +50,10 @@ const CreateProduct = () => {
     const data = await dispatch(createProduct(myForm));
     console.log(data.payload, "asdasd datat");
     if(data.payload.status!==200){
-      cogoToast.error("somthing wrong try agin")
+      // cogoToast.error("somthing wrong try agin")
     }
     if(data.payload.status==200){
-      cogoToast.success("store succesfully");
+      // cogoToast.success("store succesfully");
     }
   };
 

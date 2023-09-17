@@ -25,10 +25,10 @@ const productAdmin = () => {
   };
 
   if (error) {
-    cogoToast.error("try again or Refresh page");
+    // cogoToast.error("try again or Refresh page");
   }
   if (loading) {
-    cogoToast.loading("loading data----");
+    // cogoToast.loading("loading data----");
   }
 
   return (

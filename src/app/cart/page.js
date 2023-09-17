@@ -26,13 +26,13 @@ const Cart = () => {
     
   },{
     onSuccess:async()=>{
-      cogoToast.success("product deleted successFuly");
+      // cogoToast.success("product deleted successFuly");
       queryClient.invalidateQueries("getLoginUserDetails");
     await  queryClient.refetchQueries("getLoginUserDetails");
     await  getUserData();
     },
     onError:()=>{
-      cogoToast.error("product not deleted try again");
+      // cogoToast.error("product not deleted try again");
     }
   });
 

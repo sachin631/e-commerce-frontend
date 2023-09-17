@@ -1,6 +1,6 @@
 "use client";
 import { userLogin } from "@/services/apis";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,7 +33,7 @@ const queryClient=useQueryClient();
     },
     {
       onSuccess:async () => {
-        cogoToast.success("login successFuly");
+        // cogoToast.success("login successFuly");
         reset();
         await queryClient.invalidateQueries("getLoginUserDetails");
         await queryClient.getQueryData(["getLoginUserDetails"]);
@@ -47,14 +47,15 @@ const queryClient=useQueryClient();
         
       },
       onError: () => {
-        cogoToast.error("Invalid Details");
+        // cogoToast.error("Invalid Details");
         // setIsLoading(false);
       },
     }
   );
   return (
     <>
-    {isLoading ? cogoToast.loading("loading...") : ""}
+     {isLoading ?"" : ""} 
+     {/* // cogoToast.loading("loading...") */ }
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
