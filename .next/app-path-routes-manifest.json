@@ -2,14 +2,14 @@
   "/page": "/",
   "/cart/page": "/cart",
   "/checkout/page": "/checkout",
-  "/dashboard/page": "/dashboard",
   "/login/page": "/login",
+  "/dashboard/page": "/dashboard",
   "/product/page": "/product",
-  "/profile/page": "/profile",
   "/signup/page": "/signup",
+  "/profile/page": "/profile",
   "/sucess/page": "/sucess",
   "/updateProfile/page": "/updateProfile",
-  "/admin/createAdminProduct/page": "/admin/createAdminProduct",
   "/admin/productAdmin/page": "/admin/productAdmin",
+  "/admin/createAdminProduct/page": "/admin/createAdminProduct",
   "/product/[id]/page": "/product/[id]"
 }
