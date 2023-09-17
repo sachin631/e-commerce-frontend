@@ -605,7 +605,8 @@ function Example() {
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(93258);
 
 const api = axios__WEBPACK_IMPORTED_MODULE_0__/* ["default"] */ .Z.create({
-    baseURL: "http://localhost:27017",
+    // baseURL: "http://localhost:27017",
+    baseURL: "https://precious-tarsier-661a39.netlify.app/",
     withCredentials: true,
     headers: {
         "Access-Control-Allow-Credentials": true,

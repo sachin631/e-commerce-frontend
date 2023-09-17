@@ -1,15 +1,15 @@
 {
   "/page": "/",
   "/cart/page": "/cart",
-  "/dashboard/page": "/dashboard",
   "/checkout/page": "/checkout",
-  "/product/page": "/product",
+  "/dashboard/page": "/dashboard",
   "/login/page": "/login",
-  "/profile/page": "/profile",
-  "/signup/page": "/signup",
   "/sucess/page": "/sucess",
+  "/profile/page": "/profile",
   "/updateProfile/page": "/updateProfile",
-  "/admin/createAdminProduct/page": "/admin/createAdminProduct",
+  "/product/page": "/product",
+  "/signup/page": "/signup",
   "/admin/productAdmin/page": "/admin/productAdmin",
+  "/admin/createAdminProduct/page": "/admin/createAdminProduct",
   "/product/[id]/page": "/product/[id]"
 }
