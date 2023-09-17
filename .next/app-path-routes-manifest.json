@@ -1,0 +1,15 @@
+{
+  "/page": "/",
+  "/cart/page": "/cart",
+  "/dashboard/page": "/dashboard",
+  "/checkout/page": "/checkout",
+  "/product/page": "/product",
+  "/login/page": "/login",
+  "/profile/page": "/profile",
+  "/signup/page": "/signup",
+  "/sucess/page": "/sucess",
+  "/updateProfile/page": "/updateProfile",
+  "/admin/createAdminProduct/page": "/admin/createAdminProduct",
+  "/admin/productAdmin/page": "/admin/productAdmin",
+  "/product/[id]/page": "/product/[id]"
+}
