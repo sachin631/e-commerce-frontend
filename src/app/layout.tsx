@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import QueryProvider from "@/queryProvider/queryProvider";
 import { Provider } from "react-redux";
-import {store} from "../RTK/store";
+import { store } from "../RTK/store";
 
 const inter = Poppins({ weight: "400", subsets: ["latin"] });
 
@@ -21,14 +21,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Provider store={store}>
-        <QueryProvider>
+      <QueryProvider>
+        <Provider store={store}>
           <body className={inter.className}>
             <Navbar />
             {children}
           </body>
-        </QueryProvider>
-      </Provider>
+        </Provider>
+      </QueryProvider>
     </html>
   );
 }
