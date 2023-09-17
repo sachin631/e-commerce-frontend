@@ -1,4 +1,6 @@
 "use client";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { getProduct } from "@/RTK/productSlice";
 import DashBoard from "@/app/dashboard/page";
 // import cogoToast from "cogo-toast";
@@ -26,9 +28,11 @@ const productAdmin = () => {
 
   if (error) {
     // cogoToast.error("try again or Refresh page");
+    toast.error("try again or Refresh page");
   }
   if (loading) {
     // cogoToast.loading("loading data----");
+    toast.loading("loading data----");
   }
 
   return (
@@ -82,6 +86,7 @@ const productAdmin = () => {
             })}
           </tbody>
         </table>
+        <ToastContainer/>
       </div>
     </>
   );

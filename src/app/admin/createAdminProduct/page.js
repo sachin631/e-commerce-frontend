@@ -2,6 +2,8 @@
 import { createProduct } from "@/RTK/productSlice";
 import DashBoard from "@/app/dashboard/page";
 // import cogoToast from "cogo-toast";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -51,9 +53,11 @@ const CreateProduct = () => {
     console.log(data.payload, "asdasd datat");
     if(data.payload.status!==200){
       // cogoToast.error("somthing wrong try agin")
+      toast.error("somthing wrong try again");
     }
     if(data.payload.status==200){
       // cogoToast.success("store succesfully");
+      toast.success("somthing wrong try again");
     }
   };
 
@@ -87,9 +91,12 @@ const CreateProduct = () => {
 
   if (loading) {
     // cogoToast.loading("loading>>>");
+    toast.loading("loading");
   }
   //  if(product[0]?.success==false){
   //   cogoToast.error("something went wrong ");
+  // toast.error("something went wrong ");
+  
   // }
   // if(product[0]?.success==true){
   //   cogoToast.success("Product Store Successfully");
@@ -220,6 +227,7 @@ const CreateProduct = () => {
             Create
           </button>
         </form>
+        <ToastContainer />
       </div>
     </>
   );

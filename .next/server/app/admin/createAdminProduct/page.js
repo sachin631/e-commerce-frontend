@@ -378,19 +378,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _RTK_productSlice__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15659);
 /* harmony import */ var _app_dashboard_page__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(18156);
-/* harmony import */ var cogo_toast__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(99690);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(18038);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8250);
-/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_redux__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(34751);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(45996);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(18038);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(8250);
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_redux__WEBPACK_IMPORTED_MODULE_6__);
 /* __next_internal_client_entry_do_not_use__ default auto */ 
 
+
+// import cogoToast from "cogo-toast";
 
 
 
 
 const CreateProduct = ()=>{
-    const [formData, setFormData] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)({
+    const [formData, setFormData] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)({
         name: "",
         description: "",
         orignialPrice: "",
@@ -398,9 +402,9 @@ const CreateProduct = ()=>{
         category: "",
         stock: ""
     });
-    const [images, setImages] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]);
-    const [imagePreview, setImagePreview] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)([]);
-    const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_5__.useDispatch)();
+    const [images, setImages] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)([]);
+    const [imagePreview, setImagePreview] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)([]);
+    const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_6__.useDispatch)();
     const onChange = (event)=>{
         const { value, name } = event.target;
         setFormData({
@@ -428,10 +432,12 @@ const CreateProduct = ()=>{
         const data = await dispatch((0,_RTK_productSlice__WEBPACK_IMPORTED_MODULE_1__/* .createProduct */ .ry)(myForm));
         console.log(data.payload, "asdasd datat");
         if (data.payload.status !== 200) {
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.error("somthing wrong try agin");
+            // cogoToast.error("somthing wrong try agin")
+            react_toastify__WEBPACK_IMPORTED_MODULE_3__/* .toast */ .Am.error("somthing wrong try again");
         }
         if (data.payload.status == 200) {
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.success("store succesfully");
+            // cogoToast.success("store succesfully");
+            react_toastify__WEBPACK_IMPORTED_MODULE_3__/* .toast */ .Am.success("somthing wrong try again");
         }
     };
     // image  change
@@ -456,15 +462,17 @@ const CreateProduct = ()=>{
             reader.readAsDataURL(file);
         });
     };
-    const { loading, error, product } = (0,react_redux__WEBPACK_IMPORTED_MODULE_5__.useSelector)((state)=>state.createProduct);
+    const { loading, error, product } = (0,react_redux__WEBPACK_IMPORTED_MODULE_6__.useSelector)((state)=>state.createProduct);
     console.log(loading, "loading");
     console.log(error, "error");
     console.log(product, "product");
     if (loading) {
-        cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.loading("loading>>>");
+        // cogoToast.loading("loading>>>");
+        react_toastify__WEBPACK_IMPORTED_MODULE_3__/* .toast */ .Am.loading("loading");
     }
     //  if(product[0]?.success==false){
     //   cogoToast.error("something went wrong ");
+    // toast.error("something went wrong ");
     // }
     // if(product[0]?.success==true){
     //   cogoToast.success("Product Store Successfully");
@@ -637,7 +645,8 @@ const CreateProduct = ()=>{
                             children: "Create"
                         })
                     ]
-                })
+                }),
+                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_toastify__WEBPACK_IMPORTED_MODULE_3__/* .ToastContainer */ .Ix, {})
             ]
         })
     });
@@ -680,7 +689,7 @@ const __default__ = proxy.default;
 var __webpack_require__ = require("../../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [904,698,508], () => (__webpack_exec__(33794)));
+var __webpack_exports__ = __webpack_require__.X(0, [472,698,508], () => (__webpack_exec__(33794)));
 module.exports = __webpack_exports__;
 
 })();

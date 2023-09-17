@@ -1,4 +1,7 @@
 "use client";
+
+import { ToastContainer, toast } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';
 import BasicAccordion from "@/component/filter";
 import Example from "@/component/filter";
 import Navbar from "@/component/navbar";
@@ -197,6 +200,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </main>
   );
 }

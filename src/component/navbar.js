@@ -1,4 +1,8 @@
 "use client";
+
+
+import { ToastContainer, toast } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';
 import Link from "next/link";
 
 import React from "react";
@@ -56,11 +60,13 @@ export default function Navbar() {
     {
       onSuccess: () => {
         // cogoToast.success("logOut SuccessFully");
+        toast.success("logOut SuccessFully");
         queryClient.clear();
         queryClient.invalidateQueries("getLoginUserDetails"); // Trigger revalidation
       },
       onError: () => {
         // cogoToast.error("somthing went wrong try again ....");
+        toast.error("somthing went wrong try again ....");
       },
     }
   );
@@ -127,6 +133,7 @@ export default function Navbar() {
                       onClick={() => {
                         if (data?.data?.user.role == "user") {
                           // cogoToast.error("only admin can access");
+                          toast.error("only admin can access");
                         }
                       }}
                     >
@@ -155,6 +162,7 @@ export default function Navbar() {
                     onClick={() => {
                       if (!data?.data?.user) {
                         // cogoToast.error("login to access Your Cart Data");
+                        toast.error("login to access Your Cart Data");
                       }
                     }}
                   >
@@ -207,6 +215,7 @@ export default function Navbar() {
                             onClick={() => {
                               if (!data?.data?.user) {
                                 // cogoToast.error("Please Login To access");
+                                toast.error("Please Login To access");
                               }
                             }}
                             href={data?.data?.user ? "/profile" : ""}
@@ -239,6 +248,7 @@ export default function Navbar() {
                 </Menu>
               </div>
             </div>
+             <ToastContainer />
           </div>
 
           <Disclosure.Panel className="sm:hidden">
@@ -265,6 +275,7 @@ export default function Navbar() {
                 onClick={() => {
                   if (data?.data?.user.role == "user") {
                     // cogoToast.error("only admin can access");
+                    toast.error("only admin can access");
                   }
                 }}
               >
@@ -285,6 +296,7 @@ export default function Navbar() {
           </Disclosure.Panel>
         </>
       )}
+      
     </Disclosure>
   );
 }

@@ -124,6 +124,10 @@ var jsx_runtime_ = __webpack_require__(56786);
 // EXTERNAL MODULE: ./node_modules/next/font/google/target.css?{"path":"src\\app\\layout.tsx","import":"Poppins","arguments":[{"weight":"400","subsets":["latin"]}],"variableName":"inter"}
 var target_path_src_app_layout_tsx_import_Poppins_arguments_weight_400_subsets_latin_variableName_inter_ = __webpack_require__(35282);
 var target_path_src_app_layout_tsx_import_Poppins_arguments_weight_400_subsets_latin_variableName_inter_default = /*#__PURE__*/__webpack_require__.n(target_path_src_app_layout_tsx_import_Poppins_arguments_weight_400_subsets_latin_variableName_inter_);
+// EXTERNAL MODULE: ./node_modules/react-toastify/dist/react-toastify.esm.mjs
+var react_toastify_esm = __webpack_require__(34751);
+// EXTERNAL MODULE: ./node_modules/react-toastify/dist/ReactToastify.css
+var ReactToastify = __webpack_require__(45996);
 // EXTERNAL MODULE: ./node_modules/next/link.js
 var next_link = __webpack_require__(11440);
 var link_default = /*#__PURE__*/__webpack_require__.n(next_link);
@@ -157,14 +161,14 @@ var useQuery = __webpack_require__(53993);
 var useMutation = __webpack_require__(30012);
 // EXTERNAL MODULE: ./src/services/apis.js + 1 modules
 var apis = __webpack_require__(83850);
-// EXTERNAL MODULE: ./node_modules/cogo-toast/dist/index.js
-var dist = __webpack_require__(99690);
 // EXTERNAL MODULE: ./node_modules/react-loader-spinner/dist/esm/index.js + 35 modules
 var esm = __webpack_require__(22602);
 // EXTERNAL MODULE: ./node_modules/@tanstack/react-query/build/lib/QueryClientProvider.mjs
 var QueryClientProvider = __webpack_require__(212);
 ;// CONCATENATED MODULE: ./src/component/navbar.js
 /* __next_internal_client_entry_do_not_use__ default auto */ 
+
+
 
 
 
@@ -180,7 +184,7 @@ var QueryClientProvider = __webpack_require__(212);
 
 
 
-
+// import cogoToast from "cogo-toast";
 
 // import { queryClient } from "@tanstack/react-query";
 
@@ -211,12 +215,14 @@ function Navbar() {
         return response;
     }, {
         onSuccess: ()=>{
-            dist/* default */.ZP.success("logOut SuccessFully");
+            // cogoToast.success("logOut SuccessFully");
+            react_toastify_esm/* toast */.Am.success("logOut SuccessFully");
             queryClient.clear();
             queryClient.invalidateQueries("getLoginUserDetails"); // Trigger revalidation
         },
         onError: ()=>{
-            dist/* default */.ZP.error("somthing went wrong try again ....");
+            // cogoToast.error("somthing went wrong try again ....");
+            react_toastify_esm/* toast */.Am.error("somthing went wrong try again ....");
         }
     });
     const StyledBadge = (0,styles.styled)((Badge_default()))(({ theme })=>({
@@ -232,174 +238,180 @@ function Navbar() {
         className: "bg-gray-800",
         children: ({ open })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                 children: [
-                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "mx-auto max-w-7xl px-2 sm:px-6 lg:px-8",
-                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                            className: "relative flex h-16 items-center justify-between",
-                            children: [
-                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                    className: "absolute inset-y-0 left-0 flex items-center sm:hidden",
-                                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(disclosure/* Disclosure */.p.Button, {
-                                        className: "relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white",
+                        children: [
+                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                className: "relative flex h-16 items-center justify-between",
+                                children: [
+                                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                        className: "absolute inset-y-0 left-0 flex items-center sm:hidden",
+                                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(disclosure/* Disclosure */.p.Button, {
+                                            className: "relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                    className: "absolute -inset-0.5"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                    className: "sr-only",
+                                                    children: "Open main menu"
+                                                }),
+                                                open ? /*#__PURE__*/ jsx_runtime_.jsx(XMarkIcon/* default */.Z, {
+                                                    className: "block h-6 w-6",
+                                                    "aria-hidden": "true"
+                                                }) : /*#__PURE__*/ jsx_runtime_.jsx(Bars3Icon/* default */.Z, {
+                                                    className: "block h-6 w-6",
+                                                    "aria-hidden": "true"
+                                                })
+                                            ]
+                                        })
+                                    }),
+                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                        className: "flex flex-1 items-center justify-center sm:items-stretch sm:justify-start",
                                         children: [
-                                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                                className: "absolute -inset-0.5"
+                                            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                className: "flex flex-shrink-0 items-center",
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
+                                                    href: "/",
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(index_esm/* AiFillHome */.V9Z, {
+                                                        className: "text-blue-500 w-[20px]"
+                                                    })
+                                                })
                                             }),
-                                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                                className: "sr-only",
-                                                children: "Open main menu"
-                                            }),
-                                            open ? /*#__PURE__*/ jsx_runtime_.jsx(XMarkIcon/* default */.Z, {
-                                                className: "block h-6 w-6",
-                                                "aria-hidden": "true"
-                                            }) : /*#__PURE__*/ jsx_runtime_.jsx(Bars3Icon/* default */.Z, {
-                                                className: "block h-6 w-6",
-                                                "aria-hidden": "true"
-                                            })
-                                        ]
-                                    })
-                                }),
-                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                    className: "flex flex-1 items-center justify-center sm:items-stretch sm:justify-start",
-                                    children: [
-                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                            className: "flex flex-shrink-0 items-center",
-                                            children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
-                                                href: "/",
-                                                children: /*#__PURE__*/ jsx_runtime_.jsx(index_esm/* AiFillHome */.V9Z, {
-                                                    className: "text-blue-500 w-[20px]"
+                                            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                className: "hidden sm:ml-6 sm:block",
+                                                children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                    className: "flex space-x-4 ",
+                                                    children: [
+                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                            className: "text-gray-300 cursor-pointer  hover:bg-gray-700 hover:text-white",
+                                                            onClick: ()=>{
+                                                                if (data?.data?.user.role == "user") {
+                                                                    // cogoToast.error("only admin can access");
+                                                                    react_toastify_esm/* toast */.Am.error("only admin can access");
+                                                                }
+                                                            },
+                                                            children: [
+                                                                " ",
+                                                                /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
+                                                                    href: data?.data?.user.role == "user" ? "" : "/dashboard",
+                                                                    children: "DashBoard"
+                                                                })
+                                                            ]
+                                                        }),
+                                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                            className: "text-gray-300 cursor-pointer hover:bg-gray-700 hover:text-white",
+                                                            children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
+                                                                href: "/login",
+                                                                children: "Login"
+                                                            })
+                                                        })
+                                                    ]
                                                 })
                                             })
-                                        }),
-                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                            className: "hidden sm:ml-6 sm:block",
-                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                className: "flex space-x-4 ",
-                                                children: [
-                                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                        className: "text-gray-300 cursor-pointer  hover:bg-gray-700 hover:text-white",
-                                                        onClick: ()=>{
-                                                            if (data?.data?.user.role == "user") {
-                                                                dist/* default */.ZP.error("only admin can access");
-                                                            }
-                                                        },
-                                                        children: [
-                                                            " ",
-                                                            /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
-                                                                href: data?.data?.user.role == "user" ? "" : "/dashboard",
-                                                                children: "DashBoard"
-                                                            })
-                                                        ]
-                                                    }),
-                                                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                        className: "text-gray-300 cursor-pointer hover:bg-gray-700 hover:text-white",
-                                                        children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
-                                                            href: "/login",
-                                                            children: "Login"
-                                                        })
-                                                    })
-                                                ]
-                                            })
-                                        })
-                                    ]
-                                }),
-                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                    className: "absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0",
-                                    children: [
-                                        /*#__PURE__*/ jsx_runtime_.jsx("button", {
-                                            type: "button",
-                                            className: "relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800",
-                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                className: "cursor-pointer",
-                                                onClick: ()=>{
-                                                    if (!data?.data?.user) {
-                                                        dist/* default */.ZP.error("login to access Your Cart Data");
-                                                    }
-                                                },
-                                                children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
-                                                    href: data?.data?.user ? "/cart" : "",
-                                                    children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                        className: "relative",
-                                                        children: /*#__PURE__*/ jsx_runtime_.jsx((IconButton_default()), {
-                                                            "aria-label": "cart",
-                                                            children: /*#__PURE__*/ jsx_runtime_.jsx(StyledBadge, {
-                                                                badgeContent: cartLength ? cartLength : "0",
-                                                                color: "secondary",
-                                                                children: /*#__PURE__*/ jsx_runtime_.jsx(ShoppingCart/* default */.Z, {
-                                                                    className: "text-orange-500"
+                                        ]
+                                    }),
+                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                        className: "absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0",
+                                        children: [
+                                            /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                type: "button",
+                                                className: "relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800",
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                    className: "cursor-pointer",
+                                                    onClick: ()=>{
+                                                        if (!data?.data?.user) {
+                                                            // cogoToast.error("login to access Your Cart Data");
+                                                            react_toastify_esm/* toast */.Am.error("login to access Your Cart Data");
+                                                        }
+                                                    },
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
+                                                        href: data?.data?.user ? "/cart" : "",
+                                                        children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                            className: "relative",
+                                                            children: /*#__PURE__*/ jsx_runtime_.jsx((IconButton_default()), {
+                                                                "aria-label": "cart",
+                                                                children: /*#__PURE__*/ jsx_runtime_.jsx(StyledBadge, {
+                                                                    badgeContent: cartLength ? cartLength : "0",
+                                                                    color: "secondary",
+                                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(ShoppingCart/* default */.Z, {
+                                                                        className: "text-orange-500"
+                                                                    })
                                                                 })
                                                             })
                                                         })
                                                     })
                                                 })
+                                            }),
+                                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v, {
+                                                as: "div",
+                                                className: "relative ml-3",
+                                                children: [
+                                                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v.Button, {
+                                                            className: "relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800",
+                                                            children: [
+                                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                                    className: "absolute -inset-1.5"
+                                                                }),
+                                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                                    className: "sr-only",
+                                                                    children: "Open user menu"
+                                                                }),
+                                                                /*#__PURE__*/ jsx_runtime_.jsx("img", {
+                                                                    className: "h-8 w-8 rounded-full",
+                                                                    // src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                                                    src: data ? `http://localhost:27017/uploads/${data?.data?.user.avatar}` : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+                                                                    alt: ""
+                                                                })
+                                                            ]
+                                                        })
+                                                    }),
+                                                    /*#__PURE__*/ jsx_runtime_.jsx(transition/* Transition */.u, {
+                                                        as: react_.Fragment,
+                                                        enter: "transition ease-out duration-100",
+                                                        enterFrom: "transform opacity-0 scale-95",
+                                                        enterTo: "transform opacity-100 scale-100",
+                                                        leave: "transition ease-in duration-75",
+                                                        leaveFrom: "transform opacity-100 scale-100",
+                                                        leaveTo: "transform opacity-0 scale-95",
+                                                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v.Items, {
+                                                            className: "absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
+                                                            children: [
+                                                                /*#__PURE__*/ jsx_runtime_.jsx(menu/* Menu */.v.Item, {
+                                                                    children: ({ active })=>/*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
+                                                                            onClick: ()=>{
+                                                                                if (!data?.data?.user) {
+                                                                                    // cogoToast.error("Please Login To access");
+                                                                                    react_toastify_esm/* toast */.Am.error("Please Login To access");
+                                                                                }
+                                                                            },
+                                                                            href: data?.data?.user ? "/profile" : "",
+                                                                            className: classNames(active ? "bg-gray-100" : "", "block px-4 py-2 text-sm text-gray-700"),
+                                                                            children: "Your Profile"
+                                                                        })
+                                                                }),
+                                                                /*#__PURE__*/ jsx_runtime_.jsx(menu/* Menu */.v.Item, {
+                                                                    children: ({ active })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)("button", {
+                                                                            className: classNames(active ? "bg-gray-100 w-[100%]" : "", "block px-4 py-2 text-sm text-gray-700"),
+                                                                            onClick: logOutMutation.mutate,
+                                                                            children: [
+                                                                                " ",
+                                                                                "Log out"
+                                                                            ]
+                                                                        })
+                                                                })
+                                                            ]
+                                                        })
+                                                    })
+                                                ]
                                             })
-                                        }),
-                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v, {
-                                            as: "div",
-                                            className: "relative ml-3",
-                                            children: [
-                                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v.Button, {
-                                                        className: "relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800",
-                                                        children: [
-                                                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                                                className: "absolute -inset-1.5"
-                                                            }),
-                                                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                                                className: "sr-only",
-                                                                children: "Open user menu"
-                                                            }),
-                                                            /*#__PURE__*/ jsx_runtime_.jsx("img", {
-                                                                className: "h-8 w-8 rounded-full",
-                                                                // src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                                                src: data ? `http://localhost:27017/uploads/${data?.data?.user.avatar}` : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-                                                                alt: ""
-                                                            })
-                                                        ]
-                                                    })
-                                                }),
-                                                /*#__PURE__*/ jsx_runtime_.jsx(transition/* Transition */.u, {
-                                                    as: react_.Fragment,
-                                                    enter: "transition ease-out duration-100",
-                                                    enterFrom: "transform opacity-0 scale-95",
-                                                    enterTo: "transform opacity-100 scale-100",
-                                                    leave: "transition ease-in duration-75",
-                                                    leaveFrom: "transform opacity-100 scale-100",
-                                                    leaveTo: "transform opacity-0 scale-95",
-                                                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(menu/* Menu */.v.Items, {
-                                                        className: "absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
-                                                        children: [
-                                                            /*#__PURE__*/ jsx_runtime_.jsx(menu/* Menu */.v.Item, {
-                                                                children: ({ active })=>/*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
-                                                                        onClick: ()=>{
-                                                                            if (!data?.data?.user) {
-                                                                                dist/* default */.ZP.error("Please Login To access");
-                                                                            }
-                                                                        },
-                                                                        href: data?.data?.user ? "/profile" : "",
-                                                                        className: classNames(active ? "bg-gray-100" : "", "block px-4 py-2 text-sm text-gray-700"),
-                                                                        children: "Your Profile"
-                                                                    })
-                                                            }),
-                                                            /*#__PURE__*/ jsx_runtime_.jsx(menu/* Menu */.v.Item, {
-                                                                children: ({ active })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)("button", {
-                                                                        className: classNames(active ? "bg-gray-100 w-[100%]" : "", "block px-4 py-2 text-sm text-gray-700"),
-                                                                        onClick: logOutMutation.mutate,
-                                                                        children: [
-                                                                            " ",
-                                                                            "Log out"
-                                                                        ]
-                                                                    })
-                                                            })
-                                                        ]
-                                                    })
-                                                })
-                                            ]
-                                        })
-                                    ]
-                                })
-                            ]
-                        })
+                                        ]
+                                    })
+                                ]
+                            }),
+                            /*#__PURE__*/ jsx_runtime_.jsx(react_toastify_esm/* ToastContainer */.Ix, {})
+                        ]
                     }),
                     /*#__PURE__*/ jsx_runtime_.jsx(disclosure/* Disclosure */.p.Panel, {
                         className: "sm:hidden",
@@ -410,7 +422,8 @@ function Navbar() {
                                     className: "text-gray-300 cursor-pointer  hover:bg-gray-700 hover:text-white",
                                     onClick: ()=>{
                                         if (data?.data?.user.role == "user") {
-                                            dist/* default */.ZP.error("only admin can access");
+                                            // cogoToast.error("only admin can access");
+                                            react_toastify_esm/* toast */.Am.error("only admin can access");
                                         }
                                     },
                                     children: [

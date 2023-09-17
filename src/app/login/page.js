@@ -1,4 +1,8 @@
 "use client";
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import { userLogin } from "@/services/apis";
 // import cogoToast from "cogo-toast";
 import Link from "next/link";
@@ -34,6 +38,7 @@ const queryClient=useQueryClient();
     {
       onSuccess:async () => {
         // cogoToast.success("login successFuly");
+        toast.success("login successFuly");
         reset();
         await queryClient.invalidateQueries("getLoginUserDetails");
         await queryClient.getQueryData(["getLoginUserDetails"]);
@@ -48,13 +53,14 @@ const queryClient=useQueryClient();
       },
       onError: () => {
         // cogoToast.error("Invalid Details");
+        toast.error("Invalid Details");
         // setIsLoading(false);
       },
     }
   );
   return (
     <>
-     {isLoading ?"" : ""} 
+     {isLoading ? toast.loading("loading...") : ""} 
      {/* // cogoToast.loading("loading...") */ }
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -138,6 +144,7 @@ const queryClient=useQueryClient();
             </Link>
           </p>
         </div>
+        <ToastContainer />
       </div>
     </>
   );

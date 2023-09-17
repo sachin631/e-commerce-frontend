@@ -1,4 +1,7 @@
 "use client"
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import React, { useEffect, useState } from "react";
 import Cart from "../cart/page";
 import Link from "next/link";
@@ -51,12 +54,14 @@ useEffect(() => {
   },{
     onSuccess:async()=>{
       // cogoToast.success("product deleted successFuly");
+      toast.success("product deleted successFuly");
       queryClient.invalidateQueries("getLoginUserDetails");
     await  queryClient.refetchQueries("getLoginUserDetails");
     await  getUserData();
     },
     onError:()=>{
       // cogoToast.error("product not deleted try again");
+      toast.error("product not deleted try again");
     }
   });
 
@@ -321,6 +326,7 @@ useEffect(() => {
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
     </>
   );

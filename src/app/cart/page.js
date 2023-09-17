@@ -2,6 +2,8 @@
 import { deleteToCart } from "@/services/apis";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 // import cogoToast from "cogo-toast";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -27,12 +29,14 @@ const Cart = () => {
   },{
     onSuccess:async()=>{
       // cogoToast.success("product deleted successFuly");
+      toast.success("product deleted successFuly");
       queryClient.invalidateQueries("getLoginUserDetails");
     await  queryClient.refetchQueries("getLoginUserDetails");
     await  getUserData();
     },
     onError:()=>{
       // cogoToast.error("product not deleted try again");
+      toast.error("product not deleted try again");
     }
   });
 
@@ -185,6 +189,7 @@ const Cart = () => {
             </div>
           </div>
         </div>
+        <ToastContainer/>
       </div>
     </>
   );

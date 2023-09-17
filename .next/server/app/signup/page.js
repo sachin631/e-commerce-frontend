@@ -367,25 +367,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(56786);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _services_api__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(53076);
-/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(11440);
-/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(30012);
-/* harmony import */ var cogo_toast__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(99690);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(18038);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(83850);
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(34751);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(45996);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _services_api__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(53076);
+/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11440);
+/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(30012);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(18038);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(83850);
 /* __next_internal_client_entry_do_not_use__ default auto */ 
 
 
 
 
 
+// import cogoToast from "cogo-toast";
+
 
 function Example() {
-    const [image, setImage] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)();
-    const [preview, setPreview] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)();
-    const [form, setFormData] = (0,react__WEBPACK_IMPORTED_MODULE_4__.useState)({
+    const [image, setImage] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)();
+    const [preview, setPreview] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)();
+    const [form, setFormData] = (0,react__WEBPACK_IMPORTED_MODULE_5__.useState)({
         name: "",
         phoneNumber: "",
         email: "",
@@ -407,7 +411,7 @@ function Example() {
     };
     console.log("image", image);
     //useEfffect function for Preview of the image
-    (0,react__WEBPACK_IMPORTED_MODULE_4__.useEffect)(()=>{
+    (0,react__WEBPACK_IMPORTED_MODULE_5__.useEffect)(()=>{
         if (image) {
             setPreview(URL.createObjectURL(image));
         }
@@ -425,28 +429,31 @@ function Example() {
         data.append("passWord", passWord);
         data.append("rePassword", rePassword);
         if (name == "" || email == "" || phoneNumber == "" || passWord == "" || rePassword == "") {
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.error("please fill all fields properly");
+            // cogoToast.error("please fill all fields properly");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("please fill all fields properly");
         }
         if (passWord !== rePassword) {
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.error("passWord are not same");
+            // cogoToast.error("passWord are not same");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("passWord are not same");
         }
         if (!isLoading) {
             mutate(data);
         }
     };
-    const { mutate, isLoading } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_5__/* .useMutation */ .D)(async (data)=>{
+    const { mutate, isLoading } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__/* .useMutation */ .D)(async (data)=>{
         let config = {
             "Content-Type": "multipart/form-data"
         };
         // const res = await api.post("registerUser", data);
-        const res = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_6__/* .registerUser */ .a$)(data, config);
+        const res = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_7__/* .registerUser */ .a$)(data, config);
         console.log(res);
         if (res.status !== 200) {
             throw error;
         }
     }, {
         onSuccess: ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.success("Your data is Store SuccesFuly");
+            // cogoToast.success("Your data is Store SuccesFuly");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.success("Your data is Store SuccesFuly");
             setFormData({
                 ...form,
                 name: "",
@@ -457,12 +464,13 @@ function Example() {
             });
         },
         onError: ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.error("someting went wrong try again later !");
+            // cogoToast.error("someting went wrong try again later !");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("someting went wrong try again later !");
         }
     });
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
         children: [
-            isLoading ? cogo_toast__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .ZP.loading("loading...") : "",
+            isLoading ? react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.loading("loading...") : "",
             /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
                 className: "flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8",
                 children: [
@@ -628,7 +636,7 @@ function Example() {
                                 children: [
                                     "Already a member ?",
                                     " ",
-                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx((next_link__WEBPACK_IMPORTED_MODULE_2___default()), {
+                                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx((next_link__WEBPACK_IMPORTED_MODULE_4___default()), {
                                         href: "/login",
                                         className: "text-blue-500 font-bold",
                                         children: "Login"
@@ -636,7 +644,8 @@ function Example() {
                                 ]
                             })
                         ]
-                    })
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .ToastContainer */ .Ix, {})
                 ]
             })
         ]
@@ -679,7 +688,7 @@ const __default__ = proxy.default;
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [904,698,843], () => (__webpack_exec__(65459)));
+var __webpack_exports__ = __webpack_require__.X(0, [472,698,843], () => (__webpack_exec__(65459)));
 module.exports = __webpack_exports__;
 
 })();

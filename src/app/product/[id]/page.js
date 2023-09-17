@@ -1,4 +1,6 @@
 "use client";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { addToCart, getSingleProduct } from "@/services/apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,9 +32,11 @@ const CardDetails = ({ params }) => {
 
   if (isFetching) {
     // cogoToast.loading("loading---");
+    toast.loading("loading---");
   }
   if (isError) {
     // cogoToast.error("something went wrong try again later or Refresh The Page");
+    toast.error("something went wrong try again later or Refresh The Page");
   }
 
 
@@ -50,11 +54,13 @@ const CardDetails = ({ params }) => {
   },{
     onSuccess:async()=>{
       // cogoToast.success("Congratulations Product Add To Cart Successfuly");
+      toast.success("Congratulations Product Add To Cart Successfuly");
     await  queryClient.invalidateQueries("getLoginUserDetails")
       
     },
     onError:()=>{
       // cogoToast.error("Something Went Wrong Try again, product not added to cart")
+      toast.error("Something Went Wrong Try again, product not added to cart");
     }
   })
   // if(addToCartLoading){
@@ -109,6 +115,7 @@ const CardDetails = ({ params }) => {
                       setQuantityValue(quantityValue-1);
                     }else{
                       // cogoToast.error("Not less then 1")
+                      toast.error("Not less then 1")
                     }
                   }}>-</span>
                   <span className="text-white">{quantityValue}</span>
@@ -117,6 +124,7 @@ const CardDetails = ({ params }) => {
                       setQuantityValue(quantityValue+1);
                     }else{
                       // cogoToast.error("can not select more then stock value")
+                      toast.error("can not select more then stock value")
                     }
                   }}>+</span>
                 </button>
@@ -156,6 +164,7 @@ const CardDetails = ({ params }) => {
             
           </div>
         </div>
+        <ToastContainer />
       </section>
     </>
   );

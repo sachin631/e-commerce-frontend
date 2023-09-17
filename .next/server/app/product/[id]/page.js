@@ -387,50 +387,56 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(56786);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(83850);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(212);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(53993);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(30012);
-/* harmony import */ var cogo_toast__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(99690);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(18038);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(81984);
-/* harmony import */ var react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var react_responsive_carousel__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(19610);
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(34751);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(45996);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(83850);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(212);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(53993);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(30012);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(18038);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(81984);
+/* harmony import */ var react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_responsive_carousel_lib_styles_carousel_min_css__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var react_responsive_carousel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(19610);
 /* __next_internal_client_entry_do_not_use__ default auto */ 
 
 
 
 
+// import cogoToast from "cogo-toast";
+
  // requires a loader
 
 
 const CardDetails = ({ params })=>{
-    const [quantityValue, setQuantityValue] = (0,react__WEBPACK_IMPORTED_MODULE_2__.useState)(1);
-    const queryClient = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_5__/* .useQueryClient */ .NL)();
+    const [quantityValue, setQuantityValue] = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(1);
+    const queryClient = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__/* .useQueryClient */ .NL)();
     console.log(params.id);
     const productId = params.id;
-    const { isFetching, isError, data } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_6__/* .useQuery */ .a)({
+    const { isFetching, isError, data } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_7__/* .useQuery */ .a)({
         queryKey: [
             "getSingleProduct",
             productId
         ],
         queryFn: async ()=>{
-            const res = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_7__/* .getSingleProduct */ ._0)(productId);
+            const res = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_8__/* .getSingleProduct */ ._0)(productId);
             return res.data;
         }
     });
     console.log("getSingleProduct", data?.message);
     console.log(data?.message?._id);
     if (isFetching) {
-        cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.loading("loading---");
+        // cogoToast.loading("loading---");
+        react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.loading("loading---");
     }
     if (isError) {
-        cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.error("something went wrong try again later or Refresh The Page");
+        // cogoToast.error("something went wrong try again later or Refresh The Page");
+        react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("something went wrong try again later or Refresh The Page");
     }
     //call api for add To Cart
-    const { mutate, addToCartLoading: isLoading } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_8__/* .useMutation */ .D)(async (_id)=>{
-        const responseOfAddToCart = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_7__/* .addToCart */ .Xq)(_id, {
+    const { mutate, addToCartLoading: isLoading } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__/* .useMutation */ .D)(async (_id)=>{
+        const responseOfAddToCart = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_8__/* .addToCart */ .Xq)(_id, {
             quantity: quantityValue
         });
         console.log(responseOfAddToCart);
@@ -440,11 +446,13 @@ const CardDetails = ({ params })=>{
     // return responseOfAddToCart;
     }, {
         onSuccess: async ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.success("Congratulations Product Add To Cart Successfuly");
+            // cogoToast.success("Congratulations Product Add To Cart Successfuly");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.success("Congratulations Product Add To Cart Successfuly");
             await queryClient.invalidateQueries("getLoginUserDetails");
         },
         onError: ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.error("Something Went Wrong Try again, product not added to cart");
+            // cogoToast.error("Something Went Wrong Try again, product not added to cart")
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("Something Went Wrong Try again, product not added to cart");
         }
     });
     // if(addToCartLoading){
@@ -466,7 +474,7 @@ const CardDetails = ({ params })=>{
                         children: [
                             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                                 className: "w-[50%]",
-                                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_responsive_carousel__WEBPACK_IMPORTED_MODULE_4__/* .Carousel */ .lr, {
+                                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_responsive_carousel__WEBPACK_IMPORTED_MODULE_5__/* .Carousel */ .lr, {
                                     className: "w-[100%]",
                                     children: data?.message.images.map((curelem)=>{
                                         return /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
@@ -548,7 +556,8 @@ const CardDetails = ({ params })=>{
                                                         if (quantityValue > 1) {
                                                             setQuantityValue(quantityValue - 1);
                                                         } else {
-                                                            cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.error("Not less then 1");
+                                                            // cogoToast.error("Not less then 1")
+                                                            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("Not less then 1");
                                                         }
                                                     },
                                                     children: "-"
@@ -563,7 +572,8 @@ const CardDetails = ({ params })=>{
                                                         if (quantityValue < data?.message?.stock) {
                                                             setQuantityValue(quantityValue + 1);
                                                         } else {
-                                                            cogo_toast__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .ZP.error("can not select more then stock value");
+                                                            // cogoToast.error("can not select more then stock value")
+                                                            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("can not select more then stock value");
                                                         }
                                                     },
                                                     children: "+"
@@ -608,7 +618,8 @@ const CardDetails = ({ params })=>{
                             })
                         ]
                     })
-                })
+                }),
+                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .ToastContainer */ .Ix, {})
             ]
         })
     });
@@ -651,7 +662,7 @@ const __default__ = proxy.default;
 var __webpack_require__ = require("../../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [904,965,698], () => (__webpack_exec__(90431)));
+var __webpack_exports__ = __webpack_require__.X(0, [472,965,698], () => (__webpack_exec__(90431)));
 module.exports = __webpack_exports__;
 
 })();

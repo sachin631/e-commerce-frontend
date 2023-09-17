@@ -1,4 +1,7 @@
 "use client";
+
+import { ToastContainer, toast } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';
 import api from "@/services/api";
 import Link from "next/link";
 
@@ -59,10 +62,12 @@ export default function Example() {
       rePassword == ""
     ) {
       // cogoToast.error("please fill all fields properly");
+      toast.error("please fill all fields properly");
     }
 
     if (passWord !== rePassword) {
       // cogoToast.error("passWord are not same");
+      toast.error("passWord are not same");
     }
 
     if (!isLoading) {
@@ -86,6 +91,7 @@ export default function Example() {
     {
       onSuccess: () => {
         // cogoToast.success("Your data is Store SuccesFuly");
+        toast.success("Your data is Store SuccesFuly");
         setFormData({
           ...form,
           name: "",
@@ -97,13 +103,14 @@ export default function Example() {
       },
       onError: () => {
         // cogoToast.error("someting went wrong try again later !");
+        toast.error("someting went wrong try again later !");
       },
     }
   );
 
   return (
     <>
-      {isLoading ? "" : ""}
+      {isLoading ? toast.loading("loading...") : ""}
       {/* cogoToast.loading("loading...") */}
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         {/* shown profile picture/avatar area */}
@@ -261,6 +268,7 @@ export default function Example() {
             </Link>
           </p>
         </div>
+        <ToastContainer />
       </div>
     </>
   );

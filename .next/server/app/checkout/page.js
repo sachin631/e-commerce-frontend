@@ -407,20 +407,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(56786);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(18038);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _cart_page__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(84973);
-/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11440);
-/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(52451);
-/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(next_image__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(212);
-/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(30012);
-/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(83850);
-/* harmony import */ var cogo_toast__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(99690);
-/* harmony import */ var react_loader_spinner__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(22602);
-/* harmony import */ var react_icons_md__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(7625);
-/* harmony import */ var _stripe_stripe_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14041);
+/* harmony import */ var react_toastify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(34751);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(45996);
+/* harmony import */ var react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_toastify_dist_ReactToastify_css__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(18038);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _cart_page__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(84973);
+/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11440);
+/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(52451);
+/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(next_image__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(212);
+/* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(30012);
+/* harmony import */ var _services_apis__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(83850);
+/* harmony import */ var react_loader_spinner__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(22602);
+/* harmony import */ var react_icons_md__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(7625);
+/* harmony import */ var _stripe_stripe_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(14041);
 /* __next_internal_client_entry_do_not_use__ default auto */ 
 
 
@@ -430,20 +432,22 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// import cogoToast from "cogo-toast";
+
 
 
 const Checkout = ()=>{
-    const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(0);
-    const [data, setData] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)();
-    const queryClient = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_8__/* .useQueryClient */ .NL)();
-    (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(()=>{
+    const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)(0);
+    const [data, setData] = (0,react__WEBPACK_IMPORTED_MODULE_3__.useState)();
+    const queryClient = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__/* .useQueryClient */ .NL)();
+    (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(()=>{
         setTimeout(()=>{
             getUserData();
         }, 1000);
     }, [
         data
     ]);
-    (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(()=>{
+    (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(()=>{
         if (data?.data?.user?.cart) {
             // Calculate total price
             const totalPrice = data.data.user.cart.reduce((acc, curelem)=>{
@@ -455,8 +459,8 @@ const Checkout = ()=>{
         data
     ]);
     //deletToCart
-    const { isLoading, mutate } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_9__/* .useMutation */ .D)(async (_id)=>{
-        const responseOfDelete = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_10__/* .deleteToCart */ .ul)(_id);
+    const { isLoading, mutate } = (0,_tanstack_react_query__WEBPACK_IMPORTED_MODULE_10__/* .useMutation */ .D)(async (_id)=>{
+        const responseOfDelete = await (0,_services_apis__WEBPACK_IMPORTED_MODULE_11__/* .deleteToCart */ .ul)(_id);
         console.log("responseOfDelete", responseOfDelete);
         if (responseOfDelete.status !== 200) {
             throw new Error;
@@ -464,13 +468,15 @@ const Checkout = ()=>{
         return responseOfDelete;
     }, {
         onSuccess: async ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_5__/* ["default"] */ .ZP.success("product deleted successFuly");
+            // cogoToast.success("product deleted successFuly");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.success("product deleted successFuly");
             queryClient.invalidateQueries("getLoginUserDetails");
             await queryClient.refetchQueries("getLoginUserDetails");
             await getUserData();
         },
         onError: ()=>{
-            cogo_toast__WEBPACK_IMPORTED_MODULE_5__/* ["default"] */ .ZP.error("product not deleted try again");
+            // cogoToast.error("product not deleted try again");
+            react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .toast */ .Am.error("product not deleted try again");
         }
     });
     const getUserData = async ()=>{
@@ -482,7 +488,7 @@ const Checkout = ()=>{
         setData(userDetailQueryData);
     };
     const payNow = async ()=>{
-        const stripe = await (0,_stripe_stripe_js__WEBPACK_IMPORTED_MODULE_7__/* .loadStripe */ .J)("pk_test_51NjDbvSDdruy8IaQVIy3lm8PffsPCBpJAcQ5zm2zctYJlrU5H5INip8rp6xmg4wSI6mBej7TtTW2PSggWv8aD7rC00JFyxotlA");
+        const stripe = await (0,_stripe_stripe_js__WEBPACK_IMPORTED_MODULE_8__/* .loadStripe */ .J)("pk_test_51NjDbvSDdruy8IaQVIy3lm8PffsPCBpJAcQ5zm2zctYJlrU5H5INip8rp6xmg4wSI6mBej7TtTW2PSggWv8aD7rC00JFyxotlA");
         const body = {
             products1: data?.data?.user?.cart
         };
@@ -505,7 +511,7 @@ const Checkout = ()=>{
     if (!data) {
         return /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
             className: "flex justify-center items-center mt-[200px] ",
-            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_loader_spinner__WEBPACK_IMPORTED_MODULE_6__/* .RotatingLines */ .s5, {
+            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_loader_spinner__WEBPACK_IMPORTED_MODULE_7__/* .RotatingLines */ .s5, {
                 strokeColor: "brown",
                 strokeWidth: "2",
                 animationDuration: "0.75",
@@ -760,7 +766,7 @@ const Checkout = ()=>{
                                                                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("button", {
                                                                         className: "text-blue-500  flex justify-end active:text-red-500",
                                                                         onClick: ()=>deleteButton(curelem.product._id),
-                                                                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_icons_md__WEBPACK_IMPORTED_MODULE_11__/* .MdDelete */ .ZkW, {})
+                                                                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_icons_md__WEBPACK_IMPORTED_MODULE_12__/* .MdDelete */ .ZkW, {})
                                                                     })
                                                                 ]
                                                             })
@@ -802,7 +808,7 @@ const Checkout = ()=>{
                                         }),
                                         /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
                                             className: "w-[100%] flex justify-center items-center",
-                                            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx((next_link__WEBPACK_IMPORTED_MODULE_3___default()), {
+                                            children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx((next_link__WEBPACK_IMPORTED_MODULE_5___default()), {
                                                 href: "/",
                                                 children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("button", {
                                                     className: "text-center",
@@ -907,7 +913,8 @@ const Checkout = ()=>{
                             ]
                         })
                     ]
-                })
+                }),
+                /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(react_toastify__WEBPACK_IMPORTED_MODULE_1__/* .ToastContainer */ .Ix, {})
             ]
         })
     });
@@ -950,7 +957,7 @@ const __default__ = proxy.default;
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [904,625,451,41,698,776], () => (__webpack_exec__(13353)));
+var __webpack_exports__ = __webpack_require__.X(0, [472,625,451,41,698,776], () => (__webpack_exec__(13353)));
 module.exports = __webpack_exports__;
 
 })();
