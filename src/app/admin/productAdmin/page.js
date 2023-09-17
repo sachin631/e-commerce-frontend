@@ -1,7 +1,7 @@
 "use client";
 import { getProduct } from "@/RTK/productSlice";
 import DashBoard from "@/app/dashboard/page";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import Link from "next/link";
 import React, { useEffect } from "react";
 import { FiEdit2 } from "react-icons/fi";

@@ -2,7 +2,7 @@
 
 import { addToCart, getSingleProduct } from "@/services/apis";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 
 
 import React, { useState } from "react";
@@ -29,10 +29,10 @@ const CardDetails = ({ params }) => {
   console.log(data?.message?._id)
 
   if (isFetching) {
-    cogoToast.loading("loading---");
+    // cogoToast.loading("loading---");
   }
   if (isError) {
-    cogoToast.error("something went wrong try again later or Refresh The Page");
+    // cogoToast.error("something went wrong try again later or Refresh The Page");
   }
 
 
@@ -49,12 +49,12 @@ const CardDetails = ({ params }) => {
      
   },{
     onSuccess:async()=>{
-      cogoToast.success("Congratulations Product Add To Cart Successfuly");
+      // cogoToast.success("Congratulations Product Add To Cart Successfuly");
     await  queryClient.invalidateQueries("getLoginUserDetails")
       
     },
     onError:()=>{
-      cogoToast.error("Something Went Wrong Try again, product not added to cart")
+      // cogoToast.error("Something Went Wrong Try again, product not added to cart")
     }
   })
   // if(addToCartLoading){
@@ -108,7 +108,7 @@ const CardDetails = ({ params }) => {
                     if(quantityValue>1){
                       setQuantityValue(quantityValue-1);
                     }else{
-                      cogoToast.error("Not less then 1")
+                      // cogoToast.error("Not less then 1")
                     }
                   }}>-</span>
                   <span className="text-white">{quantityValue}</span>
@@ -116,7 +116,7 @@ const CardDetails = ({ params }) => {
                     if(quantityValue<data?.message?.stock){
                       setQuantityValue(quantityValue+1);
                     }else{
-                      cogoToast.error("can not select more then stock value")
+                      // cogoToast.error("can not select more then stock value")
                     }
                   }}>+</span>
                 </button>

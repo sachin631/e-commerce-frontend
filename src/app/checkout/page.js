@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteToCart } from "@/services/apis";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import { RotatingLines } from "react-loader-spinner";
 import { MdDelete } from "react-icons/md";
 import {loadStripe} from '@stripe/stripe-js';

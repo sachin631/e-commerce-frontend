@@ -1,7 +1,7 @@
 "use client";
 import { createProduct } from "@/RTK/productSlice";
 import DashBoard from "@/app/dashboard/page";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -86,7 +86,7 @@ const CreateProduct = () => {
   console.log(product, "product");
 
   if (loading) {
-    cogoToast.loading("loading>>>");
+    // cogoToast.loading("loading>>>");
   }
   //  if(product[0]?.success==false){
   //   cogoToast.error("something went wrong ");

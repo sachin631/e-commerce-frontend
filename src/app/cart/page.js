@@ -1,7 +1,7 @@
 "use client";
 import { deleteToCart } from "@/services/apis";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
