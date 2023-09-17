@@ -3,7 +3,7 @@ import api from "@/services/api";
 import Link from "next/link";
 
 import { useMutation } from "@tanstack/react-query";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import { useEffect, useState } from "react";
 import { registerUser } from "@/services/apis";
 
@@ -58,11 +58,11 @@ export default function Example() {
       passWord == "" ||
       rePassword == ""
     ) {
-      cogoToast.error("please fill all fields properly");
+      // cogoToast.error("please fill all fields properly");
     }
 
     if (passWord !== rePassword) {
-      cogoToast.error("passWord are not same");
+      // cogoToast.error("passWord are not same");
     }
 
     if (!isLoading) {
@@ -85,7 +85,7 @@ export default function Example() {
 
     {
       onSuccess: () => {
-        cogoToast.success("Your data is Store SuccesFuly");
+        // cogoToast.success("Your data is Store SuccesFuly");
         setFormData({
           ...form,
           name: "",
@@ -96,14 +96,15 @@ export default function Example() {
         });
       },
       onError: () => {
-        cogoToast.error("someting went wrong try again later !");
+        // cogoToast.error("someting went wrong try again later !");
       },
     }
   );
 
   return (
     <>
-      {isLoading ? cogoToast.loading("loading...") : ""}
+      {isLoading ? "" : ""}
+      {/* cogoToast.loading("loading...") */}
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         {/* shown profile picture/avatar area */}
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">

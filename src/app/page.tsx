@@ -5,7 +5,7 @@ import Navbar from "@/component/navbar";
 import { getAllProduct } from "@/services/apis";
 import { Pagination } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";

@@ -17,7 +17,7 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getLoginUserDetails, userLogout } from "@/services/apis";
-import cogoToast from "cogo-toast";
+// import cogoToast from "cogo-toast";
 import { RotatingLines } from "react-loader-spinner";
 // import { queryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -55,12 +55,12 @@ export default function Navbar() {
     },
     {
       onSuccess: () => {
-        cogoToast.success("logOut SuccessFully");
+        // cogoToast.success("logOut SuccessFully");
         queryClient.clear();
         queryClient.invalidateQueries("getLoginUserDetails"); // Trigger revalidation
       },
       onError: () => {
-        cogoToast.error("somthing went wrong try again ....");
+        // cogoToast.error("somthing went wrong try again ....");
       },
     }
   );
@@ -126,7 +126,7 @@ export default function Navbar() {
                       className="text-gray-300 cursor-pointer  hover:bg-gray-700 hover:text-white"
                       onClick={() => {
                         if (data?.data?.user.role == "user") {
-                          cogoToast.error("only admin can access");
+                          // cogoToast.error("only admin can access");
                         }
                       }}
                     >
@@ -154,7 +154,7 @@ export default function Navbar() {
                     className="cursor-pointer"
                     onClick={() => {
                       if (!data?.data?.user) {
-                        cogoToast.error("login to access Your Cart Data");
+                        // cogoToast.error("login to access Your Cart Data");
                       }
                     }}
                   >
@@ -206,7 +206,7 @@ export default function Navbar() {
                           <Link
                             onClick={() => {
                               if (!data?.data?.user) {
-                                cogoToast.error("Please Login To access");
+                                // cogoToast.error("Please Login To access");
                               }
                             }}
                             href={data?.data?.user ? "/profile" : ""}
@@ -264,7 +264,7 @@ export default function Navbar() {
                 className="text-gray-300 cursor-pointer  hover:bg-gray-700 hover:text-white"
                 onClick={() => {
                   if (data?.data?.user.role == "user") {
-                    cogoToast.error("only admin can access");
+                    // cogoToast.error("only admin can access");
                   }
                 }}
               >
