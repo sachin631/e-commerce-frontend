@@ -1,5 +1,5 @@
-exports.id = 355;
-exports.ids = [355];
+exports.id = 904;
+exports.ids = [904];
 exports.modules = {
 
 /***/ 68941:
@@ -3559,6 +3559,2178 @@ var weakMemoize = function weakMemoize(func) {
 
 /***/ }),
 
+/***/ 74163:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  arrow: () => (/* binding */ floating_ui_react_dom_esm_arrow),
+  autoPlacement: () => (/* reexport */ autoPlacement),
+  autoUpdate: () => (/* reexport */ autoUpdate),
+  computePosition: () => (/* reexport */ floating_ui_dom_computePosition),
+  detectOverflow: () => (/* reexport */ detectOverflow),
+  flip: () => (/* reexport */ flip),
+  getOverflowAncestors: () => (/* reexport */ getOverflowAncestors),
+  hide: () => (/* reexport */ hide),
+  inline: () => (/* reexport */ inline),
+  limitShift: () => (/* reexport */ limitShift),
+  offset: () => (/* reexport */ offset),
+  platform: () => (/* reexport */ platform),
+  shift: () => (/* reexport */ shift),
+  size: () => (/* reexport */ size),
+  useFloating: () => (/* binding */ useFloating)
+});
+
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
+const sides = ['top', 'right', 'bottom', 'left'];
+const alignments = ['start', 'end'];
+const placements = /*#__PURE__*/sides.reduce((acc, side) => acc.concat(side, side + "-" + alignments[0], side + "-" + alignments[1]), []);
+const min = Math.min;
+const max = Math.max;
+const round = Math.round;
+const floor = Math.floor;
+const createCoords = v => ({
+  x: v,
+  y: v
+});
+const oppositeSideMap = {
+  left: 'right',
+  right: 'left',
+  bottom: 'top',
+  top: 'bottom'
+};
+const oppositeAlignmentMap = {
+  start: 'end',
+  end: 'start'
+};
+function clamp(start, value, end) {
+  return max(start, min(value, end));
+}
+function evaluate(value, param) {
+  return typeof value === 'function' ? value(param) : value;
+}
+function getSide(placement) {
+  return placement.split('-')[0];
+}
+function getAlignment(placement) {
+  return placement.split('-')[1];
+}
+function getOppositeAxis(axis) {
+  return axis === 'x' ? 'y' : 'x';
+}
+function getAxisLength(axis) {
+  return axis === 'y' ? 'height' : 'width';
+}
+function getSideAxis(placement) {
+  return ['top', 'bottom'].includes(getSide(placement)) ? 'y' : 'x';
+}
+function getAlignmentAxis(placement) {
+  return getOppositeAxis(getSideAxis(placement));
+}
+function getAlignmentSides(placement, rects, rtl) {
+  if (rtl === void 0) {
+    rtl = false;
+  }
+  const alignment = getAlignment(placement);
+  const alignmentAxis = getAlignmentAxis(placement);
+  const length = getAxisLength(alignmentAxis);
+  let mainAlignmentSide = alignmentAxis === 'x' ? alignment === (rtl ? 'end' : 'start') ? 'right' : 'left' : alignment === 'start' ? 'bottom' : 'top';
+  if (rects.reference[length] > rects.floating[length]) {
+    mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
+  }
+  return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
+}
+function getExpandedPlacements(placement) {
+  const oppositePlacement = getOppositePlacement(placement);
+  return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
+}
+function getOppositeAlignmentPlacement(placement) {
+  return placement.replace(/start|end/g, alignment => oppositeAlignmentMap[alignment]);
+}
+function getSideList(side, isStart, rtl) {
+  const lr = ['left', 'right'];
+  const rl = ['right', 'left'];
+  const tb = ['top', 'bottom'];
+  const bt = ['bottom', 'top'];
+  switch (side) {
+    case 'top':
+    case 'bottom':
+      if (rtl) return isStart ? rl : lr;
+      return isStart ? lr : rl;
+    case 'left':
+    case 'right':
+      return isStart ? tb : bt;
+    default:
+      return [];
+  }
+}
+function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
+  const alignment = getAlignment(placement);
+  let list = getSideList(getSide(placement), direction === 'start', rtl);
+  if (alignment) {
+    list = list.map(side => side + "-" + alignment);
+    if (flipAlignment) {
+      list = list.concat(list.map(getOppositeAlignmentPlacement));
+    }
+  }
+  return list;
+}
+function getOppositePlacement(placement) {
+  return placement.replace(/left|right|bottom|top/g, side => oppositeSideMap[side]);
+}
+function expandPaddingObject(padding) {
+  return {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    ...padding
+  };
+}
+function getPaddingObject(padding) {
+  return typeof padding !== 'number' ? expandPaddingObject(padding) : {
+    top: padding,
+    right: padding,
+    bottom: padding,
+    left: padding
+  };
+}
+function rectToClientRect(rect) {
+  return {
+    ...rect,
+    top: rect.y,
+    left: rect.x,
+    right: rect.x + rect.width,
+    bottom: rect.y + rect.height
+  };
+}
+
+
+
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/core/dist/floating-ui.core.mjs
+
+
+
+function computeCoordsFromPlacement(_ref, placement, rtl) {
+  let {
+    reference,
+    floating
+  } = _ref;
+  const sideAxis = getSideAxis(placement);
+  const alignmentAxis = getAlignmentAxis(placement);
+  const alignLength = getAxisLength(alignmentAxis);
+  const side = getSide(placement);
+  const isVertical = sideAxis === 'y';
+  const commonX = reference.x + reference.width / 2 - floating.width / 2;
+  const commonY = reference.y + reference.height / 2 - floating.height / 2;
+  const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
+  let coords;
+  switch (side) {
+    case 'top':
+      coords = {
+        x: commonX,
+        y: reference.y - floating.height
+      };
+      break;
+    case 'bottom':
+      coords = {
+        x: commonX,
+        y: reference.y + reference.height
+      };
+      break;
+    case 'right':
+      coords = {
+        x: reference.x + reference.width,
+        y: commonY
+      };
+      break;
+    case 'left':
+      coords = {
+        x: reference.x - floating.width,
+        y: commonY
+      };
+      break;
+    default:
+      coords = {
+        x: reference.x,
+        y: reference.y
+      };
+  }
+  switch (getAlignment(placement)) {
+    case 'start':
+      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
+      break;
+    case 'end':
+      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
+      break;
+  }
+  return coords;
+}
+
+/**
+ * Computes the `x` and `y` coordinates that will place the floating element
+ * next to a reference element when it is given a certain positioning strategy.
+ *
+ * This export does not have any `platform` interface logic. You will need to
+ * write one for the platform you are using Floating UI with.
+ */
+const computePosition = async (reference, floating, config) => {
+  const {
+    placement = 'bottom',
+    strategy = 'absolute',
+    middleware = [],
+    platform
+  } = config;
+  const validMiddleware = middleware.filter(Boolean);
+  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
+  let rects = await platform.getElementRects({
+    reference,
+    floating,
+    strategy
+  });
+  let {
+    x,
+    y
+  } = computeCoordsFromPlacement(rects, placement, rtl);
+  let statefulPlacement = placement;
+  let middlewareData = {};
+  let resetCount = 0;
+  for (let i = 0; i < validMiddleware.length; i++) {
+    const {
+      name,
+      fn
+    } = validMiddleware[i];
+    const {
+      x: nextX,
+      y: nextY,
+      data,
+      reset
+    } = await fn({
+      x,
+      y,
+      initialPlacement: placement,
+      placement: statefulPlacement,
+      strategy,
+      middlewareData,
+      rects,
+      platform,
+      elements: {
+        reference,
+        floating
+      }
+    });
+    x = nextX != null ? nextX : x;
+    y = nextY != null ? nextY : y;
+    middlewareData = {
+      ...middlewareData,
+      [name]: {
+        ...middlewareData[name],
+        ...data
+      }
+    };
+    if (reset && resetCount <= 50) {
+      resetCount++;
+      if (typeof reset === 'object') {
+        if (reset.placement) {
+          statefulPlacement = reset.placement;
+        }
+        if (reset.rects) {
+          rects = reset.rects === true ? await platform.getElementRects({
+            reference,
+            floating,
+            strategy
+          }) : reset.rects;
+        }
+        ({
+          x,
+          y
+        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
+      }
+      i = -1;
+      continue;
+    }
+  }
+  return {
+    x,
+    y,
+    placement: statefulPlacement,
+    strategy,
+    middlewareData
+  };
+};
+
+/**
+ * Resolves with an object of overflow side offsets that determine how much the
+ * element is overflowing a given clipping boundary on each side.
+ * - positive = overflowing the boundary by that number of pixels
+ * - negative = how many pixels left before it will overflow
+ * - 0 = lies flush with the boundary
+ * @see https://floating-ui.com/docs/detectOverflow
+ */
+async function detectOverflow(state, options) {
+  var _await$platform$isEle;
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    x,
+    y,
+    platform,
+    rects,
+    elements,
+    strategy
+  } = state;
+  const {
+    boundary = 'clippingAncestors',
+    rootBoundary = 'viewport',
+    elementContext = 'floating',
+    altBoundary = false,
+    padding = 0
+  } = evaluate(options, state);
+  const paddingObject = getPaddingObject(padding);
+  const altContext = elementContext === 'floating' ? 'reference' : 'floating';
+  const element = elements[altBoundary ? altContext : elementContext];
+  const clippingClientRect = rectToClientRect(await platform.getClippingRect({
+    element: ((_await$platform$isEle = await (platform.isElement == null ? void 0 : platform.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || (await (platform.getDocumentElement == null ? void 0 : platform.getDocumentElement(elements.floating))),
+    boundary,
+    rootBoundary,
+    strategy
+  }));
+  const rect = elementContext === 'floating' ? {
+    ...rects.floating,
+    x,
+    y
+  } : rects.reference;
+  const offsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(elements.floating));
+  const offsetScale = (await (platform.isElement == null ? void 0 : platform.isElement(offsetParent))) ? (await (platform.getScale == null ? void 0 : platform.getScale(offsetParent))) || {
+    x: 1,
+    y: 1
+  } : {
+    x: 1,
+    y: 1
+  };
+  const elementClientRect = rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
+    rect,
+    offsetParent,
+    strategy
+  }) : rect);
+  return {
+    top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
+    bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
+    left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
+    right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
+  };
+}
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const arrow = options => ({
+  name: 'arrow',
+  options,
+  async fn(state) {
+    const {
+      x,
+      y,
+      placement,
+      rects,
+      platform,
+      elements,
+      middlewareData
+    } = state;
+    // Since `element` is required, we don't Partial<> the type.
+    const {
+      element,
+      padding = 0
+    } = evaluate(options, state) || {};
+    if (element == null) {
+      return {};
+    }
+    const paddingObject = getPaddingObject(padding);
+    const coords = {
+      x,
+      y
+    };
+    const axis = getAlignmentAxis(placement);
+    const length = getAxisLength(axis);
+    const arrowDimensions = await platform.getDimensions(element);
+    const isYAxis = axis === 'y';
+    const minProp = isYAxis ? 'top' : 'left';
+    const maxProp = isYAxis ? 'bottom' : 'right';
+    const clientProp = isYAxis ? 'clientHeight' : 'clientWidth';
+    const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
+    const startDiff = coords[axis] - rects.reference[axis];
+    const arrowOffsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(element));
+    let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
+
+    // DOM platform can return `window` as the `offsetParent`.
+    if (!clientSize || !(await (platform.isElement == null ? void 0 : platform.isElement(arrowOffsetParent)))) {
+      clientSize = elements.floating[clientProp] || rects.floating[length];
+    }
+    const centerToReference = endDiff / 2 - startDiff / 2;
+
+    // If the padding is large enough that it causes the arrow to no longer be
+    // centered, modify the padding so that it is centered.
+    const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
+    const minPadding = min(paddingObject[minProp], largestPossiblePadding);
+    const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
+
+    // Make sure the arrow doesn't overflow the floating element if the center
+    // point is outside the floating element's bounds.
+    const min$1 = minPadding;
+    const max = clientSize - arrowDimensions[length] - maxPadding;
+    const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
+    const offset = clamp(min$1, center, max);
+
+    // If the reference is small enough that the arrow's padding causes it to
+    // to point to nothing for an aligned placement, adjust the offset of the
+    // floating element itself. To ensure `shift()` continues to take action,
+    // a single reset is performed when this is true.
+    const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center != offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
+    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max : 0;
+    return {
+      [axis]: coords[axis] + alignmentOffset,
+      data: {
+        [axis]: offset,
+        centerOffset: center - offset - alignmentOffset,
+        ...(shouldAddOffset && {
+          alignmentOffset
+        })
+      },
+      reset: shouldAddOffset
+    };
+  }
+});
+
+function getPlacementList(alignment, autoAlignment, allowedPlacements) {
+  const allowedPlacementsSortedByAlignment = alignment ? [...allowedPlacements.filter(placement => getAlignment(placement) === alignment), ...allowedPlacements.filter(placement => getAlignment(placement) !== alignment)] : allowedPlacements.filter(placement => getSide(placement) === placement);
+  return allowedPlacementsSortedByAlignment.filter(placement => {
+    if (alignment) {
+      return getAlignment(placement) === alignment || (autoAlignment ? getOppositeAlignmentPlacement(placement) !== placement : false);
+    }
+    return true;
+  });
+}
+/**
+ * Optimizes the visibility of the floating element by choosing the placement
+ * that has the most space available automatically, without needing to specify a
+ * preferred placement. Alternative to `flip`.
+ * @see https://floating-ui.com/docs/autoPlacement
+ */
+const autoPlacement = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'autoPlacement',
+    options,
+    async fn(state) {
+      var _middlewareData$autoP, _middlewareData$autoP2, _placementsThatFitOnE;
+      const {
+        rects,
+        middlewareData,
+        placement,
+        platform,
+        elements
+      } = state;
+      const {
+        crossAxis = false,
+        alignment,
+        allowedPlacements = placements,
+        autoAlignment = true,
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      const placements$1 = alignment !== undefined || allowedPlacements === placements ? getPlacementList(alignment || null, autoAlignment, allowedPlacements) : allowedPlacements;
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const currentIndex = ((_middlewareData$autoP = middlewareData.autoPlacement) == null ? void 0 : _middlewareData$autoP.index) || 0;
+      const currentPlacement = placements$1[currentIndex];
+      if (currentPlacement == null) {
+        return {};
+      }
+      const alignmentSides = getAlignmentSides(currentPlacement, rects, await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating)));
+
+      // Make `computeCoords` start from the right place.
+      if (placement !== currentPlacement) {
+        return {
+          reset: {
+            placement: placements$1[0]
+          }
+        };
+      }
+      const currentOverflows = [overflow[getSide(currentPlacement)], overflow[alignmentSides[0]], overflow[alignmentSides[1]]];
+      const allOverflows = [...(((_middlewareData$autoP2 = middlewareData.autoPlacement) == null ? void 0 : _middlewareData$autoP2.overflows) || []), {
+        placement: currentPlacement,
+        overflows: currentOverflows
+      }];
+      const nextPlacement = placements$1[currentIndex + 1];
+
+      // There are more placements to check.
+      if (nextPlacement) {
+        return {
+          data: {
+            index: currentIndex + 1,
+            overflows: allOverflows
+          },
+          reset: {
+            placement: nextPlacement
+          }
+        };
+      }
+      const placementsSortedByMostSpace = allOverflows.map(d => {
+        const alignment = getAlignment(d.placement);
+        return [d.placement, alignment && crossAxis ?
+        // Check along the mainAxis and main crossAxis side.
+        d.overflows.slice(0, 2).reduce((acc, v) => acc + v, 0) :
+        // Check only the mainAxis.
+        d.overflows[0], d.overflows];
+      }).sort((a, b) => a[1] - b[1]);
+      const placementsThatFitOnEachSide = placementsSortedByMostSpace.filter(d => d[2].slice(0,
+      // Aligned placements should not check their opposite crossAxis
+      // side.
+      getAlignment(d[0]) ? 2 : 3).every(v => v <= 0));
+      const resetPlacement = ((_placementsThatFitOnE = placementsThatFitOnEachSide[0]) == null ? void 0 : _placementsThatFitOnE[0]) || placementsSortedByMostSpace[0][0];
+      if (resetPlacement !== placement) {
+        return {
+          data: {
+            index: currentIndex + 1,
+            overflows: allOverflows
+          },
+          reset: {
+            placement: resetPlacement
+          }
+        };
+      }
+      return {};
+    }
+  };
+};
+
+/**
+ * Optimizes the visibility of the floating element by flipping the `placement`
+ * in order to keep it in view when the preferred placement(s) will overflow the
+ * clipping boundary. Alternative to `autoPlacement`.
+ * @see https://floating-ui.com/docs/flip
+ */
+const flip = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'flip',
+    options,
+    async fn(state) {
+      var _middlewareData$arrow, _middlewareData$flip;
+      const {
+        placement,
+        middlewareData,
+        rects,
+        initialPlacement,
+        platform,
+        elements
+      } = state;
+      const {
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = true,
+        fallbackPlacements: specifiedFallbackPlacements,
+        fallbackStrategy = 'bestFit',
+        fallbackAxisSideDirection = 'none',
+        flipAlignment = true,
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+
+      // If a reset by the arrow was caused due to an alignment offset being
+      // added, we should skip any logic now since `flip()` has already done its
+      // work.
+      // https://github.com/floating-ui/floating-ui/issues/2549#issuecomment-1719601643
+      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
+        return {};
+      }
+      const side = getSide(placement);
+      const isBasePlacement = getSide(initialPlacement) === initialPlacement;
+      const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+      const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
+      if (!specifiedFallbackPlacements && fallbackAxisSideDirection !== 'none') {
+        fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
+      }
+      const placements = [initialPlacement, ...fallbackPlacements];
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const overflows = [];
+      let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
+      if (checkMainAxis) {
+        overflows.push(overflow[side]);
+      }
+      if (checkCrossAxis) {
+        const sides = getAlignmentSides(placement, rects, rtl);
+        overflows.push(overflow[sides[0]], overflow[sides[1]]);
+      }
+      overflowsData = [...overflowsData, {
+        placement,
+        overflows
+      }];
+
+      // One or more sides is overflowing.
+      if (!overflows.every(side => side <= 0)) {
+        var _middlewareData$flip2, _overflowsData$filter;
+        const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
+        const nextPlacement = placements[nextIndex];
+        if (nextPlacement) {
+          // Try next placement and re-run the lifecycle.
+          return {
+            data: {
+              index: nextIndex,
+              overflows: overflowsData
+            },
+            reset: {
+              placement: nextPlacement
+            }
+          };
+        }
+
+        // First, find the candidates that fit on the mainAxis side of overflow,
+        // then find the placement that fits the best on the main crossAxis side.
+        let resetPlacement = (_overflowsData$filter = overflowsData.filter(d => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
+
+        // Otherwise fallback.
+        if (!resetPlacement) {
+          switch (fallbackStrategy) {
+            case 'bestFit':
+              {
+                var _overflowsData$map$so;
+                const placement = (_overflowsData$map$so = overflowsData.map(d => [d.placement, d.overflows.filter(overflow => overflow > 0).reduce((acc, overflow) => acc + overflow, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? void 0 : _overflowsData$map$so[0];
+                if (placement) {
+                  resetPlacement = placement;
+                }
+                break;
+              }
+            case 'initialPlacement':
+              resetPlacement = initialPlacement;
+              break;
+          }
+        }
+        if (placement !== resetPlacement) {
+          return {
+            reset: {
+              placement: resetPlacement
+            }
+          };
+        }
+      }
+      return {};
+    }
+  };
+};
+
+function getSideOffsets(overflow, rect) {
+  return {
+    top: overflow.top - rect.height,
+    right: overflow.right - rect.width,
+    bottom: overflow.bottom - rect.height,
+    left: overflow.left - rect.width
+  };
+}
+function isAnySideFullyClipped(overflow) {
+  return sides.some(side => overflow[side] >= 0);
+}
+/**
+ * Provides data to hide the floating element in applicable situations, such as
+ * when it is not in the same clipping context as the reference element.
+ * @see https://floating-ui.com/docs/hide
+ */
+const hide = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'hide',
+    options,
+    async fn(state) {
+      const {
+        rects
+      } = state;
+      const {
+        strategy = 'referenceHidden',
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      switch (strategy) {
+        case 'referenceHidden':
+          {
+            const overflow = await detectOverflow(state, {
+              ...detectOverflowOptions,
+              elementContext: 'reference'
+            });
+            const offsets = getSideOffsets(overflow, rects.reference);
+            return {
+              data: {
+                referenceHiddenOffsets: offsets,
+                referenceHidden: isAnySideFullyClipped(offsets)
+              }
+            };
+          }
+        case 'escaped':
+          {
+            const overflow = await detectOverflow(state, {
+              ...detectOverflowOptions,
+              altBoundary: true
+            });
+            const offsets = getSideOffsets(overflow, rects.floating);
+            return {
+              data: {
+                escapedOffsets: offsets,
+                escaped: isAnySideFullyClipped(offsets)
+              }
+            };
+          }
+        default:
+          {
+            return {};
+          }
+      }
+    }
+  };
+};
+
+function getBoundingRect(rects) {
+  const minX = min(...rects.map(rect => rect.left));
+  const minY = min(...rects.map(rect => rect.top));
+  const maxX = max(...rects.map(rect => rect.right));
+  const maxY = max(...rects.map(rect => rect.bottom));
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
+}
+function getRectsByLine(rects) {
+  const sortedRects = rects.slice().sort((a, b) => a.y - b.y);
+  const groups = [];
+  let prevRect = null;
+  for (let i = 0; i < sortedRects.length; i++) {
+    const rect = sortedRects[i];
+    if (!prevRect || rect.y - prevRect.y > prevRect.height / 2) {
+      groups.push([rect]);
+    } else {
+      groups[groups.length - 1].push(rect);
+    }
+    prevRect = rect;
+  }
+  return groups.map(rect => rectToClientRect(getBoundingRect(rect)));
+}
+/**
+ * Provides improved positioning for inline reference elements that can span
+ * over multiple lines, such as hyperlinks or range selections.
+ * @see https://floating-ui.com/docs/inline
+ */
+const inline = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'inline',
+    options,
+    async fn(state) {
+      const {
+        placement,
+        elements,
+        rects,
+        platform,
+        strategy
+      } = state;
+      // A MouseEvent's client{X,Y} coords can be up to 2 pixels off a
+      // ClientRect's bounds, despite the event listener being triggered. A
+      // padding of 2 seems to handle this issue.
+      const {
+        padding = 2,
+        x,
+        y
+      } = evaluate(options, state);
+      const nativeClientRects = Array.from((await (platform.getClientRects == null ? void 0 : platform.getClientRects(elements.reference))) || []);
+      const clientRects = getRectsByLine(nativeClientRects);
+      const fallback = rectToClientRect(getBoundingRect(nativeClientRects));
+      const paddingObject = getPaddingObject(padding);
+      function getBoundingClientRect() {
+        // There are two rects and they are disjoined.
+        if (clientRects.length === 2 && clientRects[0].left > clientRects[1].right && x != null && y != null) {
+          // Find the first rect in which the point is fully inside.
+          return clientRects.find(rect => x > rect.left - paddingObject.left && x < rect.right + paddingObject.right && y > rect.top - paddingObject.top && y < rect.bottom + paddingObject.bottom) || fallback;
+        }
+
+        // There are 2 or more connected rects.
+        if (clientRects.length >= 2) {
+          if (getSideAxis(placement) === 'y') {
+            const firstRect = clientRects[0];
+            const lastRect = clientRects[clientRects.length - 1];
+            const isTop = getSide(placement) === 'top';
+            const top = firstRect.top;
+            const bottom = lastRect.bottom;
+            const left = isTop ? firstRect.left : lastRect.left;
+            const right = isTop ? firstRect.right : lastRect.right;
+            const width = right - left;
+            const height = bottom - top;
+            return {
+              top,
+              bottom,
+              left,
+              right,
+              width,
+              height,
+              x: left,
+              y: top
+            };
+          }
+          const isLeftSide = getSide(placement) === 'left';
+          const maxRight = max(...clientRects.map(rect => rect.right));
+          const minLeft = min(...clientRects.map(rect => rect.left));
+          const measureRects = clientRects.filter(rect => isLeftSide ? rect.left === minLeft : rect.right === maxRight);
+          const top = measureRects[0].top;
+          const bottom = measureRects[measureRects.length - 1].bottom;
+          const left = minLeft;
+          const right = maxRight;
+          const width = right - left;
+          const height = bottom - top;
+          return {
+            top,
+            bottom,
+            left,
+            right,
+            width,
+            height,
+            x: left,
+            y: top
+          };
+        }
+        return fallback;
+      }
+      const resetRects = await platform.getElementRects({
+        reference: {
+          getBoundingClientRect
+        },
+        floating: elements.floating,
+        strategy
+      });
+      if (rects.reference.x !== resetRects.reference.x || rects.reference.y !== resetRects.reference.y || rects.reference.width !== resetRects.reference.width || rects.reference.height !== resetRects.reference.height) {
+        return {
+          reset: {
+            rects: resetRects
+          }
+        };
+      }
+      return {};
+    }
+  };
+};
+
+// For type backwards-compatibility, the `OffsetOptions` type was also
+// Derivable.
+async function convertValueToCoords(state, options) {
+  const {
+    placement,
+    platform,
+    elements
+  } = state;
+  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+  const side = getSide(placement);
+  const alignment = getAlignment(placement);
+  const isVertical = getSideAxis(placement) === 'y';
+  const mainAxisMulti = ['left', 'top'].includes(side) ? -1 : 1;
+  const crossAxisMulti = rtl && isVertical ? -1 : 1;
+  const rawValue = evaluate(options, state);
+
+  // eslint-disable-next-line prefer-const
+  let {
+    mainAxis,
+    crossAxis,
+    alignmentAxis
+  } = typeof rawValue === 'number' ? {
+    mainAxis: rawValue,
+    crossAxis: 0,
+    alignmentAxis: null
+  } : {
+    mainAxis: 0,
+    crossAxis: 0,
+    alignmentAxis: null,
+    ...rawValue
+  };
+  if (alignment && typeof alignmentAxis === 'number') {
+    crossAxis = alignment === 'end' ? alignmentAxis * -1 : alignmentAxis;
+  }
+  return isVertical ? {
+    x: crossAxis * crossAxisMulti,
+    y: mainAxis * mainAxisMulti
+  } : {
+    x: mainAxis * mainAxisMulti,
+    y: crossAxis * crossAxisMulti
+  };
+}
+
+/**
+ * Modifies the placement by translating the floating element along the
+ * specified axes.
+ * A number (shorthand for `mainAxis` or distance), or an axes configuration
+ * object may be passed.
+ * @see https://floating-ui.com/docs/offset
+ */
+const offset = function (options) {
+  if (options === void 0) {
+    options = 0;
+  }
+  return {
+    name: 'offset',
+    options,
+    async fn(state) {
+      const {
+        x,
+        y
+      } = state;
+      const diffCoords = await convertValueToCoords(state, options);
+      return {
+        x: x + diffCoords.x,
+        y: y + diffCoords.y,
+        data: diffCoords
+      };
+    }
+  };
+};
+
+/**
+ * Optimizes the visibility of the floating element by shifting it in order to
+ * keep it in view when it will overflow the clipping boundary.
+ * @see https://floating-ui.com/docs/shift
+ */
+const shift = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'shift',
+    options,
+    async fn(state) {
+      const {
+        x,
+        y,
+        placement
+      } = state;
+      const {
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = false,
+        limiter = {
+          fn: _ref => {
+            let {
+              x,
+              y
+            } = _ref;
+            return {
+              x,
+              y
+            };
+          }
+        },
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      const coords = {
+        x,
+        y
+      };
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const crossAxis = getSideAxis(getSide(placement));
+      const mainAxis = getOppositeAxis(crossAxis);
+      let mainAxisCoord = coords[mainAxis];
+      let crossAxisCoord = coords[crossAxis];
+      if (checkMainAxis) {
+        const minSide = mainAxis === 'y' ? 'top' : 'left';
+        const maxSide = mainAxis === 'y' ? 'bottom' : 'right';
+        const min = mainAxisCoord + overflow[minSide];
+        const max = mainAxisCoord - overflow[maxSide];
+        mainAxisCoord = clamp(min, mainAxisCoord, max);
+      }
+      if (checkCrossAxis) {
+        const minSide = crossAxis === 'y' ? 'top' : 'left';
+        const maxSide = crossAxis === 'y' ? 'bottom' : 'right';
+        const min = crossAxisCoord + overflow[minSide];
+        const max = crossAxisCoord - overflow[maxSide];
+        crossAxisCoord = clamp(min, crossAxisCoord, max);
+      }
+      const limitedCoords = limiter.fn({
+        ...state,
+        [mainAxis]: mainAxisCoord,
+        [crossAxis]: crossAxisCoord
+      });
+      return {
+        ...limitedCoords,
+        data: {
+          x: limitedCoords.x - x,
+          y: limitedCoords.y - y
+        }
+      };
+    }
+  };
+};
+/**
+ * Built-in `limiter` that will stop `shift()` at a certain point.
+ */
+const limitShift = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    options,
+    fn(state) {
+      const {
+        x,
+        y,
+        placement,
+        rects,
+        middlewareData
+      } = state;
+      const {
+        offset = 0,
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = true
+      } = evaluate(options, state);
+      const coords = {
+        x,
+        y
+      };
+      const crossAxis = getSideAxis(placement);
+      const mainAxis = getOppositeAxis(crossAxis);
+      let mainAxisCoord = coords[mainAxis];
+      let crossAxisCoord = coords[crossAxis];
+      const rawOffset = evaluate(offset, state);
+      const computedOffset = typeof rawOffset === 'number' ? {
+        mainAxis: rawOffset,
+        crossAxis: 0
+      } : {
+        mainAxis: 0,
+        crossAxis: 0,
+        ...rawOffset
+      };
+      if (checkMainAxis) {
+        const len = mainAxis === 'y' ? 'height' : 'width';
+        const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
+        const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
+        if (mainAxisCoord < limitMin) {
+          mainAxisCoord = limitMin;
+        } else if (mainAxisCoord > limitMax) {
+          mainAxisCoord = limitMax;
+        }
+      }
+      if (checkCrossAxis) {
+        var _middlewareData$offse, _middlewareData$offse2;
+        const len = mainAxis === 'y' ? 'width' : 'height';
+        const isOriginSide = ['top', 'left'].includes(getSide(placement));
+        const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
+        const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
+        if (crossAxisCoord < limitMin) {
+          crossAxisCoord = limitMin;
+        } else if (crossAxisCoord > limitMax) {
+          crossAxisCoord = limitMax;
+        }
+      }
+      return {
+        [mainAxis]: mainAxisCoord,
+        [crossAxis]: crossAxisCoord
+      };
+    }
+  };
+};
+
+/**
+ * Provides data that allows you to change the size of the floating element —
+ * for instance, prevent it from overflowing the clipping boundary or match the
+ * width of the reference element.
+ * @see https://floating-ui.com/docs/size
+ */
+const size = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'size',
+    options,
+    async fn(state) {
+      const {
+        placement,
+        rects,
+        platform,
+        elements
+      } = state;
+      const {
+        apply = () => {},
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const side = getSide(placement);
+      const alignment = getAlignment(placement);
+      const isYAxis = getSideAxis(placement) === 'y';
+      const {
+        width,
+        height
+      } = rects.floating;
+      let heightSide;
+      let widthSide;
+      if (side === 'top' || side === 'bottom') {
+        heightSide = side;
+        widthSide = alignment === ((await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating))) ? 'start' : 'end') ? 'left' : 'right';
+      } else {
+        widthSide = side;
+        heightSide = alignment === 'end' ? 'top' : 'bottom';
+      }
+      const overflowAvailableHeight = height - overflow[heightSide];
+      const overflowAvailableWidth = width - overflow[widthSide];
+      const noShift = !state.middlewareData.shift;
+      let availableHeight = overflowAvailableHeight;
+      let availableWidth = overflowAvailableWidth;
+      if (isYAxis) {
+        const maximumClippingWidth = width - overflow.left - overflow.right;
+        availableWidth = alignment || noShift ? min(overflowAvailableWidth, maximumClippingWidth) : maximumClippingWidth;
+      } else {
+        const maximumClippingHeight = height - overflow.top - overflow.bottom;
+        availableHeight = alignment || noShift ? min(overflowAvailableHeight, maximumClippingHeight) : maximumClippingHeight;
+      }
+      if (noShift && !alignment) {
+        const xMin = max(overflow.left, 0);
+        const xMax = max(overflow.right, 0);
+        const yMin = max(overflow.top, 0);
+        const yMax = max(overflow.bottom, 0);
+        if (isYAxis) {
+          availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
+        } else {
+          availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
+        }
+      }
+      await apply({
+        ...state,
+        availableWidth,
+        availableHeight
+      });
+      const nextDimensions = await platform.getDimensions(elements.floating);
+      if (width !== nextDimensions.width || height !== nextDimensions.height) {
+        return {
+          reset: {
+            rects: true
+          }
+        };
+      }
+      return {};
+    }
+  };
+};
+
+
+
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/utils/dom/dist/floating-ui.utils.dom.mjs
+function getNodeName(node) {
+  if (isNode(node)) {
+    return (node.nodeName || '').toLowerCase();
+  }
+  // Mocked nodes in testing environments may not be instances of Node. By
+  // returning `#document` an infinite loop won't occur.
+  // https://github.com/floating-ui/floating-ui/issues/2317
+  return '#document';
+}
+function getWindow(node) {
+  var _node$ownerDocument;
+  return (node == null ? void 0 : (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
+}
+function getDocumentElement(node) {
+  var _ref;
+  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
+}
+function isNode(value) {
+  return value instanceof Node || value instanceof getWindow(value).Node;
+}
+function isElement(value) {
+  return value instanceof Element || value instanceof getWindow(value).Element;
+}
+function isHTMLElement(value) {
+  return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
+}
+function isShadowRoot(value) {
+  // Browsers without `ShadowRoot` support.
+  if (typeof ShadowRoot === 'undefined') {
+    return false;
+  }
+  return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+}
+function isOverflowElement(element) {
+  const {
+    overflow,
+    overflowX,
+    overflowY,
+    display
+  } = getComputedStyle(element);
+  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !['inline', 'contents'].includes(display);
+}
+function isTableElement(element) {
+  return ['table', 'td', 'th'].includes(getNodeName(element));
+}
+function isContainingBlock(element) {
+  const webkit = isWebKit();
+  const css = getComputedStyle(element);
+
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+  return css.transform !== 'none' || css.perspective !== 'none' || (css.containerType ? css.containerType !== 'normal' : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== 'none' : false) || !webkit && (css.filter ? css.filter !== 'none' : false) || ['transform', 'perspective', 'filter'].some(value => (css.willChange || '').includes(value)) || ['paint', 'layout', 'strict', 'content'].some(value => (css.contain || '').includes(value));
+}
+function getContainingBlock(element) {
+  let currentNode = getParentNode(element);
+  while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
+    if (isContainingBlock(currentNode)) {
+      return currentNode;
+    } else {
+      currentNode = getParentNode(currentNode);
+    }
+  }
+  return null;
+}
+function isWebKit() {
+  if (typeof CSS === 'undefined' || !CSS.supports) return false;
+  return CSS.supports('-webkit-backdrop-filter', 'none');
+}
+function isLastTraversableNode(node) {
+  return ['html', 'body', '#document'].includes(getNodeName(node));
+}
+function getComputedStyle(element) {
+  return getWindow(element).getComputedStyle(element);
+}
+function getNodeScroll(element) {
+  if (isElement(element)) {
+    return {
+      scrollLeft: element.scrollLeft,
+      scrollTop: element.scrollTop
+    };
+  }
+  return {
+    scrollLeft: element.pageXOffset,
+    scrollTop: element.pageYOffset
+  };
+}
+function getParentNode(node) {
+  if (getNodeName(node) === 'html') {
+    return node;
+  }
+  const result =
+  // Step into the shadow DOM of the parent of a slotted node.
+  node.assignedSlot ||
+  // DOM Element detected.
+  node.parentNode ||
+  // ShadowRoot detected.
+  isShadowRoot(node) && node.host ||
+  // Fallback.
+  getDocumentElement(node);
+  return isShadowRoot(result) ? result.host : result;
+}
+function getNearestOverflowAncestor(node) {
+  const parentNode = getParentNode(node);
+  if (isLastTraversableNode(parentNode)) {
+    return node.ownerDocument ? node.ownerDocument.body : node.body;
+  }
+  if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
+    return parentNode;
+  }
+  return getNearestOverflowAncestor(parentNode);
+}
+function getOverflowAncestors(node, list, traverseIframes) {
+  var _node$ownerDocument2;
+  if (list === void 0) {
+    list = [];
+  }
+  if (traverseIframes === void 0) {
+    traverseIframes = true;
+  }
+  const scrollableAncestor = getNearestOverflowAncestor(node);
+  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+  const win = getWindow(scrollableAncestor);
+  if (isBody) {
+    return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], win.frameElement && traverseIframes ? getOverflowAncestors(win.frameElement) : []);
+  }
+  return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor));
+}
+
+
+
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
+
+
+
+
+
+
+function getCssDimensions(element) {
+  const css = getComputedStyle(element);
+  // In testing environments, the `width` and `height` properties are empty
+  // strings for SVG elements, returning NaN. Fallback to `0` in this case.
+  let width = parseFloat(css.width) || 0;
+  let height = parseFloat(css.height) || 0;
+  const hasOffset = isHTMLElement(element);
+  const offsetWidth = hasOffset ? element.offsetWidth : width;
+  const offsetHeight = hasOffset ? element.offsetHeight : height;
+  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+  if (shouldFallback) {
+    width = offsetWidth;
+    height = offsetHeight;
+  }
+  return {
+    width,
+    height,
+    $: shouldFallback
+  };
+}
+
+function unwrapElement(element) {
+  return !isElement(element) ? element.contextElement : element;
+}
+
+function getScale(element) {
+  const domElement = unwrapElement(element);
+  if (!isHTMLElement(domElement)) {
+    return createCoords(1);
+  }
+  const rect = domElement.getBoundingClientRect();
+  const {
+    width,
+    height,
+    $
+  } = getCssDimensions(domElement);
+  let x = ($ ? round(rect.width) : rect.width) / width;
+  let y = ($ ? round(rect.height) : rect.height) / height;
+
+  // 0, NaN, or Infinity should always fallback to 1.
+
+  if (!x || !Number.isFinite(x)) {
+    x = 1;
+  }
+  if (!y || !Number.isFinite(y)) {
+    y = 1;
+  }
+  return {
+    x,
+    y
+  };
+}
+
+const noOffsets = /*#__PURE__*/createCoords(0);
+function getVisualOffsets(element) {
+  const win = getWindow(element);
+  if (!isWebKit() || !win.visualViewport) {
+    return noOffsets;
+  }
+  return {
+    x: win.visualViewport.offsetLeft,
+    y: win.visualViewport.offsetTop
+  };
+}
+function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
+  if (isFixed === void 0) {
+    isFixed = false;
+  }
+  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
+    return false;
+  }
+  return isFixed;
+}
+
+function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
+  if (includeScale === void 0) {
+    includeScale = false;
+  }
+  if (isFixedStrategy === void 0) {
+    isFixedStrategy = false;
+  }
+  const clientRect = element.getBoundingClientRect();
+  const domElement = unwrapElement(element);
+  let scale = createCoords(1);
+  if (includeScale) {
+    if (offsetParent) {
+      if (isElement(offsetParent)) {
+        scale = getScale(offsetParent);
+      }
+    } else {
+      scale = getScale(element);
+    }
+  }
+  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
+  let x = (clientRect.left + visualOffsets.x) / scale.x;
+  let y = (clientRect.top + visualOffsets.y) / scale.y;
+  let width = clientRect.width / scale.x;
+  let height = clientRect.height / scale.y;
+  if (domElement) {
+    const win = getWindow(domElement);
+    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
+    let currentIFrame = win.frameElement;
+    while (currentIFrame && offsetParent && offsetWin !== win) {
+      const iframeScale = getScale(currentIFrame);
+      const iframeRect = currentIFrame.getBoundingClientRect();
+      const css = getComputedStyle(currentIFrame);
+      const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
+      const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
+      x *= iframeScale.x;
+      y *= iframeScale.y;
+      width *= iframeScale.x;
+      height *= iframeScale.y;
+      x += left;
+      y += top;
+      currentIFrame = getWindow(currentIFrame).frameElement;
+    }
+  }
+  return rectToClientRect({
+    width,
+    height,
+    x,
+    y
+  });
+}
+
+function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
+  let {
+    rect,
+    offsetParent,
+    strategy
+  } = _ref;
+  const isOffsetParentAnElement = isHTMLElement(offsetParent);
+  const documentElement = getDocumentElement(offsetParent);
+  if (offsetParent === documentElement) {
+    return rect;
+  }
+  let scroll = {
+    scrollLeft: 0,
+    scrollTop: 0
+  };
+  let scale = createCoords(1);
+  const offsets = createCoords(0);
+  if (isOffsetParentAnElement || !isOffsetParentAnElement && strategy !== 'fixed') {
+    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
+      scroll = getNodeScroll(offsetParent);
+    }
+    if (isHTMLElement(offsetParent)) {
+      const offsetRect = getBoundingClientRect(offsetParent);
+      scale = getScale(offsetParent);
+      offsets.x = offsetRect.x + offsetParent.clientLeft;
+      offsets.y = offsetRect.y + offsetParent.clientTop;
+    }
+  }
+  return {
+    width: rect.width * scale.x,
+    height: rect.height * scale.y,
+    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x,
+    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y
+  };
+}
+
+function getClientRects(element) {
+  return Array.from(element.getClientRects());
+}
+
+function getWindowScrollBarX(element) {
+  // If <html> has a CSS width greater than the viewport, then this will be
+  // incorrect for RTL.
+  return getBoundingClientRect(getDocumentElement(element)).left + getNodeScroll(element).scrollLeft;
+}
+
+// Gets the entire size of the scrollable document area, even extending outside
+// of the `<html>` and `<body>` rect bounds if horizontally scrollable.
+function getDocumentRect(element) {
+  const html = getDocumentElement(element);
+  const scroll = getNodeScroll(element);
+  const body = element.ownerDocument.body;
+  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+  let x = -scroll.scrollLeft + getWindowScrollBarX(element);
+  const y = -scroll.scrollTop;
+  if (getComputedStyle(body).direction === 'rtl') {
+    x += max(html.clientWidth, body.clientWidth) - width;
+  }
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+
+function getViewportRect(element, strategy) {
+  const win = getWindow(element);
+  const html = getDocumentElement(element);
+  const visualViewport = win.visualViewport;
+  let width = html.clientWidth;
+  let height = html.clientHeight;
+  let x = 0;
+  let y = 0;
+  if (visualViewport) {
+    width = visualViewport.width;
+    height = visualViewport.height;
+    const visualViewportBased = isWebKit();
+    if (!visualViewportBased || visualViewportBased && strategy === 'fixed') {
+      x = visualViewport.offsetLeft;
+      y = visualViewport.offsetTop;
+    }
+  }
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+
+// Returns the inner client rect, subtracting scrollbars if present.
+function getInnerBoundingClientRect(element, strategy) {
+  const clientRect = getBoundingClientRect(element, true, strategy === 'fixed');
+  const top = clientRect.top + element.clientTop;
+  const left = clientRect.left + element.clientLeft;
+  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+  const width = element.clientWidth * scale.x;
+  const height = element.clientHeight * scale.y;
+  const x = left * scale.x;
+  const y = top * scale.y;
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
+  let rect;
+  if (clippingAncestor === 'viewport') {
+    rect = getViewportRect(element, strategy);
+  } else if (clippingAncestor === 'document') {
+    rect = getDocumentRect(getDocumentElement(element));
+  } else if (isElement(clippingAncestor)) {
+    rect = getInnerBoundingClientRect(clippingAncestor, strategy);
+  } else {
+    const visualOffsets = getVisualOffsets(element);
+    rect = {
+      ...clippingAncestor,
+      x: clippingAncestor.x - visualOffsets.x,
+      y: clippingAncestor.y - visualOffsets.y
+    };
+  }
+  return rectToClientRect(rect);
+}
+function hasFixedPositionAncestor(element, stopNode) {
+  const parentNode = getParentNode(element);
+  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
+    return false;
+  }
+  return getComputedStyle(parentNode).position === 'fixed' || hasFixedPositionAncestor(parentNode, stopNode);
+}
+
+// A "clipping ancestor" is an `overflow` element with the characteristic of
+// clipping (or hiding) child elements. This returns all clipping ancestors
+// of the given element up the tree.
+function getClippingElementAncestors(element, cache) {
+  const cachedResult = cache.get(element);
+  if (cachedResult) {
+    return cachedResult;
+  }
+  let result = getOverflowAncestors(element, [], false).filter(el => isElement(el) && getNodeName(el) !== 'body');
+  let currentContainingBlockComputedStyle = null;
+  const elementIsFixed = getComputedStyle(element).position === 'fixed';
+  let currentNode = elementIsFixed ? getParentNode(element) : element;
+
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+  while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
+    const computedStyle = getComputedStyle(currentNode);
+    const currentNodeIsContaining = isContainingBlock(currentNode);
+    if (!currentNodeIsContaining && computedStyle.position === 'fixed') {
+      currentContainingBlockComputedStyle = null;
+    }
+    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === 'static' && !!currentContainingBlockComputedStyle && ['absolute', 'fixed'].includes(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
+    if (shouldDropCurrentNode) {
+      // Drop non-containing blocks.
+      result = result.filter(ancestor => ancestor !== currentNode);
+    } else {
+      // Record last containing block for next iteration.
+      currentContainingBlockComputedStyle = computedStyle;
+    }
+    currentNode = getParentNode(currentNode);
+  }
+  cache.set(element, result);
+  return result;
+}
+
+// Gets the maximum area that the element is visible in due to any number of
+// clipping ancestors.
+function getClippingRect(_ref) {
+  let {
+    element,
+    boundary,
+    rootBoundary,
+    strategy
+  } = _ref;
+  const elementClippingAncestors = boundary === 'clippingAncestors' ? getClippingElementAncestors(element, this._c) : [].concat(boundary);
+  const clippingAncestors = [...elementClippingAncestors, rootBoundary];
+  const firstClippingAncestor = clippingAncestors[0];
+  const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
+    const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
+    accRect.top = max(rect.top, accRect.top);
+    accRect.right = min(rect.right, accRect.right);
+    accRect.bottom = min(rect.bottom, accRect.bottom);
+    accRect.left = max(rect.left, accRect.left);
+    return accRect;
+  }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
+  return {
+    width: clippingRect.right - clippingRect.left,
+    height: clippingRect.bottom - clippingRect.top,
+    x: clippingRect.left,
+    y: clippingRect.top
+  };
+}
+
+function getDimensions(element) {
+  return getCssDimensions(element);
+}
+
+function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
+  const isOffsetParentAnElement = isHTMLElement(offsetParent);
+  const documentElement = getDocumentElement(offsetParent);
+  const isFixed = strategy === 'fixed';
+  const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
+  let scroll = {
+    scrollLeft: 0,
+    scrollTop: 0
+  };
+  const offsets = createCoords(0);
+  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
+      scroll = getNodeScroll(offsetParent);
+    }
+    if (isOffsetParentAnElement) {
+      const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
+      offsets.x = offsetRect.x + offsetParent.clientLeft;
+      offsets.y = offsetRect.y + offsetParent.clientTop;
+    } else if (documentElement) {
+      offsets.x = getWindowScrollBarX(documentElement);
+    }
+  }
+  return {
+    x: rect.left + scroll.scrollLeft - offsets.x,
+    y: rect.top + scroll.scrollTop - offsets.y,
+    width: rect.width,
+    height: rect.height
+  };
+}
+
+function getTrueOffsetParent(element, polyfill) {
+  if (!isHTMLElement(element) || getComputedStyle(element).position === 'fixed') {
+    return null;
+  }
+  if (polyfill) {
+    return polyfill(element);
+  }
+  return element.offsetParent;
+}
+
+// Gets the closest ancestor positioned element. Handles some edge cases,
+// such as table ancestors and cross browser bugs.
+function getOffsetParent(element, polyfill) {
+  const window = getWindow(element);
+  if (!isHTMLElement(element)) {
+    return window;
+  }
+  let offsetParent = getTrueOffsetParent(element, polyfill);
+  while (offsetParent && isTableElement(offsetParent) && getComputedStyle(offsetParent).position === 'static') {
+    offsetParent = getTrueOffsetParent(offsetParent, polyfill);
+  }
+  if (offsetParent && (getNodeName(offsetParent) === 'html' || getNodeName(offsetParent) === 'body' && getComputedStyle(offsetParent).position === 'static' && !isContainingBlock(offsetParent))) {
+    return window;
+  }
+  return offsetParent || getContainingBlock(element) || window;
+}
+
+const getElementRects = async function (_ref) {
+  let {
+    reference,
+    floating,
+    strategy
+  } = _ref;
+  const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
+  const getDimensionsFn = this.getDimensions;
+  return {
+    reference: getRectRelativeToOffsetParent(reference, await getOffsetParentFn(floating), strategy),
+    floating: {
+      x: 0,
+      y: 0,
+      ...(await getDimensionsFn(floating))
+    }
+  };
+};
+
+function isRTL(element) {
+  return getComputedStyle(element).direction === 'rtl';
+}
+
+const platform = {
+  convertOffsetParentRelativeRectToViewportRelativeRect,
+  getDocumentElement: getDocumentElement,
+  getClippingRect,
+  getOffsetParent,
+  getElementRects,
+  getClientRects,
+  getDimensions,
+  getScale,
+  isElement: isElement,
+  isRTL
+};
+
+// https://samthor.au/2021/observing-dom/
+function observeMove(element, onMove) {
+  let io = null;
+  let timeoutId;
+  const root = getDocumentElement(element);
+  function cleanup() {
+    clearTimeout(timeoutId);
+    io && io.disconnect();
+    io = null;
+  }
+  function refresh(skip, threshold) {
+    if (skip === void 0) {
+      skip = false;
+    }
+    if (threshold === void 0) {
+      threshold = 1;
+    }
+    cleanup();
+    const {
+      left,
+      top,
+      width,
+      height
+    } = element.getBoundingClientRect();
+    if (!skip) {
+      onMove();
+    }
+    if (!width || !height) {
+      return;
+    }
+    const insetTop = floor(top);
+    const insetRight = floor(root.clientWidth - (left + width));
+    const insetBottom = floor(root.clientHeight - (top + height));
+    const insetLeft = floor(left);
+    const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
+    const options = {
+      rootMargin,
+      threshold: max(0, min(1, threshold)) || 1
+    };
+    let isFirstUpdate = true;
+    function handleObserve(entries) {
+      const ratio = entries[0].intersectionRatio;
+      if (ratio !== threshold) {
+        if (!isFirstUpdate) {
+          return refresh();
+        }
+        if (!ratio) {
+          timeoutId = setTimeout(() => {
+            refresh(false, 1e-7);
+          }, 100);
+        } else {
+          refresh(false, ratio);
+        }
+      }
+      isFirstUpdate = false;
+    }
+
+    // Older browsers don't support a `document` as the root and will throw an
+    // error.
+    try {
+      io = new IntersectionObserver(handleObserve, {
+        ...options,
+        // Handle <iframe>s
+        root: root.ownerDocument
+      });
+    } catch (e) {
+      io = new IntersectionObserver(handleObserve, options);
+    }
+    io.observe(element);
+  }
+  refresh(true);
+  return cleanup;
+}
+
+/**
+ * Automatically updates the position of the floating element when necessary.
+ * Should only be called when the floating element is mounted on the DOM or
+ * visible on the screen.
+ * @returns cleanup function that should be invoked when the floating element is
+ * removed from the DOM or hidden from the screen.
+ * @see https://floating-ui.com/docs/autoUpdate
+ */
+function autoUpdate(reference, floating, update, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    ancestorScroll = true,
+    ancestorResize = true,
+    elementResize = typeof ResizeObserver === 'function',
+    layoutShift = typeof IntersectionObserver === 'function',
+    animationFrame = false
+  } = options;
+  const referenceEl = unwrapElement(reference);
+  const ancestors = ancestorScroll || ancestorResize ? [...(referenceEl ? getOverflowAncestors(referenceEl) : []), ...getOverflowAncestors(floating)] : [];
+  ancestors.forEach(ancestor => {
+    ancestorScroll && ancestor.addEventListener('scroll', update, {
+      passive: true
+    });
+    ancestorResize && ancestor.addEventListener('resize', update);
+  });
+  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
+  let reobserveFrame = -1;
+  let resizeObserver = null;
+  if (elementResize) {
+    resizeObserver = new ResizeObserver(_ref => {
+      let [firstEntry] = _ref;
+      if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
+        // Prevent update loops when using the `size` middleware.
+        // https://github.com/floating-ui/floating-ui/issues/1740
+        resizeObserver.unobserve(floating);
+        cancelAnimationFrame(reobserveFrame);
+        reobserveFrame = requestAnimationFrame(() => {
+          resizeObserver && resizeObserver.observe(floating);
+        });
+      }
+      update();
+    });
+    if (referenceEl && !animationFrame) {
+      resizeObserver.observe(referenceEl);
+    }
+    resizeObserver.observe(floating);
+  }
+  let frameId;
+  let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
+  if (animationFrame) {
+    frameLoop();
+  }
+  function frameLoop() {
+    const nextRefRect = getBoundingClientRect(reference);
+    if (prevRefRect && (nextRefRect.x !== prevRefRect.x || nextRefRect.y !== prevRefRect.y || nextRefRect.width !== prevRefRect.width || nextRefRect.height !== prevRefRect.height)) {
+      update();
+    }
+    prevRefRect = nextRefRect;
+    frameId = requestAnimationFrame(frameLoop);
+  }
+  update();
+  return () => {
+    ancestors.forEach(ancestor => {
+      ancestorScroll && ancestor.removeEventListener('scroll', update);
+      ancestorResize && ancestor.removeEventListener('resize', update);
+    });
+    cleanupIo && cleanupIo();
+    resizeObserver && resizeObserver.disconnect();
+    resizeObserver = null;
+    if (animationFrame) {
+      cancelAnimationFrame(frameId);
+    }
+  };
+}
+
+/**
+ * Computes the `x` and `y` coordinates that will place the floating element
+ * next to a reference element when it is given a certain CSS positioning
+ * strategy.
+ */
+const floating_ui_dom_computePosition = (reference, floating, options) => {
+  // This caches the expensive `getClippingElementAncestors` function so that
+  // multiple lifecycle resets re-use the same result. It only lives for a
+  // single call. If other functions become expensive, we can add them as well.
+  const cache = new Map();
+  const mergedOptions = {
+    platform,
+    ...options
+  };
+  const platformWithCache = {
+    ...mergedOptions.platform,
+    _c: cache
+  };
+  return computePosition(reference, floating, {
+    ...mergedOptions,
+    platform: platformWithCache
+  });
+};
+
+
+
+// EXTERNAL MODULE: external "next/dist/compiled/react"
+var react_ = __webpack_require__(18038);
+// EXTERNAL MODULE: external "next/dist/compiled/react-dom/server-rendering-stub"
+var server_rendering_stub_ = __webpack_require__(98704);
+;// CONCATENATED MODULE: ./node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.esm.js
+
+
+
+
+
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * This wraps the core `arrow` middleware to allow React refs as the element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const floating_ui_react_dom_esm_arrow = options => {
+  function isRef(value) {
+    return {}.hasOwnProperty.call(value, 'current');
+  }
+  return {
+    name: 'arrow',
+    options,
+    fn(state) {
+      const {
+        element,
+        padding
+      } = typeof options === 'function' ? options(state) : options;
+      if (element && isRef(element)) {
+        if (element.current != null) {
+          return arrow({
+            element: element.current,
+            padding
+          }).fn(state);
+        }
+        return {};
+      } else if (element) {
+        return arrow({
+          element,
+          padding
+        }).fn(state);
+      }
+      return {};
+    }
+  };
+};
+
+var index = typeof document !== 'undefined' ? react_.useLayoutEffect : react_.useEffect;
+
+// Fork of `fast-deep-equal` that only does the comparisons we need and compares
+// functions
+function deepEqual(a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (typeof a !== typeof b) {
+    return false;
+  }
+  if (typeof a === 'function' && a.toString() === b.toString()) {
+    return true;
+  }
+  let length, i, keys;
+  if (a && b && typeof a == 'object') {
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length != b.length) return false;
+      for (i = length; i-- !== 0;) {
+        if (!deepEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    keys = Object.keys(a);
+    length = keys.length;
+    if (length !== Object.keys(b).length) {
+      return false;
+    }
+    for (i = length; i-- !== 0;) {
+      if (!{}.hasOwnProperty.call(b, keys[i])) {
+        return false;
+      }
+    }
+    for (i = length; i-- !== 0;) {
+      const key = keys[i];
+      if (key === '_owner' && a.$$typeof) {
+        continue;
+      }
+      if (!deepEqual(a[key], b[key])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return a !== a && b !== b;
+}
+
+function getDPR(element) {
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+  const win = element.ownerDocument.defaultView || window;
+  return win.devicePixelRatio || 1;
+}
+
+function roundByDPR(element, value) {
+  const dpr = getDPR(element);
+  return Math.round(value * dpr) / dpr;
+}
+
+function useLatestRef(value) {
+  const ref = react_.useRef(value);
+  index(() => {
+    ref.current = value;
+  });
+  return ref;
+}
+
+/**
+ * Provides data to position a floating element.
+ * @see https://floating-ui.com/docs/react
+ */
+function useFloating(options) {
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    placement = 'bottom',
+    strategy = 'absolute',
+    middleware = [],
+    platform,
+    elements: {
+      reference: externalReference,
+      floating: externalFloating
+    } = {},
+    transform = true,
+    whileElementsMounted,
+    open
+  } = options;
+  const [data, setData] = react_.useState({
+    x: 0,
+    y: 0,
+    strategy,
+    placement,
+    middlewareData: {},
+    isPositioned: false
+  });
+  const [latestMiddleware, setLatestMiddleware] = react_.useState(middleware);
+  if (!deepEqual(latestMiddleware, middleware)) {
+    setLatestMiddleware(middleware);
+  }
+  const [_reference, _setReference] = react_.useState(null);
+  const [_floating, _setFloating] = react_.useState(null);
+  const setReference = react_.useCallback(node => {
+    if (node != referenceRef.current) {
+      referenceRef.current = node;
+      _setReference(node);
+    }
+  }, [_setReference]);
+  const setFloating = react_.useCallback(node => {
+    if (node !== floatingRef.current) {
+      floatingRef.current = node;
+      _setFloating(node);
+    }
+  }, [_setFloating]);
+  const referenceEl = externalReference || _reference;
+  const floatingEl = externalFloating || _floating;
+  const referenceRef = react_.useRef(null);
+  const floatingRef = react_.useRef(null);
+  const dataRef = react_.useRef(data);
+  const whileElementsMountedRef = useLatestRef(whileElementsMounted);
+  const platformRef = useLatestRef(platform);
+  const update = react_.useCallback(() => {
+    if (!referenceRef.current || !floatingRef.current) {
+      return;
+    }
+    const config = {
+      placement,
+      strategy,
+      middleware: latestMiddleware
+    };
+    if (platformRef.current) {
+      config.platform = platformRef.current;
+    }
+    floating_ui_dom_computePosition(referenceRef.current, floatingRef.current, config).then(data => {
+      const fullData = {
+        ...data,
+        isPositioned: true
+      };
+      if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
+        dataRef.current = fullData;
+        server_rendering_stub_.flushSync(() => {
+          setData(fullData);
+        });
+      }
+    });
+  }, [latestMiddleware, placement, strategy, platformRef]);
+  index(() => {
+    if (open === false && dataRef.current.isPositioned) {
+      dataRef.current.isPositioned = false;
+      setData(data => ({
+        ...data,
+        isPositioned: false
+      }));
+    }
+  }, [open]);
+  const isMountedRef = react_.useRef(false);
+  index(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  index(() => {
+    if (referenceEl) referenceRef.current = referenceEl;
+    if (floatingEl) floatingRef.current = floatingEl;
+    if (referenceEl && floatingEl) {
+      if (whileElementsMountedRef.current) {
+        return whileElementsMountedRef.current(referenceEl, floatingEl, update);
+      } else {
+        update();
+      }
+    }
+  }, [referenceEl, floatingEl, update, whileElementsMountedRef]);
+  const refs = react_.useMemo(() => ({
+    reference: referenceRef,
+    floating: floatingRef,
+    setReference,
+    setFloating
+  }), [setReference, setFloating]);
+  const elements = react_.useMemo(() => ({
+    reference: referenceEl,
+    floating: floatingEl
+  }), [referenceEl, floatingEl]);
+  const floatingStyles = react_.useMemo(() => {
+    const initialStyles = {
+      position: strategy,
+      left: 0,
+      top: 0
+    };
+    if (!elements.floating) {
+      return initialStyles;
+    }
+    const x = roundByDPR(elements.floating, data.x);
+    const y = roundByDPR(elements.floating, data.y);
+    if (transform) {
+      return {
+        ...initialStyles,
+        transform: "translate(" + x + "px, " + y + "px)",
+        ...(getDPR(elements.floating) >= 1.5 && {
+          willChange: 'transform'
+        })
+      };
+    }
+    return {
+      position: strategy,
+      left: x,
+      top: y
+    };
+  }, [strategy, transform, elements.floating, data.x, data.y]);
+  return react_.useMemo(() => ({
+    ...data,
+    update,
+    refs,
+    elements,
+    floatingStyles
+  }), [data, update, refs, elements, floatingStyles]);
+}
+
+
+
+
+/***/ }),
+
 /***/ 99067:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -3570,13 +5742,13 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Badge = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _useBadge = _interopRequireDefault(__webpack_require__(62222));
+var _composeClasses = __webpack_require__(29178);
+var _useBadge = __webpack_require__(62222);
 var _badgeClasses = __webpack_require__(77592);
 var _utils = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
@@ -3592,7 +5764,7 @@ const useUtilityClasses = ownerState => {
     root: ['root'],
     badge: ['badge', invisible && 'invisible']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_badgeClasses.getBadgeUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_badgeClasses.getBadgeUtilityClass));
 };
 /**
  *
@@ -3619,7 +5791,7 @@ const Badge = /*#__PURE__*/React.forwardRef(function Badge(props, forwardedRef) 
     max,
     displayValue,
     invisible
-  } = (0, _useBadge.default)((0, _extends2.default)({}, props, {
+  } = (0, _useBadge.useBadge)((0, _extends2.default)({}, props, {
     max: maxProp
   }));
   const ownerState = (0, _extends2.default)({}, props, {
@@ -3653,9 +5825,8 @@ const Badge = /*#__PURE__*/React.forwardRef(function Badge(props, forwardedRef) 
     }))]
   }));
 });
+exports.Badge = Badge;
  false ? 0 : void 0;
-var _default = Badge;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -3677,20 +5848,18 @@ Object.defineProperty(exports, "__esModule", ({
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.badgeClasses = void 0;
 exports.getBadgeUtilityClass = getBadgeUtilityClass;
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
+var _generateUtilityClasses = __webpack_require__(69770);
+var _generateUtilityClass = __webpack_require__(50322);
 function getBadgeUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiBadge', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiBadge', slot);
 }
-const badgeClasses = (0, _generateUtilityClasses.default)('MuiBadge', ['root', 'badge', 'invisible']);
-var _default = badgeClasses;
-exports["default"] = _default;
+const badgeClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiBadge', ['root', 'badge', 'invisible']);
+exports.badgeClasses = badgeClasses;
 
 /***/ }),
 
@@ -3701,26 +5870,19 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  badgeClasses: true
+  Badge: true
 };
-Object.defineProperty(exports, "badgeClasses", ({
+Object.defineProperty(exports, "Badge", ({
   enumerable: true,
   get: function () {
-    return _badgeClasses.default;
+    return _Badge.Badge;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _Badge.default;
-  }
-}));
-var _Badge = _interopRequireDefault(__webpack_require__(99067));
+var _Badge = __webpack_require__(99067);
 var _Badge2 = __webpack_require__(30133);
 Object.keys(_Badge2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -3733,7 +5895,7 @@ Object.keys(_Badge2).forEach(function (key) {
     }
   });
 });
-var _badgeClasses = _interopRequireWildcard(__webpack_require__(77592));
+var _badgeClasses = __webpack_require__(77592);
 Object.keys(_badgeClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -3745,8 +5907,6 @@ Object.keys(_badgeClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -3761,14 +5921,14 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Button = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _buttonClasses = __webpack_require__(80278);
-var _useButton = _interopRequireDefault(__webpack_require__(83851));
+var _useButton = __webpack_require__(83851);
 var _utils = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
@@ -3784,7 +5944,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', disabled && 'disabled', focusVisible && 'focusVisible', active && 'active']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_buttonClasses.getButtonUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_buttonClasses.getButtonUtilityClass));
 };
 /**
  * The foundation for building custom-styled buttons.
@@ -3813,7 +5973,7 @@ const Button = /*#__PURE__*/React.forwardRef(function Button(props, forwardedRef
     focusVisible,
     setFocusVisible,
     getRootProps
-  } = (0, _useButton.default)((0, _extends2.default)({}, props, {
+  } = (0, _useButton.useButton)((0, _extends2.default)({}, props, {
     focusableWhenDisabled
   }));
   React.useImperativeHandle(action, () => ({
@@ -3845,9 +6005,8 @@ const Button = /*#__PURE__*/React.forwardRef(function Button(props, forwardedRef
     children: children
   }));
 });
+exports.Button = Button;
  false ? 0 : void 0;
-var _default = Button;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -3869,20 +6028,18 @@ Object.defineProperty(exports, "__esModule", ({
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.buttonClasses = void 0;
 exports.getButtonUtilityClass = getButtonUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getButtonUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiButton', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiButton', slot);
 }
-const buttonClasses = (0, _generateUtilityClasses.default)('MuiButton', ['root', 'active', 'disabled', 'focusVisible']);
-var _default = buttonClasses;
-exports["default"] = _default;
+const buttonClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiButton', ['root', 'active', 'disabled', 'focusVisible']);
+exports.buttonClasses = buttonClasses;
 
 /***/ }),
 
@@ -3893,27 +6050,20 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  buttonClasses: true
+  Button: true
 };
-Object.defineProperty(exports, "buttonClasses", ({
+Object.defineProperty(exports, "Button", ({
   enumerable: true,
   get: function () {
-    return _buttonClasses.default;
+    return _Button.Button;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _Button.default;
-  }
-}));
-var _Button = _interopRequireDefault(__webpack_require__(93352));
-var _buttonClasses = _interopRequireWildcard(__webpack_require__(80278));
+var _Button = __webpack_require__(93352);
+var _buttonClasses = __webpack_require__(80278);
 Object.keys(_buttonClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -3937,8 +6087,25 @@ Object.keys(_Button2).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+/***/ }),
+
+/***/ 66386:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "unstable_ClassNameGenerator", ({
+  enumerable: true,
+  get: function () {
+    return _utils.unstable_ClassNameGenerator;
+  }
+}));
+var _utils = __webpack_require__(44268);
 
 /***/ }),
 
@@ -3953,7 +6120,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.ClickAwayListener = ClickAwayListener;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
@@ -4097,8 +6264,6 @@ function ClickAwayListener(props) {
 }
  false ? 0 : void 0;
 if (false) {}
-var _default = ClickAwayListener;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -4112,17 +6277,9 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _ClickAwayListener.default;
-  }
-}));
-var _ClickAwayListener = _interopRequireWildcard(__webpack_require__(61766));
+var _ClickAwayListener = __webpack_require__(61766);
 Object.keys(_ClickAwayListener).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _ClickAwayListener[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -4131,8 +6288,106 @@ Object.keys(_ClickAwayListener).forEach(function (key) {
     }
   });
 });
+
+/***/ }),
+
+/***/ 46106:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Dropdown = Dropdown;
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _propTypes = _interopRequireDefault(__webpack_require__(55601));
+var _utils = __webpack_require__(44268);
+var _DropdownContext = __webpack_require__(3690);
+var _useDropdown = __webpack_require__(82695);
+var _jsxRuntime = __webpack_require__(56786);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+/**
+ *
+ * Demos:
+ *
+ * - [Menu](https://mui.com/base-ui/react-menu/)
+ *
+ * API:
+ *
+ * - [Dropdown API](https://mui.com/base-ui/react-menu/components-api/#dropdown)
+ */function Dropdown(props) {
+  const {
+    children,
+    open,
+    defaultOpen,
+    onOpenChange
+  } = props;
+  const {
+    contextValue
+  } = (0, _useDropdown.useDropdown)({
+    defaultOpen,
+    onOpenChange,
+    open
+  });
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_DropdownContext.DropdownContext.Provider, {
+    value: contextValue,
+    children: children
+  });
+}
+ false ? 0 : void 0;
+if (false) {}
+
+/***/ }),
+
+/***/ 64877:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 86840:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _Dropdown = __webpack_require__(46106);
+Object.keys(_Dropdown).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _Dropdown[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _Dropdown[key];
+    }
+  });
+});
+var _Dropdown2 = __webpack_require__(64877);
+Object.keys(_Dropdown2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _Dropdown2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _Dropdown2[key];
+    }
+  });
+});
 
 /***/ }),
 
@@ -4148,7 +6403,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.FocusTrap = FocusTrap;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
@@ -4299,51 +6554,6 @@ function FocusTrap(props) {
       return;
     }
     const doc = (0, _utils.unstable_ownerDocument)(rootRef.current);
-    const contain = nativeEvent => {
-      const {
-        current: rootElement
-      } = rootRef;
-
-      // Cleanup functions are executed lazily in React 17.
-      // Contain can be called between the component being unmounted and its cleanup function being run.
-      if (rootElement === null) {
-        return;
-      }
-      if (!doc.hasFocus() || disableEnforceFocus || !isEnabled() || ignoreNextEnforceFocus.current) {
-        ignoreNextEnforceFocus.current = false;
-        return;
-      }
-      if (!rootElement.contains(doc.activeElement)) {
-        // if the focus event is not coming from inside the children's react tree, reset the refs
-        if (nativeEvent && reactFocusEventTarget.current !== nativeEvent.target || doc.activeElement !== reactFocusEventTarget.current) {
-          reactFocusEventTarget.current = null;
-        } else if (reactFocusEventTarget.current !== null) {
-          return;
-        }
-        if (!activated.current) {
-          return;
-        }
-        let tabbable = [];
-        if (doc.activeElement === sentinelStart.current || doc.activeElement === sentinelEnd.current) {
-          tabbable = getTabbable(rootRef.current);
-        }
-        if (tabbable.length > 0) {
-          var _lastKeydown$current, _lastKeydown$current2;
-          const isShiftTab = Boolean(((_lastKeydown$current = lastKeydown.current) == null ? void 0 : _lastKeydown$current.shiftKey) && ((_lastKeydown$current2 = lastKeydown.current) == null ? void 0 : _lastKeydown$current2.key) === 'Tab');
-          const focusNext = tabbable[0];
-          const focusPrevious = tabbable[tabbable.length - 1];
-          if (typeof focusNext !== 'string' && typeof focusPrevious !== 'string') {
-            if (isShiftTab) {
-              focusPrevious.focus();
-            } else {
-              focusNext.focus();
-            }
-          }
-        } else {
-          rootElement.focus();
-        }
-      }
-    };
     const loopFocus = nativeEvent => {
       lastKeydown.current = nativeEvent;
       if (disableEnforceFocus || !isEnabled() || nativeEvent.key !== 'Tab') {
@@ -4361,6 +6571,62 @@ function FocusTrap(props) {
         }
       }
     };
+    const contain = () => {
+      const rootElement = rootRef.current;
+
+      // Cleanup functions are executed lazily in React 17.
+      // Contain can be called between the component being unmounted and its cleanup function being run.
+      if (rootElement === null) {
+        return;
+      }
+      if (!doc.hasFocus() || !isEnabled() || ignoreNextEnforceFocus.current) {
+        ignoreNextEnforceFocus.current = false;
+        return;
+      }
+
+      // The focus is already inside
+      if (rootElement.contains(doc.activeElement)) {
+        return;
+      }
+
+      // The disableEnforceFocus is set and the focus is outside of the focus trap (and sentinel nodes)
+      if (disableEnforceFocus && doc.activeElement !== sentinelStart.current && doc.activeElement !== sentinelEnd.current) {
+        return;
+      }
+
+      // if the focus event is not coming from inside the children's react tree, reset the refs
+      if (doc.activeElement !== reactFocusEventTarget.current) {
+        reactFocusEventTarget.current = null;
+      } else if (reactFocusEventTarget.current !== null) {
+        return;
+      }
+      if (!activated.current) {
+        return;
+      }
+      let tabbable = [];
+      if (doc.activeElement === sentinelStart.current || doc.activeElement === sentinelEnd.current) {
+        tabbable = getTabbable(rootRef.current);
+      }
+
+      // one of the sentinel nodes was focused, so move the focus
+      // to the first/last tabbable element inside the focus trap
+      if (tabbable.length > 0) {
+        var _lastKeydown$current, _lastKeydown$current2;
+        const isShiftTab = Boolean(((_lastKeydown$current = lastKeydown.current) == null ? void 0 : _lastKeydown$current.shiftKey) && ((_lastKeydown$current2 = lastKeydown.current) == null ? void 0 : _lastKeydown$current2.key) === 'Tab');
+        const focusNext = tabbable[0];
+        const focusPrevious = tabbable[tabbable.length - 1];
+        if (typeof focusNext !== 'string' && typeof focusPrevious !== 'string') {
+          if (isShiftTab) {
+            focusPrevious.focus();
+          } else {
+            focusNext.focus();
+          }
+        }
+        // no tabbable elements in the trap focus or the focus was outside of the focus trap
+      } else {
+        rootElement.focus();
+      }
+    };
     doc.addEventListener('focusin', contain);
     doc.addEventListener('keydown', loopFocus, true);
 
@@ -4372,7 +6638,7 @@ function FocusTrap(props) {
     // https://html.spec.whatwg.org/multipage/interaction.html#focus-fixup-rule.
     const interval = setInterval(() => {
       if (doc.activeElement && doc.activeElement.tagName === 'BODY') {
-        contain(null);
+        contain();
       }
     }, 50);
     return () => {
@@ -4417,8 +6683,6 @@ function FocusTrap(props) {
 }
  false ? 0 : void 0;
 if (false) {}
-var _default = FocusTrap;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -4441,18 +6705,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  FocusTrap: true
+};
+Object.defineProperty(exports, "FocusTrap", ({
   enumerable: true,
   get: function () {
-    return _FocusTrap.default;
+    return _FocusTrap.FocusTrap;
   }
 }));
-var _FocusTrap = _interopRequireDefault(__webpack_require__(69421));
+var _FocusTrap = __webpack_require__(69421);
 var _FocusTrap2 = __webpack_require__(73318);
 Object.keys(_FocusTrap2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -4479,16 +6744,16 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.FormControl = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
-var _FormControlContext = _interopRequireDefault(__webpack_require__(52131));
+var _FormControlContext = __webpack_require__(52131);
 var _formControlClasses = __webpack_require__(36130);
 var _utils2 = __webpack_require__(67392);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["defaultValue", "children", "disabled", "error", "onChange", "required", "slotProps", "slots", "value"];
@@ -4508,7 +6773,7 @@ function useUtilityClasses(ownerState) {
   const slots = {
     root: ['root', disabled && 'disabled', focused && 'focused', error && 'error', filled && 'filled', required && 'required']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_formControlClasses.getFormControlUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_formControlClasses.getFormControlUtilityClass));
 }
 
 /**
@@ -4590,7 +6855,7 @@ const FormControl = /*#__PURE__*/React.forwardRef(function FormControl(props, fo
       },
       onChange: event => {
         setValue(event.target.value);
-        onChange == null ? void 0 : onChange(event);
+        onChange == null || onChange(event);
       },
       onFocus: () => {
         setFocused(true);
@@ -4618,14 +6883,13 @@ const FormControl = /*#__PURE__*/React.forwardRef(function FormControl(props, fo
     ownerState,
     className: classes.root
   });
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_FormControlContext.default.Provider, {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_FormControlContext.FormControlContext.Provider, {
     value: childContext,
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps))
   });
 });
+exports.FormControl = FormControl;
  false ? 0 : void 0;
-var _default = FormControl;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -4638,7 +6902,7 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.FormControlContext = void 0;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -4646,9 +6910,8 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
  * @ignore - internal component.
  */
 const FormControlContext = /*#__PURE__*/React.createContext(undefined);
+exports.FormControlContext = FormControlContext;
 if (false) {}
-var _default = FormControlContext;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -4658,20 +6921,18 @@ exports["default"] = _default;
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.formControlClasses = void 0;
 exports.getFormControlUtilityClass = getFormControlUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getFormControlUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiFormControl', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiFormControl', slot);
 }
-const formControlClasses = (0, _generateUtilityClasses.default)('MuiFormControl', ['root', 'disabled', 'error', 'filled', 'focused', 'required']);
-var _default = formControlClasses;
-exports["default"] = _default;
+const formControlClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiFormControl', ['root', 'disabled', 'error', 'filled', 'focused', 'required']);
+exports.formControlClasses = formControlClasses;
 
 /***/ }),
 
@@ -4682,42 +6943,35 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
+  FormControl: true,
   FormControlContext: true,
-  formControlClasses: true,
   useFormControlContext: true
 };
+Object.defineProperty(exports, "FormControl", ({
+  enumerable: true,
+  get: function () {
+    return _FormControl.FormControl;
+  }
+}));
 Object.defineProperty(exports, "FormControlContext", ({
   enumerable: true,
   get: function () {
-    return _FormControlContext.default;
-  }
-}));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _FormControl.default;
-  }
-}));
-Object.defineProperty(exports, "formControlClasses", ({
-  enumerable: true,
-  get: function () {
-    return _formControlClasses.default;
+    return _FormControlContext.FormControlContext;
   }
 }));
 Object.defineProperty(exports, "useFormControlContext", ({
   enumerable: true,
   get: function () {
-    return _useFormControlContext.default;
+    return _useFormControlContext.useFormControlContext;
   }
 }));
-var _FormControl = _interopRequireDefault(__webpack_require__(89700));
-var _FormControlContext = _interopRequireDefault(__webpack_require__(52131));
-var _formControlClasses = _interopRequireWildcard(__webpack_require__(36130));
+var _FormControl = __webpack_require__(89700);
+var _FormControlContext = __webpack_require__(52131);
+var _formControlClasses = __webpack_require__(36130);
 Object.keys(_formControlClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -4729,9 +6983,7 @@ Object.keys(_formControlClasses).forEach(function (key) {
     }
   });
 });
-var _useFormControlContext = _interopRequireDefault(__webpack_require__(72918));
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+var _useFormControlContext = __webpack_require__(72918);
 
 /***/ }),
 
@@ -4742,13 +6994,12 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useFormControlContext;
+exports.useFormControlContext = useFormControlContext;
 var React = _interopRequireWildcard(__webpack_require__(18038));
-var _FormControlContext = _interopRequireDefault(__webpack_require__(52131));
+var _FormControlContext = __webpack_require__(52131);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /**
@@ -4762,7 +7013,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
  * - [useFormControlContext API](https://mui.com/base-ui/react-form-control/hooks-api/#use-form-control-context)
  */
 function useFormControlContext() {
-  return React.useContext(_FormControlContext.default);
+  return React.useContext(_FormControlContext.FormControlContext);
 }
 
 /***/ }),
@@ -4778,16 +7029,16 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Input = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
+var _isHostComponent = __webpack_require__(84044);
 var _inputClasses = __webpack_require__(20178);
-var _useInput = _interopRequireDefault(__webpack_require__(18606));
+var _useInput = __webpack_require__(18606);
 var _utils = __webpack_require__(67392);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["aria-describedby", "aria-label", "aria-labelledby", "autoComplete", "autoFocus", "className", "defaultValue", "disabled", "endAdornment", "error", "id", "multiline", "name", "onClick", "onChange", "onKeyDown", "onKeyUp", "onFocus", "onBlur", "placeholder", "readOnly", "required", "startAdornment", "value", "type", "rows", "slotProps", "slots", "minRows", "maxRows"];
@@ -4807,7 +7058,7 @@ const useUtilityClasses = ownerState => {
     root: ['root', disabled && 'disabled', error && 'error', focused && 'focused', Boolean(formControlContext) && 'formControl', multiline && 'multiline', Boolean(startAdornment) && 'adornedStart', Boolean(endAdornment) && 'adornedEnd'],
     input: ['input', disabled && 'disabled', multiline && 'multiline']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_inputClasses.getInputUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_inputClasses.getInputUtilityClass));
 };
 
 /**
@@ -4862,7 +7113,7 @@ const Input = /*#__PURE__*/React.forwardRef(function Input(props, forwardedRef) 
     formControlContext,
     error: errorState,
     disabled: disabledState
-  } = (0, _useInput.default)({
+  } = (0, _useInput.useInput)({
     disabled,
     defaultValue,
     error,
@@ -4918,7 +7169,7 @@ const Input = /*#__PURE__*/React.forwardRef(function Input(props, forwardedRef) 
     externalSlotProps: slotProps.input,
     additionalProps: (0, _extends2.default)({
       rows: multiline ? rows : undefined
-    }, multiline && !(0, _isHostComponent.default)(InputComponent) && {
+    }, multiline && !(0, _isHostComponent.isHostComponent)(InputComponent) && {
       minRows: rows || minRows,
       maxRows: rows || maxRows
     }),
@@ -4930,9 +7181,8 @@ const Input = /*#__PURE__*/React.forwardRef(function Input(props, forwardedRef) 
     children: [startAdornment, /*#__PURE__*/(0, _jsxRuntime.jsx)(InputComponent, (0, _extends2.default)({}, inputProps)), endAdornment]
   }));
 });
+exports.Input = Input;
  false ? 0 : void 0;
-var _default = Input;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -4955,26 +7205,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  inputClasses: true
+  Input: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Input", ({
   enumerable: true,
   get: function () {
-    return _Input.default;
+    return _Input.Input;
   }
 }));
-Object.defineProperty(exports, "inputClasses", ({
-  enumerable: true,
-  get: function () {
-    return _inputClasses.default;
-  }
-}));
-var _Input = _interopRequireDefault(__webpack_require__(27811));
+var _Input = __webpack_require__(27811);
 var _Input2 = __webpack_require__(60348);
 Object.keys(_Input2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -4987,7 +7230,7 @@ Object.keys(_Input2).forEach(function (key) {
     }
   });
 });
-var _inputClasses = _interopRequireWildcard(__webpack_require__(20178));
+var _inputClasses = __webpack_require__(20178);
 Object.keys(_inputClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -4999,8 +7242,6 @@ Object.keys(_inputClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -5010,20 +7251,192 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.getInputUtilityClass = getInputUtilityClass;
+exports.inputClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
+function getInputUtilityClass(slot) {
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiInput', slot);
+}
+const inputClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiInput', ['root', 'formControl', 'focused', 'disabled', 'error', 'multiline', 'input', 'inputMultiline', 'inputTypeSearch', 'adornedStart', 'adornedEnd']);
+exports.inputClasses = inputClasses;
+
+/***/ }),
+
+/***/ 42022:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
-exports.getInputUtilityClass = getInputUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
-function getInputUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiInput', slot);
+exports.MenuButton = void 0;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _propTypes = _interopRequireDefault(__webpack_require__(55601));
+var _utils = __webpack_require__(67392);
+var _useMenuButton = __webpack_require__(31030);
+var _composeClasses = __webpack_require__(29178);
+var _ClassNameConfigurator = __webpack_require__(15593);
+var _menuButtonClasses = __webpack_require__(49093);
+var _jsxRuntime = __webpack_require__(56786);
+const _excluded = ["children", "disabled", "label", "slots", "slotProps", "focusableWhenDisabled"];
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const useUtilityClasses = ownerState => {
+  const {
+    active,
+    disabled,
+    open
+  } = ownerState;
+  const slots = {
+    root: ['root', disabled && 'disabled', active && 'active', open && 'expanded']
+  };
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_menuButtonClasses.getMenuButtonUtilityClass));
+};
+
+/**
+ *
+ * Demos:
+ *
+ * - [Menu](https://mui.com/base-ui/react-menu/)
+ *
+ * API:
+ *
+ * - [MenuButton API](https://mui.com/base-ui/react-menu/components-api/#menu-button)
+ */
+const MenuButton = /*#__PURE__*/React.forwardRef(function MenuButton(props, forwardedRef) {
+  const {
+      children,
+      disabled = false,
+      slots = {},
+      slotProps = {},
+      focusableWhenDisabled = false
+    } = props,
+    other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
+  const {
+    getRootProps,
+    open,
+    active
+  } = (0, _useMenuButton.useMenuButton)({
+    disabled,
+    focusableWhenDisabled,
+    rootRef: forwardedRef
+  });
+  const ownerState = (0, _extends2.default)({}, props, {
+    open,
+    active,
+    disabled,
+    focusableWhenDisabled
+  });
+  const classes = useUtilityClasses(ownerState);
+  const Root = slots.root || 'button';
+  const rootProps = (0, _utils.useSlotProps)({
+    elementType: Root,
+    getSlotProps: getRootProps,
+    externalForwardedProps: other,
+    externalSlotProps: slotProps.root,
+    additionalProps: {
+      ref: forwardedRef,
+      type: 'button'
+    },
+    ownerState,
+    className: classes.root
+  });
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
+    children: children
+  }));
+});
+exports.MenuButton = MenuButton;
+ false ? 0 : void 0;
+
+/***/ }),
+
+/***/ 49471:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 77044:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  MenuButton: true
+};
+Object.defineProperty(exports, "MenuButton", ({
+  enumerable: true,
+  get: function () {
+    return _MenuButton.MenuButton;
+  }
+}));
+var _MenuButton = __webpack_require__(42022);
+var _MenuButton2 = __webpack_require__(49471);
+Object.keys(_MenuButton2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _MenuButton2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _MenuButton2[key];
+    }
+  });
+});
+var _menuButtonClasses = __webpack_require__(49093);
+Object.keys(_menuButtonClasses).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _menuButtonClasses[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _menuButtonClasses[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 49093:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.getMenuButtonUtilityClass = getMenuButtonUtilityClass;
+exports.menuButtonClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
+function getMenuButtonUtilityClass(slot) {
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiMenuButton', slot);
 }
-const inputClasses = (0, _generateUtilityClasses.default)('MuiInput', ['root', 'formControl', 'focused', 'disabled', 'error', 'multiline', 'input', 'inputMultiline', 'inputTypeSearch', 'adornedStart', 'adornedEnd']);
-var _default = inputClasses;
-exports["default"] = _default;
+const menuButtonClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiMenuButton', ['root', 'active', 'disabled', 'expanded']);
+exports.menuButtonClasses = menuButtonClasses;
 
 /***/ }),
 
@@ -5038,15 +7451,15 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.MenuItem = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _menuItemClasses = __webpack_require__(9890);
-var _useMenuItem = _interopRequireDefault(__webpack_require__(71038));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _useSlotProps = _interopRequireDefault(__webpack_require__(36780));
+var _useMenuItem = __webpack_require__(71038);
+var _composeClasses = __webpack_require__(29178);
+var _useSlotProps = __webpack_require__(36780);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["children", "disabled", "label", "slotProps", "slots"];
@@ -5060,7 +7473,7 @@ function useUtilityClasses(ownerState) {
   const slots = {
     root: ['root', disabled && 'disabled', focusVisible && 'focusVisible']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_menuItemClasses.getMenuItemUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_menuItemClasses.getMenuItemUtilityClass));
 }
 
 /**
@@ -5088,7 +7501,7 @@ const MenuItem = /*#__PURE__*/React.forwardRef(function MenuItem(props, forwarde
     disabled,
     focusVisible,
     highlighted
-  } = (0, _useMenuItem.default)({
+  } = (0, _useMenuItem.useMenuItem)({
     disabled: disabledProp,
     rootRef: forwardedRef,
     label
@@ -5100,7 +7513,7 @@ const MenuItem = /*#__PURE__*/React.forwardRef(function MenuItem(props, forwarde
   });
   const classes = useUtilityClasses(ownerState);
   const Root = (_slots$root = slots.root) != null ? _slots$root : 'li';
-  const rootProps = (0, _useSlotProps.default)({
+  const rootProps = (0, _useSlotProps.useSlotProps)({
     elementType: Root,
     getSlotProps: getRootProps,
     externalSlotProps: slotProps.root,
@@ -5112,9 +7525,8 @@ const MenuItem = /*#__PURE__*/React.forwardRef(function MenuItem(props, forwarde
     children: children
   }));
 });
+exports.MenuItem = MenuItem;
  false ? 0 : void 0;
-var _default = MenuItem;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -5136,26 +7548,19 @@ Object.defineProperty(exports, "__esModule", ({
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  menuItemClasses: true
+  MenuItem: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "MenuItem", ({
   enumerable: true,
   get: function () {
-    return _MenuItem.default;
+    return _MenuItem.MenuItem;
   }
 }));
-Object.defineProperty(exports, "menuItemClasses", ({
-  enumerable: true,
-  get: function () {
-    return _menuItemClasses.default;
-  }
-}));
-var _MenuItem = _interopRequireDefault(__webpack_require__(62876));
+var _MenuItem = __webpack_require__(62876);
 var _MenuItem2 = __webpack_require__(73482);
 Object.keys(_MenuItem2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -5168,7 +7573,7 @@ Object.keys(_MenuItem2).forEach(function (key) {
     }
   });
 });
-var _menuItemClasses = _interopRequireWildcard(__webpack_require__(9890));
+var _menuItemClasses = __webpack_require__(9890);
 Object.keys(_menuItemClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -5180,8 +7585,6 @@ Object.keys(_menuItemClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -5191,20 +7594,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getMenuItemUtilityClass = getMenuItemUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.menuItemClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getMenuItemUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiMenuItem', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiMenuItem', slot);
 }
-const menuItemClasses = (0, _generateUtilityClasses.default)('MuiMenuItem', ['root', 'disabled', 'focusVisible']);
-var _default = menuItemClasses;
-exports["default"] = _default;
+const menuItemClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiMenuItem', ['root', 'disabled', 'focusVisible']);
+exports.menuItemClasses = menuItemClasses;
 
 /***/ }),
 
@@ -5219,22 +7620,22 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Menu = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
 var _menuClasses = __webpack_require__(90461);
-var _useMenu = _interopRequireDefault(__webpack_require__(63796));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _Popper = _interopRequireDefault(__webpack_require__(18934));
-var _useSlotProps = _interopRequireDefault(__webpack_require__(36780));
+var _useMenu = __webpack_require__(63796);
+var _MenuProvider = __webpack_require__(68601);
+var _composeClasses = __webpack_require__(29178);
+var _Popper = __webpack_require__(18934);
+var _useSlotProps = __webpack_require__(36780);
 var _ClassNameConfigurator = __webpack_require__(15593);
-var _MenuProvider = _interopRequireDefault(__webpack_require__(68601));
 var _useList = __webpack_require__(51312);
 var _jsxRuntime = __webpack_require__(56786);
-const _excluded = ["actions", "anchorEl", "children", "defaultOpen", "listboxId", "onItemsChange", "onOpenChange", "open", "slotProps", "slots"];
+const _excluded = ["actions", "children", "onItemsChange", "slotProps", "slots"];
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function useUtilityClasses(ownerState) {
@@ -5245,8 +7646,9 @@ function useUtilityClasses(ownerState) {
     root: ['root', open && 'expanded'],
     listbox: ['listbox', open && 'expanded']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_menuClasses.getMenuUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_menuClasses.getMenuUtilityClass));
 }
+
 /**
  *
  * Demos:
@@ -5261,13 +7663,8 @@ const Menu = /*#__PURE__*/React.forwardRef(function Menu(props, forwardedRef) {
   var _slots$root, _slots$listbox;
   const {
       actions,
-      anchorEl,
       children,
-      defaultOpen,
-      listboxId,
       onItemsChange,
-      onOpenChange,
-      open: openProp,
       slotProps = {},
       slots = {}
     } = props,
@@ -5276,13 +7673,10 @@ const Menu = /*#__PURE__*/React.forwardRef(function Menu(props, forwardedRef) {
     contextValue,
     getListboxProps,
     dispatch,
-    open
-  } = (0, _useMenu.default)({
-    defaultOpen,
-    open: openProp,
-    onItemsChange,
-    onOpenChange,
-    listboxId
+    open,
+    triggerElement
+  } = (0, _useMenu.useMenu)({
+    onItemsChange
   });
   React.useImperativeHandle(actions, () => ({
     dispatch,
@@ -5295,41 +7689,52 @@ const Menu = /*#__PURE__*/React.forwardRef(function Menu(props, forwardedRef) {
     open
   });
   const classes = useUtilityClasses(ownerState);
-  const Root = (_slots$root = slots.root) != null ? _slots$root : _Popper.default;
-  const rootProps = (0, _useSlotProps.default)({
+  const Root = (_slots$root = slots.root) != null ? _slots$root : 'div';
+  const rootProps = (0, _useSlotProps.useSlotProps)({
     elementType: Root,
-    externalForwardedProps: other,
     externalSlotProps: slotProps.root,
+    externalForwardedProps: other,
     additionalProps: {
-      anchorEl,
-      open,
-      keepMounted: true,
-      role: undefined,
-      ref: forwardedRef
+      ref: forwardedRef,
+      role: undefined
     },
     className: classes.root,
     ownerState
   });
   const Listbox = (_slots$listbox = slots.listbox) != null ? _slots$listbox : 'ul';
-  const listboxProps = (0, _useSlotProps.default)({
+  const listboxProps = (0, _useSlotProps.useSlotProps)({
     elementType: Listbox,
     getSlotProps: getListboxProps,
     externalSlotProps: slotProps.listbox,
-    ownerState,
-    className: classes.listbox
+    className: classes.listbox,
+    ownerState
   });
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
+  if (open === true && triggerElement == null) {
+    return /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
+      children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Listbox, (0, _extends2.default)({}, listboxProps, {
+        children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_MenuProvider.MenuProvider, {
+          value: contextValue,
+          children: children
+        })
+      }))
+    }));
+  }
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Popper.Popper, (0, _extends2.default)({}, rootProps, {
+    open: open,
+    anchorEl: triggerElement,
+    slots: {
+      root: Root
+    },
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Listbox, (0, _extends2.default)({}, listboxProps, {
-      children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_MenuProvider.default, {
+      children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_MenuProvider.MenuProvider, {
         value: contextValue,
         children: children
       })
     }))
   }));
 });
+exports.Menu = Menu;
  false ? 0 : void 0;
-var _default = Menu;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -5351,27 +7756,20 @@ Object.defineProperty(exports, "__esModule", ({
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  menuClasses: true
+  Menu: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Menu", ({
   enumerable: true,
   get: function () {
-    return _Menu.default;
+    return _Menu.Menu;
   }
 }));
-Object.defineProperty(exports, "menuClasses", ({
-  enumerable: true,
-  get: function () {
-    return _menuClasses.default;
-  }
-}));
-var _Menu = _interopRequireDefault(__webpack_require__(47659));
-var _menuClasses = _interopRequireWildcard(__webpack_require__(90461));
+var _Menu = __webpack_require__(47659);
+var _menuClasses = __webpack_require__(90461);
 Object.keys(_menuClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -5395,8 +7793,6 @@ Object.keys(_Menu2).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -5406,20 +7802,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getMenuUtilityClass = getMenuUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.menuClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getMenuUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiMenu', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiMenu', slot);
 }
-const menuClasses = (0, _generateUtilityClasses.default)('MuiMenu', ['root', 'listbox', 'expanded']);
-var _default = menuClasses;
-exports["default"] = _default;
+const menuClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiMenu', ['root', 'listbox', 'expanded']);
+exports.menuClasses = menuClasses;
 
 /***/ }),
 
@@ -5434,21 +7828,21 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Modal = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _Portal = _interopRequireDefault(__webpack_require__(16191));
-var _ModalManager = _interopRequireWildcard(__webpack_require__(49695));
-var _FocusTrap = _interopRequireDefault(__webpack_require__(55040));
-var _modalClasses = __webpack_require__(165);
 var _utils2 = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
+var _composeClasses = __webpack_require__(29178);
+var _Portal = __webpack_require__(16191);
+var _unstable_useModal = __webpack_require__(39810);
+var _FocusTrap = __webpack_require__(55040);
+var _modalClasses = __webpack_require__(165);
 var _jsxRuntime = __webpack_require__(56786);
-const _excluded = ["children", "closeAfterTransition", "container", "disableAutoFocus", "disableEnforceFocus", "disableEscapeKeyDown", "disablePortal", "disableRestoreFocus", "disableScrollLock", "hideBackdrop", "keepMounted", "manager", "onBackdropClick", "onClose", "onKeyDown", "open", "onTransitionEnter", "onTransitionExited", "slotProps", "slots"];
+const _excluded = ["children", "closeAfterTransition", "container", "disableAutoFocus", "disableEnforceFocus", "disableEscapeKeyDown", "disablePortal", "disableRestoreFocus", "disableScrollLock", "hideBackdrop", "keepMounted", "onBackdropClick", "onClose", "onKeyDown", "open", "onTransitionEnter", "onTransitionExited", "slotProps", "slots"];
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 const useUtilityClasses = ownerState => {
@@ -5460,18 +7854,8 @@ const useUtilityClasses = ownerState => {
     root: ['root', !open && exited && 'hidden'],
     backdrop: ['backdrop']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_modalClasses.getModalUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_modalClasses.getModalUtilityClass));
 };
-function getContainer(container) {
-  return typeof container === 'function' ? container() : container;
-}
-function getHasTransition(children) {
-  return children ? children.props.hasOwnProperty('in') : false;
-}
-
-// A modal manager used to track and manage the state of open Modals.
-// Modals don't open on the server so this won't conflict with concurrent requests.
-const defaultManager = new _ModalManager.default();
 
 /**
  * Modal is a lower-level construct that is leveraged by the following components:
@@ -5495,7 +7879,7 @@ const defaultManager = new _ModalManager.default();
  * - [Modal API](https://mui.com/base-ui/react-modal/components-api/#modal)
  */
 const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) {
-  var _props$ariaHidden, _slots$root;
+  var _slots$root;
   const {
       children,
       closeAfterTransition = false,
@@ -5508,81 +7892,13 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
       disableScrollLock = false,
       hideBackdrop = false,
       keepMounted = false,
-      // private
-      manager: managerProp = defaultManager,
       onBackdropClick,
-      onClose,
-      onKeyDown,
       open,
-      onTransitionEnter,
-      onTransitionExited,
       slotProps = {},
       slots = {}
     } = props,
     other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
-  // TODO: `modal`` must change its type in this file to match the type of methods
-  // provided by `ModalManager`
-  const manager = managerProp;
-  const [exited, setExited] = React.useState(!open);
-  const modal = React.useRef({});
-  const mountNodeRef = React.useRef(null);
-  const modalRef = React.useRef(null);
-  const handleRef = (0, _utils.unstable_useForkRef)(modalRef, forwardedRef);
-  const hasTransition = getHasTransition(children);
-  const ariaHiddenProp = (_props$ariaHidden = props['aria-hidden']) != null ? _props$ariaHidden : true;
-  const getDoc = () => (0, _utils.unstable_ownerDocument)(mountNodeRef.current);
-  const getModal = () => {
-    modal.current.modalRef = modalRef.current;
-    modal.current.mountNode = mountNodeRef.current;
-    return modal.current;
-  };
-  const handleMounted = () => {
-    manager.mount(getModal(), {
-      disableScrollLock
-    });
-
-    // Fix a bug on Chrome where the scroll isn't initially 0.
-    if (modalRef.current) {
-      modalRef.current.scrollTop = 0;
-    }
-  };
-  const handleOpen = (0, _utils.unstable_useEventCallback)(() => {
-    const resolvedContainer = getContainer(container) || getDoc().body;
-    manager.add(getModal(), resolvedContainer);
-
-    // The element was already mounted.
-    if (modalRef.current) {
-      handleMounted();
-    }
-  });
-  const isTopModal = React.useCallback(() => manager.isTopModal(getModal()), [manager]);
-  const handlePortalRef = (0, _utils.unstable_useEventCallback)(node => {
-    mountNodeRef.current = node;
-    if (!node || !modalRef.current) {
-      return;
-    }
-    if (open && isTopModal()) {
-      handleMounted();
-    } else {
-      (0, _ModalManager.ariaHidden)(modalRef.current, ariaHiddenProp);
-    }
-  });
-  const handleClose = React.useCallback(() => {
-    manager.remove(getModal(), ariaHiddenProp);
-  }, [manager, ariaHiddenProp]);
-  React.useEffect(() => {
-    return () => {
-      handleClose();
-    };
-  }, [handleClose]);
-  React.useEffect(() => {
-    if (open) {
-      handleOpen();
-    } else if (!hasTransition || !closeAfterTransition) {
-      handleClose();
-    }
-  }, [open, handleClose, hasTransition, closeAfterTransition, handleOpen]);
-  const ownerState = (0, _extends2.default)({}, props, {
+  const propsWithDefaults = (0, _extends2.default)({}, props, {
     closeAfterTransition,
     disableAutoFocus,
     disableEnforceFocus,
@@ -5590,59 +7906,25 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
     disablePortal,
     disableRestoreFocus,
     disableScrollLock,
-    exited,
     hideBackdrop,
     keepMounted
   });
+  const {
+    getRootProps,
+    getBackdropProps,
+    getTransitionProps,
+    portalRef,
+    isTopModal,
+    exited,
+    hasTransition
+  } = (0, _unstable_useModal.unstable_useModal)((0, _extends2.default)({}, propsWithDefaults, {
+    rootRef: forwardedRef
+  }));
+  const ownerState = (0, _extends2.default)({}, propsWithDefaults, {
+    exited,
+    hasTransition
+  });
   const classes = useUtilityClasses(ownerState);
-  const handleEnter = () => {
-    setExited(false);
-    if (onTransitionEnter) {
-      onTransitionEnter();
-    }
-  };
-  const handleExited = () => {
-    setExited(true);
-    if (onTransitionExited) {
-      onTransitionExited();
-    }
-    if (closeAfterTransition) {
-      handleClose();
-    }
-  };
-  const handleBackdropClick = event => {
-    if (event.target !== event.currentTarget) {
-      return;
-    }
-    if (onBackdropClick) {
-      onBackdropClick(event);
-    }
-    if (onClose) {
-      onClose(event, 'backdropClick');
-    }
-  };
-  const handleKeyDown = event => {
-    if (onKeyDown) {
-      onKeyDown(event);
-    }
-
-    // The handler doesn't take event.defaultPrevented into account:
-    //
-    // event.preventDefault() is meant to stop default behaviors like
-    // clicking a checkbox to check it, hitting a button to submit a form,
-    // and hitting left arrow to move the cursor in a text input etc.
-    // Only special HTML elements have these default behaviors.
-    if (event.key !== 'Escape' || !isTopModal()) {
-      return;
-    }
-    if (!disableEscapeKeyDown) {
-      // Swallow the event, in case someone is listening for the escape key on the body.
-      event.stopPropagation();
-      if (onClose) {
-        onClose(event, 'escapeKeyDown');
-      }
-    }
-  };
   const childProps = {};
   if (children.props.tabIndex === undefined) {
     childProps.tabIndex = '-1';
@@ -5650,19 +7932,19 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
 
   // It's a Transition like component
   if (hasTransition) {
-    childProps.onEnter = (0, _utils.unstable_createChainedFunction)(handleEnter, children.props.onEnter);
-    childProps.onExited = (0, _utils.unstable_createChainedFunction)(handleExited, children.props.onExited);
+    const {
+      onEnter,
+      onExited
+    } = getTransitionProps();
+    childProps.onEnter = onEnter;
+    childProps.onExited = onExited;
   }
   const Root = (_slots$root = slots.root) != null ? _slots$root : 'div';
   const rootProps = (0, _utils2.useSlotProps)({
     elementType: Root,
     externalSlotProps: slotProps.root,
     externalForwardedProps: other,
-    additionalProps: {
-      ref: handleRef,
-      role: 'presentation',
-      onKeyDown: handleKeyDown
-    },
+    getSlotProps: getRootProps,
     className: classes.root,
     ownerState
   });
@@ -5670,10 +7952,17 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
   const backdropProps = (0, _utils2.useSlotProps)({
     elementType: BackdropComponent,
     externalSlotProps: slotProps.backdrop,
-    additionalProps: {
-      'aria-hidden': true,
-      onClick: handleBackdropClick,
-      open
+    getSlotProps: otherHandlers => {
+      return getBackdropProps((0, _extends2.default)({}, otherHandlers, {
+        onClick: e => {
+          if (onBackdropClick) {
+            onBackdropClick(e);
+          }
+          if (otherHandlers != null && otherHandlers.onClick) {
+            otherHandlers.onClick(e);
+          }
+        }
+      }));
     },
     className: classes.backdrop,
     ownerState
@@ -5681,14 +7970,12 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
   if (!keepMounted && !open && (!hasTransition || exited)) {
     return null;
   }
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Portal.default
-  // @ts-expect-error TODO: include ref to Base UI Portal props
-  , {
-    ref: handlePortalRef,
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Portal.Portal, {
+    ref: portalRef,
     container: container,
     disablePortal: disablePortal,
     children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(Root, (0, _extends2.default)({}, rootProps, {
-      children: [!hideBackdrop && BackdropComponent ? /*#__PURE__*/(0, _jsxRuntime.jsx)(BackdropComponent, (0, _extends2.default)({}, backdropProps)) : null, /*#__PURE__*/(0, _jsxRuntime.jsx)(_FocusTrap.default, {
+      children: [!hideBackdrop && BackdropComponent ? /*#__PURE__*/(0, _jsxRuntime.jsx)(BackdropComponent, (0, _extends2.default)({}, backdropProps)) : null, /*#__PURE__*/(0, _jsxRuntime.jsx)(_FocusTrap.FocusTrap, {
         disableEnforceFocus: disableEnforceFocus,
         disableAutoFocus: disableAutoFocus,
         disableRestoreFocus: disableRestoreFocus,
@@ -5699,9 +7986,8 @@ const Modal = /*#__PURE__*/React.forwardRef(function Modal(props, forwardedRef) 
     }))
   });
 });
+exports.Modal = Modal;
  false ? 0 : void 0;
-var _default = Modal;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -5717,234 +8003,6 @@ Object.defineProperty(exports, "__esModule", ({
 
 /***/ }),
 
-/***/ 49695:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.ariaHidden = ariaHidden;
-exports["default"] = void 0;
-var _utils = __webpack_require__(44268);
-// Is a vertical scrollbar displayed?
-function isOverflowing(container) {
-  const doc = (0, _utils.unstable_ownerDocument)(container);
-  if (doc.body === container) {
-    return (0, _utils.unstable_ownerWindow)(container).innerWidth > doc.documentElement.clientWidth;
-  }
-  return container.scrollHeight > container.clientHeight;
-}
-function ariaHidden(element, show) {
-  if (show) {
-    element.setAttribute('aria-hidden', 'true');
-  } else {
-    element.removeAttribute('aria-hidden');
-  }
-}
-function getPaddingRight(element) {
-  return parseInt((0, _utils.unstable_ownerWindow)(element).getComputedStyle(element).paddingRight, 10) || 0;
-}
-function isAriaHiddenForbiddenOnElement(element) {
-  // The forbidden HTML tags are the ones from ARIA specification that
-  // can be children of body and can't have aria-hidden attribute.
-  // cf. https://www.w3.org/TR/html-aria/#docconformance
-  const forbiddenTagNames = ['TEMPLATE', 'SCRIPT', 'STYLE', 'LINK', 'MAP', 'META', 'NOSCRIPT', 'PICTURE', 'COL', 'COLGROUP', 'PARAM', 'SLOT', 'SOURCE', 'TRACK'];
-  const isForbiddenTagName = forbiddenTagNames.indexOf(element.tagName) !== -1;
-  const isInputHidden = element.tagName === 'INPUT' && element.getAttribute('type') === 'hidden';
-  return isForbiddenTagName || isInputHidden;
-}
-function ariaHiddenSiblings(container, mountElement, currentElement, elementsToExclude, show) {
-  const blacklist = [mountElement, currentElement, ...elementsToExclude];
-  [].forEach.call(container.children, element => {
-    const isNotExcludedElement = blacklist.indexOf(element) === -1;
-    const isNotForbiddenElement = !isAriaHiddenForbiddenOnElement(element);
-    if (isNotExcludedElement && isNotForbiddenElement) {
-      ariaHidden(element, show);
-    }
-  });
-}
-function findIndexOf(items, callback) {
-  let idx = -1;
-  items.some((item, index) => {
-    if (callback(item)) {
-      idx = index;
-      return true;
-    }
-    return false;
-  });
-  return idx;
-}
-function handleContainer(containerInfo, props) {
-  const restoreStyle = [];
-  const container = containerInfo.container;
-  if (!props.disableScrollLock) {
-    if (isOverflowing(container)) {
-      // Compute the size before applying overflow hidden to avoid any scroll jumps.
-      const scrollbarSize = (0, _utils.unstable_getScrollbarSize)((0, _utils.unstable_ownerDocument)(container));
-      restoreStyle.push({
-        value: container.style.paddingRight,
-        property: 'padding-right',
-        el: container
-      });
-      // Use computed style, here to get the real padding to add our scrollbar width.
-      container.style.paddingRight = `${getPaddingRight(container) + scrollbarSize}px`;
-
-      // .mui-fixed is a global helper.
-      const fixedElements = (0, _utils.unstable_ownerDocument)(container).querySelectorAll('.mui-fixed');
-      [].forEach.call(fixedElements, element => {
-        restoreStyle.push({
-          value: element.style.paddingRight,
-          property: 'padding-right',
-          el: element
-        });
-        element.style.paddingRight = `${getPaddingRight(element) + scrollbarSize}px`;
-      });
-    }
-    let scrollContainer;
-    if (container.parentNode instanceof DocumentFragment) {
-      scrollContainer = (0, _utils.unstable_ownerDocument)(container).body;
-    } else {
-      // Improve Gatsby support
-      // https://css-tricks.com/snippets/css/force-vertical-scrollbar/
-      const parent = container.parentElement;
-      const containerWindow = (0, _utils.unstable_ownerWindow)(container);
-      scrollContainer = (parent == null ? void 0 : parent.nodeName) === 'HTML' && containerWindow.getComputedStyle(parent).overflowY === 'scroll' ? parent : container;
-    }
-
-    // Block the scroll even if no scrollbar is visible to account for mobile keyboard
-    // screensize shrink.
-    restoreStyle.push({
-      value: scrollContainer.style.overflow,
-      property: 'overflow',
-      el: scrollContainer
-    }, {
-      value: scrollContainer.style.overflowX,
-      property: 'overflow-x',
-      el: scrollContainer
-    }, {
-      value: scrollContainer.style.overflowY,
-      property: 'overflow-y',
-      el: scrollContainer
-    });
-    scrollContainer.style.overflow = 'hidden';
-  }
-  const restore = () => {
-    restoreStyle.forEach(({
-      value,
-      el,
-      property
-    }) => {
-      if (value) {
-        el.style.setProperty(property, value);
-      } else {
-        el.style.removeProperty(property);
-      }
-    });
-  };
-  return restore;
-}
-function getHiddenSiblings(container) {
-  const hiddenSiblings = [];
-  [].forEach.call(container.children, element => {
-    if (element.getAttribute('aria-hidden') === 'true') {
-      hiddenSiblings.push(element);
-    }
-  });
-  return hiddenSiblings;
-}
-/**
- * @ignore - do not document.
- *
- * Proper state management for containers and the modals in those containers.
- * Simplified, but inspired by react-overlay's ModalManager class.
- * Used by the Modal to ensure proper styling of containers.
- */
-class ModalManager {
-  constructor() {
-    this.containers = void 0;
-    this.modals = void 0;
-    this.modals = [];
-    this.containers = [];
-  }
-  add(modal, container) {
-    let modalIndex = this.modals.indexOf(modal);
-    if (modalIndex !== -1) {
-      return modalIndex;
-    }
-    modalIndex = this.modals.length;
-    this.modals.push(modal);
-
-    // If the modal we are adding is already in the DOM.
-    if (modal.modalRef) {
-      ariaHidden(modal.modalRef, false);
-    }
-    const hiddenSiblings = getHiddenSiblings(container);
-    ariaHiddenSiblings(container, modal.mount, modal.modalRef, hiddenSiblings, true);
-    const containerIndex = findIndexOf(this.containers, item => item.container === container);
-    if (containerIndex !== -1) {
-      this.containers[containerIndex].modals.push(modal);
-      return modalIndex;
-    }
-    this.containers.push({
-      modals: [modal],
-      container,
-      restore: null,
-      hiddenSiblings
-    });
-    return modalIndex;
-  }
-  mount(modal, props) {
-    const containerIndex = findIndexOf(this.containers, item => item.modals.indexOf(modal) !== -1);
-    const containerInfo = this.containers[containerIndex];
-    if (!containerInfo.restore) {
-      containerInfo.restore = handleContainer(containerInfo, props);
-    }
-  }
-  remove(modal, ariaHiddenState = true) {
-    const modalIndex = this.modals.indexOf(modal);
-    if (modalIndex === -1) {
-      return modalIndex;
-    }
-    const containerIndex = findIndexOf(this.containers, item => item.modals.indexOf(modal) !== -1);
-    const containerInfo = this.containers[containerIndex];
-    containerInfo.modals.splice(containerInfo.modals.indexOf(modal), 1);
-    this.modals.splice(modalIndex, 1);
-
-    // If that was the last modal in a container, clean up the container.
-    if (containerInfo.modals.length === 0) {
-      // The modal might be closed before it had the chance to be mounted in the DOM.
-      if (containerInfo.restore) {
-        containerInfo.restore();
-      }
-      if (modal.modalRef) {
-        // In case the modal wasn't in the DOM yet.
-        ariaHidden(modal.modalRef, ariaHiddenState);
-      }
-      ariaHiddenSiblings(containerInfo.container, modal.mount, modal.modalRef, containerInfo.hiddenSiblings, false);
-      this.containers.splice(containerIndex, 1);
-    } else {
-      // Otherwise make sure the next top modal is visible to a screen reader.
-      const nextTop = containerInfo.modals[containerInfo.modals.length - 1];
-      // as soon as a modal is adding its modalRef is undefined. it can't set
-      // aria-hidden because the dom element doesn't exist either
-      // when modal was unmounted before modalRef gets null
-      if (nextTop.modalRef) {
-        ariaHidden(nextTop.modalRef, false);
-      }
-    }
-    return modalIndex;
-  }
-  isTopModal(modal) {
-    return this.modals.length > 0 && this.modals[this.modals.length - 1] === modal;
-  }
-}
-exports["default"] = ModalManager;
-
-/***/ }),
-
 /***/ 38451:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -5952,33 +8010,19 @@ exports["default"] = ModalManager;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  ModalManager: true,
-  modalClasses: true
+  Modal: true
 };
-Object.defineProperty(exports, "ModalManager", ({
+Object.defineProperty(exports, "Modal", ({
   enumerable: true,
   get: function () {
-    return _ModalManager.default;
+    return _Modal.Modal;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _Modal.default;
-  }
-}));
-Object.defineProperty(exports, "modalClasses", ({
-  enumerable: true,
-  get: function () {
-    return _modalClasses.default;
-  }
-}));
-var _Modal = _interopRequireDefault(__webpack_require__(88138));
+var _Modal = __webpack_require__(88138);
 var _Modal2 = __webpack_require__(21963);
 Object.keys(_Modal2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -5991,19 +8035,7 @@ Object.keys(_Modal2).forEach(function (key) {
     }
   });
 });
-var _ModalManager = _interopRequireWildcard(__webpack_require__(49695));
-Object.keys(_ModalManager).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
-  if (key in exports && exports[key] === _ModalManager[key]) return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function () {
-      return _ModalManager[key];
-    }
-  });
-});
-var _modalClasses = _interopRequireWildcard(__webpack_require__(165));
+var _modalClasses = __webpack_require__(165);
 Object.keys(_modalClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -6015,8 +8047,6 @@ Object.keys(_modalClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -6026,20 +8056,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getModalUtilityClass = getModalUtilityClass;
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
+exports.modalClasses = void 0;
+var _generateUtilityClasses = __webpack_require__(69770);
+var _generateUtilityClass = __webpack_require__(50322);
 function getModalUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiModal', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiModal', slot);
 }
-const modalClasses = (0, _generateUtilityClasses.default)('MuiModal', ['root', 'hidden', 'backdrop']);
-var _default = modalClasses;
-exports["default"] = _default;
+const modalClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiModal', ['root', 'hidden', 'backdrop']);
+exports.modalClasses = modalClasses;
 
 /***/ }),
 
@@ -6054,7 +8082,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.NoSsr = NoSsr;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
@@ -6104,8 +8132,6 @@ function NoSsr(props) {
 }
  false ? 0 : void 0;
 if (false) {}
-var _default = NoSsr;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -6128,18 +8154,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  NoSsr: true
+};
+Object.defineProperty(exports, "NoSsr", ({
   enumerable: true,
   get: function () {
-    return _NoSsr.default;
+    return _NoSsr.NoSsr;
   }
 }));
-var _NoSsr = _interopRequireDefault(__webpack_require__(66966));
+var _NoSsr = __webpack_require__(66966);
 var _NoSsr2 = __webpack_require__(7800);
 Object.keys(_NoSsr2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -6166,12 +8193,12 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.OptionGroup = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _optionGroupClasses = __webpack_require__(78081);
 var _utils = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
@@ -6185,7 +8212,7 @@ function useUtilityClasses(disabled) {
     label: ['label'],
     list: ['list']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_optionGroupClasses.getOptionGroupUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_optionGroupClasses.getOptionGroupUtilityClass));
 }
 
 /**
@@ -6240,9 +8267,8 @@ const OptionGroup = /*#__PURE__*/React.forwardRef(function OptionGroup(props, fo
     }))]
   }));
 });
+exports.OptionGroup = OptionGroup;
  false ? 0 : void 0;
-var _default = OptionGroup;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -6265,26 +8291,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  optionGroupClasses: true
+  OptionGroup: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "OptionGroup", ({
   enumerable: true,
   get: function () {
-    return _OptionGroup.default;
+    return _OptionGroup.OptionGroup;
   }
 }));
-Object.defineProperty(exports, "optionGroupClasses", ({
-  enumerable: true,
-  get: function () {
-    return _optionGroupClasses.default;
-  }
-}));
-var _OptionGroup = _interopRequireDefault(__webpack_require__(68229));
+var _OptionGroup = __webpack_require__(68229);
 var _OptionGroup2 = __webpack_require__(68643);
 Object.keys(_OptionGroup2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -6297,7 +8316,7 @@ Object.keys(_OptionGroup2).forEach(function (key) {
     }
   });
 });
-var _optionGroupClasses = _interopRequireWildcard(__webpack_require__(78081));
+var _optionGroupClasses = __webpack_require__(78081);
 Object.keys(_optionGroupClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -6309,8 +8328,6 @@ Object.keys(_optionGroupClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -6320,20 +8337,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getOptionGroupUtilityClass = getOptionGroupUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.optionGroupClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getOptionGroupUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiOptionGroup', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiOptionGroup', slot);
 }
-const optionGroupClasses = (0, _generateUtilityClasses.default)('MuiOptionGroup', ['root', 'disabled', 'label', 'list']);
-var _default = optionGroupClasses;
-exports["default"] = _default;
+const optionGroupClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiOptionGroup', ['root', 'disabled', 'label', 'list']);
+exports.optionGroupClasses = optionGroupClasses;
 
 /***/ }),
 
@@ -6348,16 +8363,16 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Option = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _optionClasses = __webpack_require__(14885);
 var _utils2 = __webpack_require__(67392);
-var _useOption = _interopRequireDefault(__webpack_require__(54787));
+var _useOption = __webpack_require__(54787);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["children", "disabled", "label", "slotProps", "slots", "value"];
@@ -6372,13 +8387,21 @@ function useUtilityClasses(ownerState) {
   const slots = {
     root: ['root', disabled && 'disabled', highlighted && 'highlighted', selected && 'selected']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_optionClasses.getOptionUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_optionClasses.getOptionUtilityClass));
 }
 
 /**
  * An unstyled option to be used within a Select.
+ *
+ * Demos:
+ *
+ * - [Select](https://mui.com/base-ui/react-select/)
+ *
+ * API:
+ *
+ * - [Option API](https://mui.com/base-ui/react-select/components-api/#option)
  */
-const Option = /*#__PURE__*/React.forwardRef(function Option(props, forwardedRef) {
+const Option = /*#__PURE__*/React.memo( /*#__PURE__*/React.forwardRef(function Option(props, forwardedRef) {
   var _slots$root, _optionRef$current;
   const {
       children,
@@ -6401,7 +8424,7 @@ const Option = /*#__PURE__*/React.forwardRef(function Option(props, forwardedRef
     selected,
     highlighted,
     index
-  } = (0, _useOption.default)({
+  } = (0, _useOption.useOption)({
     disabled,
     label: computedLabel,
     rootRef: combinedRef,
@@ -6425,22 +8448,9 @@ const Option = /*#__PURE__*/React.forwardRef(function Option(props, forwardedRef
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
     children: children
   }));
-});
+}));
+exports.Option = Option;
  false ? 0 : void 0;
-
-/**
- * An unstyled option to be used within a Select.
- *
- * Demos:
- *
- * - [Select](https://mui.com/base-ui/react-select/)
- *
- * API:
- *
- * - [Option API](https://mui.com/base-ui/react-select/components-api/#option)
- */
-var _default = /*#__PURE__*/React.memo(Option);
-exports["default"] = _default;
 
 /***/ }),
 
@@ -6463,26 +8473,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  optionClasses: true
+  Option: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Option", ({
   enumerable: true,
   get: function () {
-    return _Option.default;
+    return _Option.Option;
   }
 }));
-Object.defineProperty(exports, "optionClasses", ({
-  enumerable: true,
-  get: function () {
-    return _optionClasses.default;
-  }
-}));
-var _Option = _interopRequireDefault(__webpack_require__(45279));
+var _Option = __webpack_require__(45279);
 var _Option2 = __webpack_require__(88046);
 Object.keys(_Option2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -6495,7 +8498,7 @@ Object.keys(_Option2).forEach(function (key) {
     }
   });
 });
-var _optionClasses = _interopRequireWildcard(__webpack_require__(14885));
+var _optionClasses = __webpack_require__(14885);
 Object.keys(_optionClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -6507,8 +8510,6 @@ Object.keys(_optionClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -6518,20 +8519,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getOptionUtilityClass = getOptionUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.optionClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getOptionUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiOption', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiOption', slot);
 }
-const optionClasses = (0, _generateUtilityClasses.default)('MuiOption', ['root', 'disabled', 'selected', 'highlighted']);
-var _default = optionClasses;
-exports["default"] = _default;
+const optionClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiOption', ['root', 'disabled', 'selected', 'highlighted']);
+exports.optionClasses = optionClasses;
 
 /***/ }),
 
@@ -6546,15 +8545,15 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Popper = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
 var _core = __webpack_require__(57802);
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _Portal = _interopRequireDefault(__webpack_require__(16191));
+var _composeClasses = __webpack_require__(29178);
+var _Portal = __webpack_require__(16191);
 var _popperClasses = __webpack_require__(53150);
 var _utils2 = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
@@ -6593,7 +8592,7 @@ const useUtilityClasses = () => {
   const slots = {
     root: ['root']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_popperClasses.getPopperUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_popperClasses.getPopperUtilityClass));
 };
 const defaultPopperOptions = {};
 const PopperTooltip = /*#__PURE__*/React.forwardRef(function PopperTooltip(props, forwardedRef) {
@@ -6767,7 +8766,7 @@ const Popper = /*#__PURE__*/React.forwardRef(function Popper(props, forwardedRef
     onEnter: handleEnter,
     onExited: handleExited
   } : undefined;
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Portal.default, {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Portal.Portal, {
     disablePortal: disablePortal,
     container: container,
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(PopperTooltip, (0, _extends2.default)({
@@ -6796,9 +8795,8 @@ const Popper = /*#__PURE__*/React.forwardRef(function Popper(props, forwardedRef
     }))
   });
 });
+exports.Popper = Popper;
  false ? 0 : void 0;
-var _default = Popper;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -6809,14 +8807,13 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Popper", ({
   enumerable: true,
   get: function () {
-    return _Popper.default;
+    return _Popper.Popper;
   }
 }));
 Object.defineProperty(exports, "getPopperUtilityClass", ({
@@ -6828,13 +8825,11 @@ Object.defineProperty(exports, "getPopperUtilityClass", ({
 Object.defineProperty(exports, "popperClasses", ({
   enumerable: true,
   get: function () {
-    return _popperClasses.default;
+    return _popperClasses.popperClasses;
   }
 }));
-var _Popper = _interopRequireDefault(__webpack_require__(78546));
-var _popperClasses = _interopRequireWildcard(__webpack_require__(53150));
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+var _Popper = __webpack_require__(78546);
+var _popperClasses = __webpack_require__(53150);
 
 /***/ }),
 
@@ -6844,20 +8839,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getPopperUtilityClass = getPopperUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.popperClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getPopperUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiPopper', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiPopper', slot);
 }
-const popperClasses = (0, _generateUtilityClasses.default)('MuiPopper', ['root']);
-var _default = popperClasses;
-exports["default"] = _default;
+const popperClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiPopper', ['root']);
+exports.popperClasses = popperClasses;
 
 /***/ }),
 
@@ -6872,7 +8865,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Portal = void 0;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var ReactDOM = _interopRequireWildcard(__webpack_require__(98704));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
@@ -6934,10 +8927,9 @@ const Portal = /*#__PURE__*/React.forwardRef(function Portal(props, forwardedRef
     children: mountNode ? /*#__PURE__*/ReactDOM.createPortal(children, mountNode) : mountNode
   });
 });
+exports.Portal = Portal;
  false ? 0 : void 0;
 if (false) {}
-var _default = Portal;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -6960,18 +8952,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  Portal: true
+};
+Object.defineProperty(exports, "Portal", ({
   enumerable: true,
   get: function () {
-    return _Portal.default;
+    return _Portal.Portal;
   }
 }));
-var _Portal = _interopRequireDefault(__webpack_require__(35209));
+var _Portal = __webpack_require__(35209);
 var _Portal2 = __webpack_require__(21255);
 Object.keys(_Portal2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -6998,22 +8991,22 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Select = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
-var _useSelect = _interopRequireDefault(__webpack_require__(20397));
+var _useSelect = __webpack_require__(20397);
 var _utils2 = __webpack_require__(67392);
-var _Popper = _interopRequireDefault(__webpack_require__(18934));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _Popper = __webpack_require__(18934);
+var _composeClasses = __webpack_require__(29178);
 var _selectClasses = __webpack_require__(29646);
-var _defaultOptionStringifier = _interopRequireDefault(__webpack_require__(17660));
+var _defaultOptionStringifier = __webpack_require__(17660);
 var _ClassNameConfigurator = __webpack_require__(15593);
-var _SelectProvider = _interopRequireDefault(__webpack_require__(15670));
+var _SelectProvider = __webpack_require__(15670);
 var _jsxRuntime = __webpack_require__(56786);
-const _excluded = ["areOptionsEqual", "autoFocus", "children", "defaultValue", "defaultListboxOpen", "disabled", "getSerializedValue", "listboxId", "listboxOpen", "multiple", "name", "onChange", "onListboxOpenChange", "getOptionAsString", "renderValue", "slotProps", "slots", "value"];
+const _excluded = ["areOptionsEqual", "autoFocus", "children", "defaultValue", "defaultListboxOpen", "disabled", "getSerializedValue", "listboxId", "listboxOpen", "multiple", "name", "required", "onChange", "onListboxOpenChange", "getOptionAsString", "renderValue", "slotProps", "slots", "value"];
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function defaultRenderValue(selectedOptions) {
@@ -7024,24 +9017,6 @@ function defaultRenderValue(selectedOptions) {
     });
   }
   return (_selectedOptions$labe = selectedOptions == null ? void 0 : selectedOptions.label) != null ? _selectedOptions$labe : '';
-}
-function defaultFormValueProvider(selectedOption) {
-  if (Array.isArray(selectedOption)) {
-    if (selectedOption.length === 0) {
-      return '';
-    }
-    if (selectedOption.every(o => typeof o.value === 'string' || typeof o.value === 'number' || typeof o.value === 'boolean')) {
-      return selectedOption.map(o => String(o.value));
-    }
-    return JSON.stringify(selectedOption.map(o => o.value));
-  }
-  if ((selectedOption == null ? void 0 : selectedOption.value) == null) {
-    return '';
-  }
-  if (typeof selectedOption.value === 'string' || typeof selectedOption.value === 'number') {
-    return selectedOption.value;
-  }
-  return JSON.stringify(selectedOption.value);
 }
 function useUtilityClasses(ownerState) {
   const {
@@ -7055,7 +9030,7 @@ function useUtilityClasses(ownerState) {
     listbox: ['listbox', disabled && 'disabled'],
     popper: ['popper']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_selectClasses.getSelectUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_selectClasses.getSelectUtilityClass));
 }
 
 /**
@@ -7078,14 +9053,15 @@ const Select = /*#__PURE__*/React.forwardRef(function Select(props, forwardedRef
       defaultValue,
       defaultListboxOpen = false,
       disabled: disabledProp,
-      getSerializedValue = defaultFormValueProvider,
+      getSerializedValue,
       listboxId,
       listboxOpen: listboxOpenProp,
       multiple = false,
       name,
+      required = false,
       onChange,
       onListboxOpenChange,
-      getOptionAsString = _defaultOptionStringifier.default,
+      getOptionAsString = _defaultOptionStringifier.defaultOptionStringifier,
       renderValue: renderValueProp,
       slotProps = {},
       slots = {},
@@ -7098,7 +9074,7 @@ const Select = /*#__PURE__*/React.forwardRef(function Select(props, forwardedRef
   const listboxRef = React.useRef(null);
   const Button = (_slots$root = slots.root) != null ? _slots$root : 'button';
   const ListboxRoot = (_slots$listbox = slots.listbox) != null ? _slots$listbox : 'ul';
-  const PopperComponent = (_slots$popper = slots.popper) != null ? _slots$popper : _Popper.default;
+  const PopperComponent = (_slots$popper = slots.popper) != null ? _slots$popper : _Popper.Popper;
   const handleButtonRefChange = React.useCallback(element => {
     setButtonDefined(element != null);
   }, []);
@@ -7115,10 +9091,14 @@ const Select = /*#__PURE__*/React.forwardRef(function Select(props, forwardedRef
     disabled,
     getButtonProps,
     getListboxProps,
+    getHiddenInputProps,
     getOptionMetadata,
     value,
     open
-  } = (0, _useSelect.default)({
+  } = (0, _useSelect.useSelect)({
+    name,
+    required,
+    getSerializedValue,
     areOptionsEqual,
     buttonRef: handleButtonRef,
     defaultOpen: defaultListboxOpen,
@@ -7186,21 +9166,16 @@ const Select = /*#__PURE__*/React.forwardRef(function Select(props, forwardedRef
       children: renderValue(selectedOptionsMetadata)
     })), buttonDefined && /*#__PURE__*/(0, _jsxRuntime.jsx)(PopperComponent, (0, _extends2.default)({}, popperProps, {
       children: /*#__PURE__*/(0, _jsxRuntime.jsx)(ListboxRoot, (0, _extends2.default)({}, listboxProps, {
-        children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_SelectProvider.default, {
+        children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_SelectProvider.SelectProvider, {
           value: contextValue,
           children: children
         })
       }))
-    })), name && /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
-      type: "hidden",
-      name: name,
-      value: getSerializedValue(selectedOptionsMetadata)
-    })]
+    })), /*#__PURE__*/(0, _jsxRuntime.jsx)("input", (0, _extends2.default)({}, getHiddenInputProps()))]
   });
 });
+exports.Select = Select;
  false ? 0 : void 0;
-var _default = Select;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -7223,27 +9198,20 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  selectClasses: true
+  Select: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Select", ({
   enumerable: true,
   get: function () {
-    return _Select.default;
+    return _Select.Select;
   }
 }));
-Object.defineProperty(exports, "selectClasses", ({
-  enumerable: true,
-  get: function () {
-    return _selectClasses.default;
-  }
-}));
-var _Select = _interopRequireDefault(__webpack_require__(87155));
-var _selectClasses = _interopRequireWildcard(__webpack_require__(29646));
+var _Select = __webpack_require__(87155);
+var _selectClasses = __webpack_require__(29646);
 Object.keys(_selectClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -7267,8 +9235,6 @@ Object.keys(_Select2).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -7278,20 +9244,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getSelectUtilityClass = getSelectUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.selectClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getSelectUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiSelect', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiSelect', slot);
 }
-const selectClasses = (0, _generateUtilityClasses.default)('MuiSelect', ['root', 'button', 'listbox', 'popper', 'active', 'expanded', 'disabled', 'focusVisible']);
-var _default = selectClasses;
-exports["default"] = _default;
+const selectClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiSelect', ['root', 'button', 'listbox', 'popper', 'active', 'expanded', 'disabled', 'focusVisible']);
+exports.selectClasses = selectClasses;
 
 /***/ }),
 
@@ -7306,19 +9270,19 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Slider = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
 var _utils = __webpack_require__(44268);
-var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _isHostComponent = __webpack_require__(84044);
+var _composeClasses = __webpack_require__(29178);
 var _sliderClasses = __webpack_require__(72488);
-var _useSlider = _interopRequireWildcard(__webpack_require__(49076));
-var _useSlotProps = _interopRequireDefault(__webpack_require__(36780));
-var _resolveComponentProps = _interopRequireDefault(__webpack_require__(31318));
+var _useSlider = __webpack_require__(49076);
+var _useSlotProps = __webpack_require__(36780);
+var _resolveComponentProps = __webpack_require__(31318);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["aria-label", "aria-valuetext", "aria-labelledby", "className", "disableSwap", "disabled", "getAriaLabel", "getAriaValueText", "marks", "max", "min", "name", "onChange", "onChangeCommitted", "orientation", "scale", "step", "tabIndex", "track", "value", "valueLabelFormat", "isRtl", "defaultValue", "slotProps", "slots"]; // @ts-ignore
@@ -7349,7 +9313,7 @@ const useUtilityClasses = ownerState => {
     disabled: ['disabled'],
     focusVisible: ['focusVisible']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_sliderClasses.getSliderUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_sliderClasses.getSliderUtilityClass));
 };
 
 /**
@@ -7419,7 +9383,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     trackOffset,
     trackLeap,
     getThumbStyle
-  } = (0, _useSlider.default)((0, _extends2.default)({}, partialOwnerState, {
+  } = (0, _useSlider.useSlider)((0, _extends2.default)({}, partialOwnerState, {
     rootRef: forwardedRef
   }));
   const ownerState = (0, _extends2.default)({}, partialOwnerState, {
@@ -7430,7 +9394,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
   });
   const classes = useUtilityClasses(ownerState);
   const Root = (_slots$root = slots.root) != null ? _slots$root : 'span';
-  const rootProps = (0, _useSlotProps.default)({
+  const rootProps = (0, _useSlotProps.useSlotProps)({
     elementType: Root,
     getSlotProps: getRootProps,
     externalSlotProps: slotProps.root,
@@ -7439,14 +9403,14 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     className: [classes.root, className]
   });
   const Rail = (_slots$rail = slots.rail) != null ? _slots$rail : 'span';
-  const railProps = (0, _useSlotProps.default)({
+  const railProps = (0, _useSlotProps.useSlotProps)({
     elementType: Rail,
     externalSlotProps: slotProps.rail,
     ownerState,
     className: classes.rail
   });
   const Track = (_slots$track = slots.track) != null ? _slots$track : 'span';
-  const trackProps = (0, _useSlotProps.default)({
+  const trackProps = (0, _useSlotProps.useSlotProps)({
     elementType: Track,
     externalSlotProps: slotProps.track,
     additionalProps: {
@@ -7456,7 +9420,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     className: classes.track
   });
   const Thumb = (_slots$thumb = slots.thumb) != null ? _slots$thumb : 'span';
-  const thumbProps = (0, _useSlotProps.default)({
+  const thumbProps = (0, _useSlotProps.useSlotProps)({
     elementType: Thumb,
     getSlotProps: getThumbProps,
     externalSlotProps: slotProps.thumb,
@@ -7464,26 +9428,26 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     skipResolvingSlotProps: true
   });
   const ValueLabel = slots.valueLabel;
-  const valueLabelProps = (0, _useSlotProps.default)({
+  const valueLabelProps = (0, _useSlotProps.useSlotProps)({
     elementType: ValueLabel,
     externalSlotProps: slotProps.valueLabel,
     ownerState
   });
   const Mark = (_slots$mark = slots.mark) != null ? _slots$mark : 'span';
-  const markProps = (0, _useSlotProps.default)({
+  const markProps = (0, _useSlotProps.useSlotProps)({
     elementType: Mark,
     externalSlotProps: slotProps.mark,
     ownerState,
     className: classes.mark
   });
   const MarkLabel = (_slots$markLabel = slots.markLabel) != null ? _slots$markLabel : 'span';
-  const markLabelProps = (0, _useSlotProps.default)({
+  const markLabelProps = (0, _useSlotProps.useSlotProps)({
     elementType: MarkLabel,
     externalSlotProps: slotProps.markLabel,
     ownerState
   });
   const Input = slots.input || 'input';
-  const inputProps = (0, _useSlotProps.default)({
+  const inputProps = (0, _useSlotProps.useSlotProps)({
     elementType: Input,
     getSlotProps: getHiddenInputProps,
     externalSlotProps: slotProps.input,
@@ -7502,7 +9466,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
       return /*#__PURE__*/(0, _jsxRuntime.jsxs)(React.Fragment, {
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Mark, (0, _extends2.default)({
           "data-index": index
-        }, markProps, !(0, _isHostComponent.default)(Mark) && {
+        }, markProps, !(0, _isHostComponent.isHostComponent)(Mark) && {
           markActive
         }, {
           style: (0, _extends2.default)({}, style, markProps.style),
@@ -7510,7 +9474,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
         })), mark.label != null ? /*#__PURE__*/(0, _jsxRuntime.jsx)(MarkLabel, (0, _extends2.default)({
           "aria-hidden": true,
           "data-index": index
-        }, markLabelProps, !(0, _isHostComponent.default)(MarkLabel) && {
+        }, markLabelProps, !(0, _isHostComponent.isHostComponent)(MarkLabel) && {
           markLabelActive: markActive
         }, {
           style: (0, _extends2.default)({}, style, markLabelProps.style),
@@ -7521,7 +9485,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     }), values.map((value, index) => {
       const percent = (0, _useSlider.valueToPercent)(value, min, max);
       const style = axisProps[axis].offset(percent);
-      const resolvedSlotProps = (0, _resolveComponentProps.default)(slotProps.thumb, ownerState, {
+      const resolvedSlotProps = (0, _resolveComponentProps.resolveComponentProps)(slotProps.thumb, ownerState, {
         index,
         focused: focusedThumbIndex === index,
         active: active === index
@@ -7538,7 +9502,7 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
           "aria-labelledby": ariaLabelledby,
           "aria-valuetext": getAriaValueText ? getAriaValueText(scale(value), index) : ariaValuetext,
           value: values[index]
-        }, inputProps)), ValueLabel ? /*#__PURE__*/(0, _jsxRuntime.jsx)(ValueLabel, (0, _extends2.default)({}, !(0, _isHostComponent.default)(ValueLabel) && {
+        }, inputProps)), ValueLabel ? /*#__PURE__*/(0, _jsxRuntime.jsx)(ValueLabel, (0, _extends2.default)({}, !(0, _isHostComponent.isHostComponent)(ValueLabel) && {
           valueLabelFormat,
           index,
           disabled
@@ -7549,9 +9513,8 @@ const Slider = /*#__PURE__*/React.forwardRef(function Slider(props, forwardedRef
     })]
   }));
 });
+exports.Slider = Slider;
  false ? 0 : void 0;
-var _default = Slider;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -7574,26 +9537,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  sliderClasses: true
+  Slider: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Slider", ({
   enumerable: true,
   get: function () {
-    return _Slider.default;
+    return _Slider.Slider;
   }
 }));
-Object.defineProperty(exports, "sliderClasses", ({
-  enumerable: true,
-  get: function () {
-    return _sliderClasses.default;
-  }
-}));
-var _Slider = _interopRequireDefault(__webpack_require__(88114));
+var _Slider = __webpack_require__(88114);
 var _Slider2 = __webpack_require__(95198);
 Object.keys(_Slider2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -7606,7 +9562,7 @@ Object.keys(_Slider2).forEach(function (key) {
     }
   });
 });
-var _sliderClasses = _interopRequireWildcard(__webpack_require__(72488));
+var _sliderClasses = __webpack_require__(72488);
 Object.keys(_sliderClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -7618,8 +9574,6 @@ Object.keys(_sliderClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -7629,20 +9583,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getSliderUtilityClass = getSliderUtilityClass;
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
+exports.sliderClasses = void 0;
+var _generateUtilityClasses = __webpack_require__(69770);
+var _generateUtilityClass = __webpack_require__(50322);
 function getSliderUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiSlider', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiSlider', slot);
 }
-const sliderClasses = (0, _generateUtilityClasses.default)('MuiSlider', ['root', 'active', 'focusVisible', 'disabled', 'dragging', 'marked', 'vertical', 'trackInverted', 'trackFalse', 'rail', 'track', 'mark', 'markActive', 'markLabel', 'markLabelActive', 'thumb']);
-var _default = sliderClasses;
-exports["default"] = _default;
+const sliderClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiSlider', ['root', 'active', 'focusVisible', 'disabled', 'dragging', 'marked', 'vertical', 'trackInverted', 'trackFalse', 'rail', 'track', 'mark', 'markActive', 'markLabel', 'markLabelActive', 'thumb']);
+exports.sliderClasses = sliderClasses;
 
 /***/ }),
 
@@ -7657,15 +9609,15 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Snackbar = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _ClickAwayListener = _interopRequireDefault(__webpack_require__(8171));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _ClickAwayListener = __webpack_require__(8171);
+var _composeClasses = __webpack_require__(29178);
 var _snackbarClasses = __webpack_require__(73432);
-var _useSnackbar = _interopRequireDefault(__webpack_require__(40969));
+var _useSnackbar = __webpack_require__(40969);
 var _utils = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
@@ -7676,7 +9628,7 @@ const useUtilityClasses = () => {
   const slots = {
     root: ['root']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_snackbarClasses.getSnackbarUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_snackbarClasses.getSnackbarUtilityClass));
 };
 /**
  *
@@ -7706,7 +9658,7 @@ const Snackbar = /*#__PURE__*/React.forwardRef(function Snackbar(props, forwarde
   const {
     getRootProps,
     onClickAway
-  } = (0, _useSnackbar.default)((0, _extends2.default)({}, props, {
+  } = (0, _useSnackbar.useSnackbar)((0, _extends2.default)({}, props, {
     autoHideDuration,
     disableWindowBlurListener,
     onClose,
@@ -7727,7 +9679,7 @@ const Snackbar = /*#__PURE__*/React.forwardRef(function Snackbar(props, forwarde
     className: classes.root
   });
   const clickAwayListenerProps = (0, _utils.useSlotProps)({
-    elementType: _ClickAwayListener.default,
+    elementType: _ClickAwayListener.ClickAwayListener,
     externalSlotProps: slotProps.clickAwayListener,
     additionalProps: {
       onClickAway
@@ -7742,15 +9694,14 @@ const Snackbar = /*#__PURE__*/React.forwardRef(function Snackbar(props, forwarde
   if (!open && exited) {
     return null;
   }
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_ClickAwayListener.default, (0, _extends2.default)({}, clickAwayListenerProps, {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_ClickAwayListener.ClickAwayListener, (0, _extends2.default)({}, clickAwayListenerProps, {
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
       children: children
     }))
   }));
 });
+exports.Snackbar = Snackbar;
  false ? 0 : void 0;
-var _default = Snackbar;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -7773,26 +9724,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  snackbarClasses: true
+  Snackbar: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Snackbar", ({
   enumerable: true,
   get: function () {
-    return _Snackbar.default;
+    return _Snackbar.Snackbar;
   }
 }));
-Object.defineProperty(exports, "snackbarClasses", ({
-  enumerable: true,
-  get: function () {
-    return _snackbarClasses.default;
-  }
-}));
-var _Snackbar = _interopRequireDefault(__webpack_require__(38104));
+var _Snackbar = __webpack_require__(38104);
 var _Snackbar2 = __webpack_require__(29652);
 Object.keys(_Snackbar2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -7805,7 +9749,7 @@ Object.keys(_Snackbar2).forEach(function (key) {
     }
   });
 });
-var _snackbarClasses = _interopRequireWildcard(__webpack_require__(73432));
+var _snackbarClasses = __webpack_require__(73432);
 Object.keys(_snackbarClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -7817,8 +9761,6 @@ Object.keys(_snackbarClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -7828,20 +9770,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getSnackbarUtilityClass = getSnackbarUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.snackbarClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getSnackbarUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiSnackbar', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiSnackbar', slot);
 }
-const snackbarClasses = (0, _generateUtilityClasses.default)('MuiSnackbar', ['root']);
-var _default = snackbarClasses;
-exports["default"] = _default;
+const snackbarClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiSnackbar', ['root']);
+exports.snackbarClasses = snackbarClasses;
 
 /***/ }),
 
@@ -7856,13 +9796,13 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Switch = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _useSwitch = _interopRequireDefault(__webpack_require__(64576));
+var _composeClasses = __webpack_require__(29178);
+var _useSwitch = __webpack_require__(64576);
 var _utils = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _switchClasses = __webpack_require__(50686);
@@ -7883,7 +9823,7 @@ const useUtilityClasses = ownerState => {
     input: ['input'],
     track: ['track']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_switchClasses.getSwitchUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_switchClasses.getSwitchUtilityClass));
 };
 
 /**
@@ -7900,35 +9840,17 @@ const useUtilityClasses = ownerState => {
 const Switch = /*#__PURE__*/React.forwardRef(function Switch(props, forwardedRef) {
   var _slots$root, _slots$thumb, _slots$input, _slots$track;
   const {
-      checked: checkedProp,
-      defaultChecked,
-      disabled: disabledProp,
-      onBlur,
-      onChange,
-      onFocus,
-      onFocusVisible,
-      readOnly: readOnlyProp,
       slotProps = {},
       slots = {}
     } = props,
     other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
-  const useSwitchProps = {
-    checked: checkedProp,
-    defaultChecked,
-    disabled: disabledProp,
-    onBlur,
-    onChange,
-    onFocus,
-    onFocusVisible,
-    readOnly: readOnlyProp
-  };
   const {
     getInputProps,
     checked,
     disabled,
     focusVisible,
     readOnly
-  } = (0, _useSwitch.default)(useSwitchProps);
+  } = (0, _useSwitch.useSwitch)(props);
   const ownerState = (0, _extends2.default)({}, props, {
     checked,
     disabled,
@@ -7973,9 +9895,8 @@ const Switch = /*#__PURE__*/React.forwardRef(function Switch(props, forwardedRef
     children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Track, (0, _extends2.default)({}, trackProps)), /*#__PURE__*/(0, _jsxRuntime.jsx)(Thumb, (0, _extends2.default)({}, thumbProps)), /*#__PURE__*/(0, _jsxRuntime.jsx)(Input, (0, _extends2.default)({}, inputProps))]
   }));
 });
+exports.Switch = Switch;
  false ? 0 : void 0;
-var _default = Switch;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -7998,26 +9919,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  switchClasses: true
+  Switch: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Switch", ({
   enumerable: true,
   get: function () {
-    return _Switch.default;
+    return _Switch.Switch;
   }
 }));
-Object.defineProperty(exports, "switchClasses", ({
-  enumerable: true,
-  get: function () {
-    return _switchClasses.default;
-  }
-}));
-var _Switch = _interopRequireDefault(__webpack_require__(77634));
+var _Switch = __webpack_require__(77634);
 var _Switch2 = __webpack_require__(74082);
 Object.keys(_Switch2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -8030,7 +9944,7 @@ Object.keys(_Switch2).forEach(function (key) {
     }
   });
 });
-var _switchClasses = _interopRequireWildcard(__webpack_require__(50686));
+var _switchClasses = __webpack_require__(50686);
 Object.keys(_switchClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -8042,8 +9956,6 @@ Object.keys(_switchClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -8053,20 +9965,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getSwitchUtilityClass = getSwitchUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.switchClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getSwitchUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiSwitch', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiSwitch', slot);
 }
-const switchClasses = (0, _generateUtilityClasses.default)('MuiSwitch', ['root', 'input', 'track', 'thumb', 'checked', 'disabled', 'focusVisible', 'readOnly']);
-var _default = switchClasses;
-exports["default"] = _default;
+const switchClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiSwitch', ['root', 'input', 'track', 'thumb', 'checked', 'disabled', 'focusVisible', 'readOnly']);
+exports.switchClasses = switchClasses;
 
 /***/ }),
 
@@ -8081,15 +9991,15 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TabPanel = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(67392);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _tabPanelClasses = __webpack_require__(65348);
-var _useTabPanel = _interopRequireDefault(__webpack_require__(36454));
+var _useTabPanel = __webpack_require__(36454);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["children", "value", "slotProps", "slots"];
@@ -8102,7 +10012,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', hidden && 'hidden']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabPanelClasses.getTabPanelUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabPanelClasses.getTabPanelUtilityClass));
 };
 /**
  *
@@ -8125,7 +10035,7 @@ const TabPanel = /*#__PURE__*/React.forwardRef(function TabPanel(props, forwarde
   const {
     hidden,
     getRootProps
-  } = (0, _useTabPanel.default)(props);
+  } = (0, _useTabPanel.useTabPanel)(props);
   const ownerState = (0, _extends2.default)({}, props, {
     hidden
   });
@@ -8147,9 +10057,8 @@ const TabPanel = /*#__PURE__*/React.forwardRef(function TabPanel(props, forwarde
     children: !hidden && children
   }));
 });
+exports.TabPanel = TabPanel;
  false ? 0 : void 0;
-var _default = TabPanel;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -8172,26 +10081,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  tabPanelClasses: true
+  TabPanel: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "TabPanel", ({
   enumerable: true,
   get: function () {
-    return _TabPanel.default;
+    return _TabPanel.TabPanel;
   }
 }));
-Object.defineProperty(exports, "tabPanelClasses", ({
-  enumerable: true,
-  get: function () {
-    return _tabPanelClasses.default;
-  }
-}));
-var _TabPanel = _interopRequireDefault(__webpack_require__(51434));
+var _TabPanel = __webpack_require__(51434);
 var _TabPanel2 = __webpack_require__(9897);
 Object.keys(_TabPanel2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -8204,7 +10106,7 @@ Object.keys(_TabPanel2).forEach(function (key) {
     }
   });
 });
-var _tabPanelClasses = _interopRequireWildcard(__webpack_require__(65348));
+var _tabPanelClasses = __webpack_require__(65348);
 Object.keys(_tabPanelClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -8216,8 +10118,6 @@ Object.keys(_tabPanelClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -8227,20 +10127,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getTabPanelUtilityClass = getTabPanelUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.tabPanelClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getTabPanelUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiTabPanel', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiTabPanel', slot);
 }
-const tabPanelClasses = (0, _generateUtilityClasses.default)('MuiTabPanel', ['root', 'hidden']);
-var _default = tabPanelClasses;
-exports["default"] = _default;
+const tabPanelClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiTabPanel', ['root', 'hidden']);
+exports.tabPanelClasses = tabPanelClasses;
 
 /***/ }),
 
@@ -8255,15 +10153,15 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Tab = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _tabClasses = __webpack_require__(78469);
-var _useTab = _interopRequireDefault(__webpack_require__(45972));
+var _useTab = __webpack_require__(45972);
 var _utils2 = __webpack_require__(67392);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
@@ -8278,7 +10176,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', selected && 'selected', disabled && 'disabled']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabClasses.getTabUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabClasses.getTabUtilityClass));
 };
 /**
  *
@@ -8306,7 +10204,7 @@ const Tab = /*#__PURE__*/React.forwardRef(function Tab(props, forwardedRef) {
     highlighted,
     selected,
     getRootProps
-  } = (0, _useTab.default)((0, _extends2.default)({}, props, {
+  } = (0, _useTab.useTab)((0, _extends2.default)({}, props, {
     rootRef: handleRef
   }));
   const ownerState = (0, _extends2.default)({}, props, {
@@ -8332,9 +10230,8 @@ const Tab = /*#__PURE__*/React.forwardRef(function Tab(props, forwardedRef) {
     children: children
   }));
 });
+exports.Tab = Tab;
  false ? 0 : void 0;
-var _default = Tab;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -8357,26 +10254,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  tabClasses: true
+  Tab: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "Tab", ({
   enumerable: true,
   get: function () {
-    return _Tab.default;
+    return _Tab.Tab;
   }
 }));
-Object.defineProperty(exports, "tabClasses", ({
-  enumerable: true,
-  get: function () {
-    return _tabClasses.default;
-  }
-}));
-var _Tab = _interopRequireDefault(__webpack_require__(91864));
+var _Tab = __webpack_require__(91864);
 var _Tab2 = __webpack_require__(11533);
 Object.keys(_Tab2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -8389,7 +10279,7 @@ Object.keys(_Tab2).forEach(function (key) {
     }
   });
 });
-var _tabClasses = _interopRequireWildcard(__webpack_require__(78469));
+var _tabClasses = __webpack_require__(78469);
 Object.keys(_tabClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -8401,8 +10291,6 @@ Object.keys(_tabClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -8412,20 +10300,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getTabUtilityClass = getTabUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.tabClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getTabUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiTab', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiTab', slot);
 }
-const tabClasses = (0, _generateUtilityClasses.default)('MuiTab', ['root', 'selected', 'disabled']);
-var _default = tabClasses;
-exports["default"] = _default;
+const tabClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiTab', ['root', 'selected', 'disabled']);
+exports.tabClasses = tabClasses;
 
 /***/ }),
 
@@ -8440,16 +10326,16 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TablePagination = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(44268);
 var _utils2 = __webpack_require__(67392);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
-var _TablePaginationActions = _interopRequireDefault(__webpack_require__(80707));
+var _composeClasses = __webpack_require__(29178);
+var _isHostComponent = __webpack_require__(84044);
+var _TablePaginationActions = __webpack_require__(80707);
 var _tablePaginationClasses = __webpack_require__(210);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
@@ -8479,7 +10365,7 @@ const useUtilityClasses = () => {
     displayedRows: ['displayedRows'],
     actions: ['actions']
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tablePaginationClasses.getTablePaginationUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tablePaginationClasses.getTablePaginationUtilityClass));
 };
 
 /**
@@ -8516,7 +10402,7 @@ const TablePagination = /*#__PURE__*/React.forwardRef(function TablePagination(p
   const classes = useUtilityClasses();
   let colSpan;
   const Root = (_slots$root = slots.root) != null ? _slots$root : 'td';
-  if (Root === 'td' || !(0, _isHostComponent.default)(Root)) {
+  if (Root === 'td' || !(0, _isHostComponent.isHostComponent)(Root)) {
     colSpan = colSpanProp || 1000; // col-span over everything
   }
 
@@ -8553,7 +10439,7 @@ const TablePagination = /*#__PURE__*/React.forwardRef(function TablePagination(p
     ownerState,
     className: classes.select
   });
-  const Actions = (_slots$actions = slots.actions) != null ? _slots$actions : _TablePaginationActions.default;
+  const Actions = (_slots$actions = slots.actions) != null ? _slots$actions : _TablePaginationActions.TablePaginationActions;
   const actionsProps = (0, _utils2.useSlotProps)({
     elementType: Actions,
     externalSlotProps: slotProps.actions,
@@ -8628,9 +10514,8 @@ const TablePagination = /*#__PURE__*/React.forwardRef(function TablePagination(p
     }))
   }));
 });
+exports.TablePagination = TablePagination;
  false ? 0 : void 0;
-var _default = TablePagination;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -8657,7 +10542,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TablePaginationActions = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
@@ -8799,8 +10684,7 @@ const TablePaginationActions = /*#__PURE__*/React.forwardRef(function TablePagin
     }))]
   }));
 });
-var _default = TablePaginationActions;
-exports["default"] = _default;
+exports.TablePaginationActions = TablePaginationActions;
 
 /***/ }),
 
@@ -8835,33 +10719,26 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  TablePaginationActions: true,
-  tablePaginationClasses: true
+  TablePagination: true,
+  TablePaginationActions: true
 };
+Object.defineProperty(exports, "TablePagination", ({
+  enumerable: true,
+  get: function () {
+    return _TablePagination.TablePagination;
+  }
+}));
 Object.defineProperty(exports, "TablePaginationActions", ({
   enumerable: true,
   get: function () {
-    return _TablePaginationActions.default;
+    return _TablePaginationActions.TablePaginationActions;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _TablePagination.default;
-  }
-}));
-Object.defineProperty(exports, "tablePaginationClasses", ({
-  enumerable: true,
-  get: function () {
-    return _tablePaginationClasses.default;
-  }
-}));
-var _TablePagination = _interopRequireDefault(__webpack_require__(96033));
+var _TablePagination = __webpack_require__(96033);
 var _TablePagination2 = __webpack_require__(91061);
 Object.keys(_TablePagination2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -8874,7 +10751,7 @@ Object.keys(_TablePagination2).forEach(function (key) {
     }
   });
 });
-var _TablePaginationActions = _interopRequireDefault(__webpack_require__(80707));
+var _TablePaginationActions = __webpack_require__(80707);
 var _TablePaginationActions2 = __webpack_require__(40470);
 Object.keys(_TablePaginationActions2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -8887,7 +10764,7 @@ Object.keys(_TablePaginationActions2).forEach(function (key) {
     }
   });
 });
-var _tablePaginationClasses = _interopRequireWildcard(__webpack_require__(210));
+var _tablePaginationClasses = __webpack_require__(210);
 Object.keys(_tablePaginationClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -8911,8 +10788,6 @@ Object.keys(_common).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -8922,20 +10797,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getTablePaginationUtilityClass = getTablePaginationUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.tablePaginationClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getTablePaginationUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiTablePagination', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiTablePagination', slot);
 }
-const tablePaginationClasses = (0, _generateUtilityClasses.default)('MuiTablePagination', ['root', 'toolbar', 'spacer', 'selectLabel', 'selectRoot', 'select', 'selectIcon', 'input', 'menuItem', 'displayedRows', 'actions']);
-var _default = tablePaginationClasses;
-exports["default"] = _default;
+const tablePaginationClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiTablePagination', ['root', 'toolbar', 'spacer', 'selectLabel', 'selectRoot', 'select', 'selectIcon', 'input', 'menuItem', 'displayedRows', 'actions']);
+exports.tablePaginationClasses = tablePaginationClasses;
 
 /***/ }),
 
@@ -8950,17 +10823,17 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TabsList = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _utils = __webpack_require__(67392);
 var _tabsListClasses = __webpack_require__(81501);
-var _useTabsList = _interopRequireDefault(__webpack_require__(8093));
+var _useTabsList = __webpack_require__(8093);
 var _ClassNameConfigurator = __webpack_require__(15593);
-var _TabsListProvider = _interopRequireDefault(__webpack_require__(95885));
+var _TabsListProvider = __webpack_require__(95885);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["children", "slotProps", "slots"];
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -8972,7 +10845,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', orientation]
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabsListClasses.getTabsListUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabsListClasses.getTabsListUtilityClass));
 };
 
 /**
@@ -8998,7 +10871,7 @@ const TabsList = /*#__PURE__*/React.forwardRef(function TabsList(props, forwarde
     orientation,
     getRootProps,
     contextValue
-  } = (0, _useTabsList.default)({
+  } = (0, _useTabsList.useTabsList)({
     rootRef: forwardedRef
   });
   const ownerState = (0, _extends2.default)({}, props, {
@@ -9015,16 +10888,15 @@ const TabsList = /*#__PURE__*/React.forwardRef(function TabsList(props, forwarde
     ownerState,
     className: classes.root
   });
-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsListProvider.default, {
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsListProvider.TabsListProvider, {
     value: contextValue,
     children: /*#__PURE__*/(0, _jsxRuntime.jsx)(TabsListRoot, (0, _extends2.default)({}, tabsListRootProps, {
       children: children
     }))
   });
 });
+exports.TabsList = TabsList;
  false ? 0 : void 0;
-var _default = TabsList;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -9047,26 +10919,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  tabsListClasses: true
+  TabsList: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "TabsList", ({
   enumerable: true,
   get: function () {
-    return _TabsList.default;
+    return _TabsList.TabsList;
   }
 }));
-Object.defineProperty(exports, "tabsListClasses", ({
-  enumerable: true,
-  get: function () {
-    return _tabsListClasses.default;
-  }
-}));
-var _TabsList = _interopRequireDefault(__webpack_require__(75508));
+var _TabsList = __webpack_require__(75508);
 var _TabsList2 = __webpack_require__(45068);
 Object.keys(_TabsList2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -9079,7 +10944,7 @@ Object.keys(_TabsList2).forEach(function (key) {
     }
   });
 });
-var _tabsListClasses = _interopRequireWildcard(__webpack_require__(81501));
+var _tabsListClasses = __webpack_require__(81501);
 Object.keys(_tabsListClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -9091,8 +10956,6 @@ Object.keys(_tabsListClasses).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -9102,20 +10965,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getTabsListUtilityClass = getTabsListUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.tabsListClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getTabsListUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiTabsList', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiTabsList', slot);
 }
-const tabsListClasses = (0, _generateUtilityClasses.default)('MuiTabsList', ['root', 'horizontal', 'vertical']);
-var _default = tabsListClasses;
-exports["default"] = _default;
+const tabsListClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiTabsList', ['root', 'horizontal', 'vertical']);
+exports.tabsListClasses = tabsListClasses;
 
 /***/ }),
 
@@ -9130,16 +10991,16 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.Tabs = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _utils = __webpack_require__(67392);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _tabsClasses = __webpack_require__(35844);
-var _useTabs = _interopRequireDefault(__webpack_require__(65186));
-var _TabsProvider = _interopRequireDefault(__webpack_require__(44103));
+var _useTabs = __webpack_require__(65186);
+var _TabsProvider = __webpack_require__(44103);
 var _ClassNameConfigurator = __webpack_require__(15593);
 var _jsxRuntime = __webpack_require__(56786);
 const _excluded = ["children", "value", "defaultValue", "orientation", "direction", "onChange", "selectionFollowsFocus", "slotProps", "slots"];
@@ -9152,7 +11013,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', orientation]
   };
-  return (0, _composeClasses.default)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabsClasses.getTabsUtilityClass));
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_tabsClasses.getTabsUtilityClass));
 };
 
 /**
@@ -9177,7 +11038,7 @@ const Tabs = /*#__PURE__*/React.forwardRef(function Tabs(props, forwardedRef) {
     other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
   const {
     contextValue
-  } = (0, _useTabs.default)(props);
+  } = (0, _useTabs.useTabs)(props);
   const ownerState = (0, _extends2.default)({}, props, {
     orientation,
     direction
@@ -9195,15 +11056,14 @@ const Tabs = /*#__PURE__*/React.forwardRef(function Tabs(props, forwardedRef) {
     className: classes.root
   });
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(TabsRoot, (0, _extends2.default)({}, tabsRootProps, {
-    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsProvider.default, {
+    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsProvider.TabsProvider, {
       value: contextValue,
       children: children
     })
   }));
 });
+exports.Tabs = Tabs;
  false ? 0 : void 0;
-var _default = Tabs;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -9228,7 +11088,7 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TabsContext = void 0;
 exports.useTabsContext = useTabsContext;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -9236,17 +11096,16 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 /**
  * @ignore - internal component.
  */
-const Context = /*#__PURE__*/React.createContext(null);
+const TabsContext = /*#__PURE__*/React.createContext(null);
+exports.TabsContext = TabsContext;
 if (false) {}
 function useTabsContext() {
-  const context = React.useContext(Context);
+  const context = React.useContext(TabsContext);
   if (context == null) {
     throw new Error('No TabsContext provided');
   }
   return context;
 }
-var _default = Context;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -9257,34 +11116,20 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  TabsContext: true,
-  tabsClasses: true
+  Tabs: true
 };
-Object.defineProperty(exports, "TabsContext", ({
+Object.defineProperty(exports, "Tabs", ({
   enumerable: true,
   get: function () {
-    return _TabsContext.default;
+    return _Tabs.Tabs;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _Tabs.default;
-  }
-}));
-Object.defineProperty(exports, "tabsClasses", ({
-  enumerable: true,
-  get: function () {
-    return _tabsClasses.default;
-  }
-}));
-var _Tabs = _interopRequireDefault(__webpack_require__(12762));
-var _TabsContext = _interopRequireWildcard(__webpack_require__(79946));
+var _Tabs = __webpack_require__(12762);
+var _TabsContext = __webpack_require__(79946);
 Object.keys(_TabsContext).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -9296,7 +11141,7 @@ Object.keys(_TabsContext).forEach(function (key) {
     }
   });
 });
-var _tabsClasses = _interopRequireWildcard(__webpack_require__(35844));
+var _tabsClasses = __webpack_require__(35844);
 Object.keys(_tabsClasses).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -9320,8 +11165,6 @@ Object.keys(_Tabs2).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -9331,20 +11174,18 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 "use strict";
 
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
 exports.getTabsUtilityClass = getTabsUtilityClass;
-var _generateUtilityClass = _interopRequireDefault(__webpack_require__(50322));
-var _generateUtilityClasses = _interopRequireDefault(__webpack_require__(69770));
+exports.tabsClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
 function getTabsUtilityClass(slot) {
-  return (0, _generateUtilityClass.default)('MuiTabs', slot);
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiTabs', slot);
 }
-const tabsClasses = (0, _generateUtilityClasses.default)('MuiTabs', ['root', 'horizontal', 'vertical']);
-var _default = tabsClasses;
-exports["default"] = _default;
+const tabsClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiTabs', ['root', 'horizontal', 'vertical']);
+exports.tabsClasses = tabsClasses;
 
 /***/ }),
 
@@ -9359,7 +11200,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.TextareaAutosize = void 0;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var React = _interopRequireWildcard(__webpack_require__(18038));
@@ -9513,7 +11354,18 @@ const TextareaAutosize = /*#__PURE__*/React.forwardRef(function TextareaAutosize
     });
   };
   React.useEffect(() => {
-    const handleResize = (0, _utils.unstable_debounce)(() => {
+    const handleResize = () => {
+      renders.current = 0;
+
+      // If the TextareaAutosize component is replaced by Suspense with a fallback, the last
+      // ResizeObserver's handler that runs because of the change in the layout is trying to
+      // access a dom node that is no longer there (as the fallback component is being shown instead).
+      // See https://github.com/mui/material-ui/issues/32640
+      if (inputRef.current) {
+        syncHeightWithFlushSync();
+      }
+    };
+    const handleResizeWindow = (0, _utils.unstable_debounce)(() => {
       renders.current = 0;
 
       // If the TextareaAutosize component is replaced by Suspense with a fallback, the last
@@ -9527,14 +11379,14 @@ const TextareaAutosize = /*#__PURE__*/React.forwardRef(function TextareaAutosize
     let resizeObserver;
     const input = inputRef.current;
     const containerWindow = (0, _utils.unstable_ownerWindow)(input);
-    containerWindow.addEventListener('resize', handleResize);
+    containerWindow.addEventListener('resize', handleResizeWindow);
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(handleResize);
       resizeObserver.observe(input);
     }
     return () => {
-      handleResize.clear();
-      containerWindow.removeEventListener('resize', handleResize);
+      handleResizeWindow.clear();
+      containerWindow.removeEventListener('resize', handleResizeWindow);
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
@@ -9582,9 +11434,8 @@ const TextareaAutosize = /*#__PURE__*/React.forwardRef(function TextareaAutosize
     })]
   });
 });
+exports.TextareaAutosize = TextareaAutosize;
  false ? 0 : void 0;
-var _default = TextareaAutosize;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -9607,18 +11458,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  TextareaAutosize: true
+};
+Object.defineProperty(exports, "TextareaAutosize", ({
   enumerable: true,
   get: function () {
-    return _TextareaAutosize.default;
+    return _TextareaAutosize.TextareaAutosize;
   }
 }));
-var _TextareaAutosize = _interopRequireDefault(__webpack_require__(77344));
+var _TextareaAutosize = __webpack_require__(77344);
 var _TextareaAutosize2 = __webpack_require__(47514);
 Object.keys(_TextareaAutosize2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -9634,7 +11486,230 @@ Object.keys(_TextareaAutosize2).forEach(function (key) {
 
 /***/ }),
 
-/***/ 96816:
+/***/ 68846:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.NumberInput = void 0;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _propTypes = _interopRequireDefault(__webpack_require__(55601));
+var _numberInputClasses = __webpack_require__(51669);
+var _unstable_useNumberInput = __webpack_require__(34754);
+var _composeClasses = __webpack_require__(29178);
+var _utils = __webpack_require__(67392);
+var _ClassNameConfigurator = __webpack_require__(15593);
+var _jsxRuntime = __webpack_require__(56786);
+const _excluded = ["className", "defaultValue", "disabled", "error", "id", "max", "min", "onBlur", "onInputChange", "onFocus", "onChange", "placeholder", "required", "readOnly", "shiftMultiplier", "step", "value", "slotProps", "slots"];
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const useUtilityClasses = ownerState => {
+  const {
+    disabled,
+    error,
+    focused,
+    readOnly,
+    formControlContext,
+    isIncrementDisabled,
+    isDecrementDisabled
+  } = ownerState;
+  const slots = {
+    root: ['root', disabled && 'disabled', error && 'error', focused && 'focused', readOnly && 'readOnly', Boolean(formControlContext) && 'formControl'],
+    input: ['input', disabled && 'disabled', readOnly && 'readOnly'],
+    incrementButton: ['incrementButton', isIncrementDisabled && 'disabled'],
+    decrementButton: ['decrementButton', isDecrementDisabled && 'disabled']
+  };
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_numberInputClasses.getNumberInputUtilityClass));
+};
+
+/**
+ *
+ * Demos:
+ *
+ * - [Number Input](https://mui.com/base-ui/react-number-input/)
+ *
+ * API:
+ *
+ * - [NumberInput API](https://mui.com/base-ui/react-number-input/components-api/#number-input)
+ */
+const NumberInput = /*#__PURE__*/React.forwardRef(function NumberInput(props, forwardedRef) {
+  var _slots$root, _slots$input, _slots$incrementButto, _slots$decrementButto;
+  const {
+      className,
+      defaultValue,
+      disabled,
+      error,
+      id,
+      max,
+      min,
+      onBlur,
+      onInputChange,
+      onFocus,
+      onChange,
+      placeholder,
+      required,
+      readOnly = false,
+      shiftMultiplier,
+      step,
+      value,
+      slotProps = {},
+      slots = {}
+    } = props,
+    rest = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
+  const {
+    getRootProps,
+    getInputProps,
+    getIncrementButtonProps,
+    getDecrementButtonProps,
+    focused,
+    error: errorState,
+    disabled: disabledState,
+    formControlContext,
+    isIncrementDisabled,
+    isDecrementDisabled
+  } = (0, _unstable_useNumberInput.unstable_useNumberInput)({
+    min,
+    max,
+    step,
+    shiftMultiplier,
+    defaultValue,
+    disabled,
+    error,
+    onFocus,
+    onInputChange,
+    onBlur,
+    onChange,
+    required,
+    readOnly,
+    value,
+    inputId: id
+  });
+  const ownerState = (0, _extends2.default)({}, props, {
+    disabled: disabledState,
+    error: errorState,
+    focused,
+    readOnly,
+    formControlContext,
+    isIncrementDisabled,
+    isDecrementDisabled
+  });
+  const classes = useUtilityClasses(ownerState);
+  const propsForwardedToInputSlot = {
+    placeholder
+  };
+  const Root = (_slots$root = slots.root) != null ? _slots$root : 'div';
+  const rootProps = (0, _utils.useSlotProps)({
+    elementType: Root,
+    getSlotProps: getRootProps,
+    externalSlotProps: slotProps.root,
+    externalForwardedProps: rest,
+    additionalProps: {
+      ref: forwardedRef
+    },
+    ownerState,
+    className: [classes.root, className]
+  });
+  const Input = (_slots$input = slots.input) != null ? _slots$input : 'input';
+  const inputProps = (0, _utils.useSlotProps)({
+    elementType: Input,
+    getSlotProps: otherHandlers => getInputProps((0, _extends2.default)({}, otherHandlers, propsForwardedToInputSlot)),
+    externalSlotProps: slotProps.input,
+    ownerState,
+    className: classes.input
+  });
+  const IncrementButton = (_slots$incrementButto = slots.incrementButton) != null ? _slots$incrementButto : 'button';
+  const incrementButtonProps = (0, _utils.useSlotProps)({
+    elementType: IncrementButton,
+    getSlotProps: getIncrementButtonProps,
+    externalSlotProps: slotProps.incrementButton,
+    ownerState,
+    className: classes.incrementButton
+  });
+  const DecrementButton = (_slots$decrementButto = slots.decrementButton) != null ? _slots$decrementButto : 'button';
+  const decrementButtonProps = (0, _utils.useSlotProps)({
+    elementType: DecrementButton,
+    getSlotProps: getDecrementButtonProps,
+    externalSlotProps: slotProps.decrementButton,
+    ownerState,
+    className: classes.decrementButton
+  });
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)(Root, (0, _extends2.default)({}, rootProps, {
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(DecrementButton, (0, _extends2.default)({}, decrementButtonProps)), /*#__PURE__*/(0, _jsxRuntime.jsx)(IncrementButton, (0, _extends2.default)({}, incrementButtonProps)), /*#__PURE__*/(0, _jsxRuntime.jsx)(Input, (0, _extends2.default)({}, inputProps))]
+  }));
+});
+exports.NumberInput = NumberInput;
+ false ? 0 : void 0;
+
+/***/ }),
+
+/***/ 88351:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 83883:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  Unstable_NumberInput: true
+};
+Object.defineProperty(exports, "Unstable_NumberInput", ({
+  enumerable: true,
+  get: function () {
+    return _NumberInput.NumberInput;
+  }
+}));
+var _NumberInput = __webpack_require__(68846);
+var _numberInputClasses = __webpack_require__(51669);
+Object.keys(_numberInputClasses).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _numberInputClasses[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _numberInputClasses[key];
+    }
+  });
+});
+var _NumberInput2 = __webpack_require__(88351);
+Object.keys(_NumberInput2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _NumberInput2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _NumberInput2[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 51669:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -9643,13 +11718,246 @@ Object.keys(_TextareaAutosize2).forEach(function (key) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-Object.defineProperty(exports, "unstable_ClassNameGenerator", ({
+exports.getNumberInputUtilityClass = getNumberInputUtilityClass;
+exports.numberInputClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
+function getNumberInputUtilityClass(slot) {
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiNumberInput', slot);
+}
+const numberInputClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiNumberInput', ['root', 'formControl', 'focused', 'disabled', 'readOnly', 'error', 'input', 'incrementButton', 'decrementButton'
+// 'adornedStart',
+// 'adornedEnd',
+]);
+exports.numberInputClasses = numberInputClasses;
+
+/***/ }),
+
+/***/ 56400:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.Popup = void 0;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _propTypes = _interopRequireDefault(__webpack_require__(55601));
+var _reactDom = __webpack_require__(74163);
+var _utils = __webpack_require__(44268);
+var _composeClasses = __webpack_require__(29178);
+var _Portal = __webpack_require__(16191);
+var _utils2 = __webpack_require__(67392);
+var _ClassNameConfigurator = __webpack_require__(15593);
+var _popupClasses = __webpack_require__(32466);
+var _jsxRuntime = __webpack_require__(56786);
+const _excluded = ["anchor", "children", "container", "disablePortal", "keepMounted", "middleware", "offset", "open", "placement", "slotProps", "slots", "strategy", "withTransition"];
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+function useUtilityClasses(ownerState) {
+  const {
+    open
+  } = ownerState;
+  const slots = {
+    root: ['root', open && 'open']
+  };
+  return (0, _composeClasses.unstable_composeClasses)(slots, (0, _ClassNameConfigurator.useClassNamesOverride)(_popupClasses.getPopupUtilityClass));
+}
+function resolveAnchor(anchor) {
+  return typeof anchor === 'function' ? anchor() : anchor;
+}
+/**
+ *
+ * Demos:
+ *
+ * - [Popup](https://mui.com/base-ui/react-popup/)
+ *
+ * API:
+ *
+ * - [Popup API](https://mui.com/base-ui/react-popup/components-api/#popup)
+ */
+const Popup = /*#__PURE__*/React.forwardRef(function Popup(props, forwardedRef) {
+  var _slots$root;
+  const {
+      anchor: anchorProp,
+      children,
+      container,
+      disablePortal = false,
+      keepMounted = false,
+      middleware,
+      offset: offsetProp = 0,
+      open = false,
+      placement = 'bottom',
+      slotProps = {},
+      slots = {},
+      strategy = 'absolute',
+      withTransition = false
+    } = props,
+    other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
+  const {
+    refs,
+    elements,
+    floatingStyles,
+    update,
+    placement: finalPlacement
+  } = (0, _reactDom.useFloating)({
+    elements: {
+      reference: resolveAnchor(anchorProp)
+    },
+    open,
+    middleware: middleware != null ? middleware : [(0, _reactDom.offset)(offsetProp != null ? offsetProp : 0), (0, _reactDom.flip)()],
+    placement,
+    strategy,
+    whileElementsMounted: !keepMounted ? _reactDom.autoUpdate : undefined
+  });
+  const handleRef = (0, _utils.unstable_useForkRef)(refs.setFloating, forwardedRef);
+  const [exited, setExited] = React.useState(true);
+  const handleEntering = () => {
+    setExited(false);
+  };
+  const handleExited = () => {
+    setExited(true);
+  };
+  (0, _utils.unstable_useEnhancedEffect)(() => {
+    if (keepMounted && open && elements.reference && elements.floating) {
+      const cleanup = (0, _reactDom.autoUpdate)(elements.reference, elements.floating, update);
+      return cleanup;
+    }
+    return undefined;
+  }, [keepMounted, open, elements, update]);
+  const ownerState = (0, _extends2.default)({}, props, {
+    disablePortal,
+    keepMounted,
+    offset: _reactDom.offset,
+    open,
+    placement,
+    finalPlacement,
+    strategy,
+    withTransition
+  });
+  const display = !open && keepMounted && (!withTransition || exited) ? 'none' : undefined;
+  const classes = useUtilityClasses(ownerState);
+  const Root = (_slots$root = slots == null ? void 0 : slots.root) != null ? _slots$root : 'div';
+  const rootProps = (0, _utils2.useSlotProps)({
+    elementType: Root,
+    externalSlotProps: slotProps.root,
+    externalForwardedProps: other,
+    ownerState,
+    className: classes.root,
+    additionalProps: {
+      ref: handleRef,
+      role: 'tooltip',
+      style: (0, _extends2.default)({}, floatingStyles, {
+        display
+      })
+    }
+  });
+  const shouldRender = open || keepMounted || withTransition && !exited;
+  if (!shouldRender) {
+    return null;
+  }
+  const childProps = {
+    placement: finalPlacement,
+    requestOpen: open,
+    onExited: handleExited,
+    onEnter: handleEntering
+  };
+  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_Portal.Portal, {
+    disablePortal: disablePortal,
+    container: container,
+    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(Root, (0, _extends2.default)({}, rootProps, {
+      children: typeof children === 'function' ? children(childProps) : children
+    }))
+  });
+});
+exports.Popup = Popup;
+ false ? 0 : void 0;
+
+/***/ }),
+
+/***/ 52408:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 83669:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  Unstable_Popup: true
+};
+Object.defineProperty(exports, "Unstable_Popup", ({
   enumerable: true,
   get: function () {
-    return _utils.unstable_ClassNameGenerator;
+    return _Popup.Popup;
   }
 }));
-var _utils = __webpack_require__(44268);
+var _Popup = __webpack_require__(56400);
+var _Popup2 = __webpack_require__(52408);
+Object.keys(_Popup2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _Popup2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _Popup2[key];
+    }
+  });
+});
+var _popupClasses = __webpack_require__(32466);
+Object.keys(_popupClasses).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _popupClasses[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _popupClasses[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 32466:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.getPopupUtilityClass = getPopupUtilityClass;
+exports.popupClasses = void 0;
+var _generateUtilityClass = __webpack_require__(50322);
+var _generateUtilityClasses = __webpack_require__(69770);
+function getPopupUtilityClass(slot) {
+  return (0, _generateUtilityClass.generateUtilityClass)('MuiPopup', slot);
+}
+const popupClasses = (0, _generateUtilityClasses.generateUtilityClasses)('MuiPopup', ['root', 'open']);
+exports.popupClasses = popupClasses;
 
 /***/ }),
 
@@ -9662,7 +11970,7 @@ var _utils = __webpack_require__(44268);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "unstable_composeClasses", ({
   enumerable: true,
   get: function () {
     return _utils.unstable_composeClasses;
@@ -9681,7 +11989,7 @@ var _utils = __webpack_require__(44268);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "generateUtilityClass", ({
   enumerable: true,
   get: function () {
     return _utils.unstable_generateUtilityClass;
@@ -9700,7 +12008,7 @@ var _utils = __webpack_require__(44268);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "generateUtilityClasses", ({
   enumerable: true,
   get: function () {
     return _utils.unstable_generateUtilityClasses;
@@ -9715,7 +12023,7 @@ var _utils = __webpack_require__(44268);
 
 "use strict";
 /**
- * @mui/base v5.0.0-beta.8
+ * @mui/base v5.0.0-beta.15
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -9724,290 +12032,65 @@ var _utils = __webpack_require__(44268);
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  Badge: true,
-  Button: true,
   ClickAwayListener: true,
-  unstable_composeClasses: true,
+  Dropdown: true,
   FocusTrap: true,
-  FormControl: true,
-  Input: true,
-  Menu: true,
-  MenuItem: true,
-  Modal: true,
   NoSsr: true,
-  OptionGroup: true,
-  Option: true,
   Popper: true,
   Portal: true,
-  Select: true,
-  Slider: true,
-  Snackbar: true,
-  Switch: true,
-  TablePagination: true,
-  TabPanel: true,
-  TabsList: true,
-  Tabs: true,
-  Tab: true,
   TextareaAutosize: true,
-  useAutocomplete: true,
-  useBadge: true,
-  useButton: true,
-  useInput: true,
-  useMenu: true,
-  useMenuItem: true,
-  useOption: true,
-  useSelect: true,
-  useSlider: true,
-  useSnackbar: true,
-  useSwitch: true,
-  useTab: true,
-  useTabPanel: true,
-  useTabs: true,
-  useTabsList: true
+  useDropdown: true
 };
-Object.defineProperty(exports, "Badge", ({
-  enumerable: true,
-  get: function () {
-    return _Badge.default;
-  }
-}));
-Object.defineProperty(exports, "Button", ({
-  enumerable: true,
-  get: function () {
-    return _Button.default;
-  }
-}));
 Object.defineProperty(exports, "ClickAwayListener", ({
   enumerable: true,
   get: function () {
-    return _ClickAwayListener.default;
+    return _ClickAwayListener.ClickAwayListener;
+  }
+}));
+Object.defineProperty(exports, "Dropdown", ({
+  enumerable: true,
+  get: function () {
+    return _Dropdown.Dropdown;
   }
 }));
 Object.defineProperty(exports, "FocusTrap", ({
   enumerable: true,
   get: function () {
-    return _FocusTrap.default;
-  }
-}));
-Object.defineProperty(exports, "FormControl", ({
-  enumerable: true,
-  get: function () {
-    return _FormControl.default;
-  }
-}));
-Object.defineProperty(exports, "Input", ({
-  enumerable: true,
-  get: function () {
-    return _Input.default;
-  }
-}));
-Object.defineProperty(exports, "Menu", ({
-  enumerable: true,
-  get: function () {
-    return _Menu.default;
-  }
-}));
-Object.defineProperty(exports, "MenuItem", ({
-  enumerable: true,
-  get: function () {
-    return _MenuItem.default;
-  }
-}));
-Object.defineProperty(exports, "Modal", ({
-  enumerable: true,
-  get: function () {
-    return _Modal.default;
+    return _FocusTrap.FocusTrap;
   }
 }));
 Object.defineProperty(exports, "NoSsr", ({
   enumerable: true,
   get: function () {
-    return _NoSsr.default;
-  }
-}));
-Object.defineProperty(exports, "Option", ({
-  enumerable: true,
-  get: function () {
-    return _Option.default;
-  }
-}));
-Object.defineProperty(exports, "OptionGroup", ({
-  enumerable: true,
-  get: function () {
-    return _OptionGroup.default;
+    return _NoSsr.NoSsr;
   }
 }));
 Object.defineProperty(exports, "Popper", ({
   enumerable: true,
   get: function () {
-    return _Popper.default;
+    return _Popper.Popper;
   }
 }));
 Object.defineProperty(exports, "Portal", ({
   enumerable: true,
   get: function () {
-    return _Portal.default;
-  }
-}));
-Object.defineProperty(exports, "Select", ({
-  enumerable: true,
-  get: function () {
-    return _Select.default;
-  }
-}));
-Object.defineProperty(exports, "Slider", ({
-  enumerable: true,
-  get: function () {
-    return _Slider.default;
-  }
-}));
-Object.defineProperty(exports, "Snackbar", ({
-  enumerable: true,
-  get: function () {
-    return _Snackbar.default;
-  }
-}));
-Object.defineProperty(exports, "Switch", ({
-  enumerable: true,
-  get: function () {
-    return _Switch.default;
-  }
-}));
-Object.defineProperty(exports, "Tab", ({
-  enumerable: true,
-  get: function () {
-    return _Tab.default;
-  }
-}));
-Object.defineProperty(exports, "TabPanel", ({
-  enumerable: true,
-  get: function () {
-    return _TabPanel.default;
-  }
-}));
-Object.defineProperty(exports, "TablePagination", ({
-  enumerable: true,
-  get: function () {
-    return _TablePagination.default;
-  }
-}));
-Object.defineProperty(exports, "Tabs", ({
-  enumerable: true,
-  get: function () {
-    return _Tabs.default;
-  }
-}));
-Object.defineProperty(exports, "TabsList", ({
-  enumerable: true,
-  get: function () {
-    return _TabsList.default;
+    return _Portal.Portal;
   }
 }));
 Object.defineProperty(exports, "TextareaAutosize", ({
   enumerable: true,
   get: function () {
-    return _TextareaAutosize.default;
+    return _TextareaAutosize.TextareaAutosize;
   }
 }));
-Object.defineProperty(exports, "unstable_composeClasses", ({
+Object.defineProperty(exports, "useDropdown", ({
   enumerable: true,
   get: function () {
-    return _composeClasses.default;
-  }
-}));
-Object.defineProperty(exports, "useAutocomplete", ({
-  enumerable: true,
-  get: function () {
-    return _useAutocomplete.default;
-  }
-}));
-Object.defineProperty(exports, "useBadge", ({
-  enumerable: true,
-  get: function () {
-    return _useBadge.default;
-  }
-}));
-Object.defineProperty(exports, "useButton", ({
-  enumerable: true,
-  get: function () {
-    return _useButton.default;
-  }
-}));
-Object.defineProperty(exports, "useInput", ({
-  enumerable: true,
-  get: function () {
-    return _useInput.default;
-  }
-}));
-Object.defineProperty(exports, "useMenu", ({
-  enumerable: true,
-  get: function () {
-    return _useMenu.default;
-  }
-}));
-Object.defineProperty(exports, "useMenuItem", ({
-  enumerable: true,
-  get: function () {
-    return _useMenuItem.default;
-  }
-}));
-Object.defineProperty(exports, "useOption", ({
-  enumerable: true,
-  get: function () {
-    return _useOption.default;
-  }
-}));
-Object.defineProperty(exports, "useSelect", ({
-  enumerable: true,
-  get: function () {
-    return _useSelect.default;
-  }
-}));
-Object.defineProperty(exports, "useSlider", ({
-  enumerable: true,
-  get: function () {
-    return _useSlider.default;
-  }
-}));
-Object.defineProperty(exports, "useSnackbar", ({
-  enumerable: true,
-  get: function () {
-    return _useSnackbar.default;
-  }
-}));
-Object.defineProperty(exports, "useSwitch", ({
-  enumerable: true,
-  get: function () {
-    return _useSwitch.default;
-  }
-}));
-Object.defineProperty(exports, "useTab", ({
-  enumerable: true,
-  get: function () {
-    return _useTab.default;
-  }
-}));
-Object.defineProperty(exports, "useTabPanel", ({
-  enumerable: true,
-  get: function () {
-    return _useTabPanel.default;
-  }
-}));
-Object.defineProperty(exports, "useTabs", ({
-  enumerable: true,
-  get: function () {
-    return _useTabs.default;
-  }
-}));
-Object.defineProperty(exports, "useTabsList", ({
-  enumerable: true,
-  get: function () {
-    return _useTabsList.default;
+    return _useDropdown.useDropdown;
   }
 }));
 var _utils = __webpack_require__(67392);
@@ -10022,7 +12105,7 @@ Object.keys(_utils).forEach(function (key) {
     }
   });
 });
-var _Badge = _interopRequireWildcard(__webpack_require__(49072));
+var _Badge = __webpack_require__(49072);
 Object.keys(_Badge).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10034,7 +12117,7 @@ Object.keys(_Badge).forEach(function (key) {
     }
   });
 });
-var _Button = _interopRequireWildcard(__webpack_require__(74986));
+var _Button = __webpack_require__(74986);
 Object.keys(_Button).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10046,10 +12129,22 @@ Object.keys(_Button).forEach(function (key) {
     }
   });
 });
-var _ClickAwayListener = _interopRequireDefault(__webpack_require__(8171));
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _FocusTrap = _interopRequireDefault(__webpack_require__(55040));
-var _FormControl = _interopRequireWildcard(__webpack_require__(58168));
+var _ClickAwayListener = __webpack_require__(8171);
+var _composeClasses = __webpack_require__(29178);
+Object.keys(_composeClasses).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _composeClasses[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _composeClasses[key];
+    }
+  });
+});
+var _Dropdown = __webpack_require__(86840);
+var _FocusTrap = __webpack_require__(55040);
+var _FormControl = __webpack_require__(58168);
 Object.keys(_FormControl).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10061,7 +12156,7 @@ Object.keys(_FormControl).forEach(function (key) {
     }
   });
 });
-var _Input = _interopRequireWildcard(__webpack_require__(14448));
+var _Input = __webpack_require__(14448);
 Object.keys(_Input).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10073,7 +12168,7 @@ Object.keys(_Input).forEach(function (key) {
     }
   });
 });
-var _Menu = _interopRequireWildcard(__webpack_require__(80605));
+var _Menu = __webpack_require__(80605);
 Object.keys(_Menu).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10085,7 +12180,19 @@ Object.keys(_Menu).forEach(function (key) {
     }
   });
 });
-var _MenuItem = _interopRequireWildcard(__webpack_require__(83123));
+var _MenuButton = __webpack_require__(77044);
+Object.keys(_MenuButton).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _MenuButton[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _MenuButton[key];
+    }
+  });
+});
+var _MenuItem = __webpack_require__(83123);
 Object.keys(_MenuItem).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10097,7 +12204,7 @@ Object.keys(_MenuItem).forEach(function (key) {
     }
   });
 });
-var _Modal = _interopRequireWildcard(__webpack_require__(38451));
+var _Modal = __webpack_require__(38451);
 Object.keys(_Modal).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10109,8 +12216,20 @@ Object.keys(_Modal).forEach(function (key) {
     }
   });
 });
-var _NoSsr = _interopRequireDefault(__webpack_require__(58809));
-var _OptionGroup = _interopRequireWildcard(__webpack_require__(96775));
+var _NoSsr = __webpack_require__(58809);
+var _Unstable_NumberInput = __webpack_require__(83883);
+Object.keys(_Unstable_NumberInput).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _Unstable_NumberInput[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _Unstable_NumberInput[key];
+    }
+  });
+});
+var _OptionGroup = __webpack_require__(96775);
 Object.keys(_OptionGroup).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10122,7 +12241,7 @@ Object.keys(_OptionGroup).forEach(function (key) {
     }
   });
 });
-var _Option = _interopRequireWildcard(__webpack_require__(58828));
+var _Option = __webpack_require__(58828);
 Object.keys(_Option).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10134,9 +12253,21 @@ Object.keys(_Option).forEach(function (key) {
     }
   });
 });
-var _Popper = _interopRequireDefault(__webpack_require__(18934));
-var _Portal = _interopRequireDefault(__webpack_require__(16191));
-var _Select = _interopRequireWildcard(__webpack_require__(39624));
+var _Popper = __webpack_require__(18934);
+var _Unstable_Popup = __webpack_require__(83669);
+Object.keys(_Unstable_Popup).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _Unstable_Popup[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _Unstable_Popup[key];
+    }
+  });
+});
+var _Portal = __webpack_require__(16191);
+var _Select = __webpack_require__(39624);
 Object.keys(_Select).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10148,7 +12279,7 @@ Object.keys(_Select).forEach(function (key) {
     }
   });
 });
-var _Slider = _interopRequireWildcard(__webpack_require__(59380));
+var _Slider = __webpack_require__(59380);
 Object.keys(_Slider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10160,7 +12291,7 @@ Object.keys(_Slider).forEach(function (key) {
     }
   });
 });
-var _Snackbar = _interopRequireWildcard(__webpack_require__(14237));
+var _Snackbar = __webpack_require__(14237);
 Object.keys(_Snackbar).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10172,7 +12303,7 @@ Object.keys(_Snackbar).forEach(function (key) {
     }
   });
 });
-var _Switch = _interopRequireWildcard(__webpack_require__(85843));
+var _Switch = __webpack_require__(85843);
 Object.keys(_Switch).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10184,7 +12315,7 @@ Object.keys(_Switch).forEach(function (key) {
     }
   });
 });
-var _TablePagination = _interopRequireWildcard(__webpack_require__(53347));
+var _TablePagination = __webpack_require__(53347);
 Object.keys(_TablePagination).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10196,7 +12327,7 @@ Object.keys(_TablePagination).forEach(function (key) {
     }
   });
 });
-var _TabPanel = _interopRequireWildcard(__webpack_require__(10056));
+var _TabPanel = __webpack_require__(10056);
 Object.keys(_TabPanel).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10208,7 +12339,7 @@ Object.keys(_TabPanel).forEach(function (key) {
     }
   });
 });
-var _TabsList = _interopRequireWildcard(__webpack_require__(48365));
+var _TabsList = __webpack_require__(48365);
 Object.keys(_TabsList).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10220,7 +12351,7 @@ Object.keys(_TabsList).forEach(function (key) {
     }
   });
 });
-var _Tabs = _interopRequireWildcard(__webpack_require__(55307));
+var _Tabs = __webpack_require__(55307);
 Object.keys(_Tabs).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10232,7 +12363,7 @@ Object.keys(_Tabs).forEach(function (key) {
     }
   });
 });
-var _Tab = _interopRequireWildcard(__webpack_require__(63574));
+var _Tab = __webpack_require__(63574);
 Object.keys(_Tab).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10244,8 +12375,8 @@ Object.keys(_Tab).forEach(function (key) {
     }
   });
 });
-var _TextareaAutosize = _interopRequireDefault(__webpack_require__(76978));
-var _useAutocomplete = _interopRequireWildcard(__webpack_require__(48904));
+var _TextareaAutosize = __webpack_require__(76978);
+var _useAutocomplete = __webpack_require__(48904);
 Object.keys(_useAutocomplete).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10257,7 +12388,7 @@ Object.keys(_useAutocomplete).forEach(function (key) {
     }
   });
 });
-var _useBadge = _interopRequireWildcard(__webpack_require__(62222));
+var _useBadge = __webpack_require__(62222);
 Object.keys(_useBadge).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10269,7 +12400,7 @@ Object.keys(_useBadge).forEach(function (key) {
     }
   });
 });
-var _useButton = _interopRequireWildcard(__webpack_require__(83851));
+var _useButton = __webpack_require__(83851);
 Object.keys(_useButton).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10281,7 +12412,8 @@ Object.keys(_useButton).forEach(function (key) {
     }
   });
 });
-var _useInput = _interopRequireWildcard(__webpack_require__(18606));
+var _useDropdown = __webpack_require__(23035);
+var _useInput = __webpack_require__(18606);
 Object.keys(_useInput).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10293,7 +12425,7 @@ Object.keys(_useInput).forEach(function (key) {
     }
   });
 });
-var _useMenu = _interopRequireWildcard(__webpack_require__(63796));
+var _useMenu = __webpack_require__(63796);
 Object.keys(_useMenu).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10305,7 +12437,19 @@ Object.keys(_useMenu).forEach(function (key) {
     }
   });
 });
-var _useMenuItem = _interopRequireWildcard(__webpack_require__(71038));
+var _useMenuButton = __webpack_require__(31030);
+Object.keys(_useMenuButton).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _useMenuButton[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useMenuButton[key];
+    }
+  });
+});
+var _useMenuItem = __webpack_require__(71038);
 Object.keys(_useMenuItem).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10317,7 +12461,19 @@ Object.keys(_useMenuItem).forEach(function (key) {
     }
   });
 });
-var _useOption = _interopRequireWildcard(__webpack_require__(54787));
+var _unstable_useNumberInput = __webpack_require__(34754);
+Object.keys(_unstable_useNumberInput).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _unstable_useNumberInput[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unstable_useNumberInput[key];
+    }
+  });
+});
+var _useOption = __webpack_require__(54787);
 Object.keys(_useOption).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10329,7 +12485,7 @@ Object.keys(_useOption).forEach(function (key) {
     }
   });
 });
-var _useSelect = _interopRequireWildcard(__webpack_require__(20397));
+var _useSelect = __webpack_require__(20397);
 Object.keys(_useSelect).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10341,7 +12497,7 @@ Object.keys(_useSelect).forEach(function (key) {
     }
   });
 });
-var _useSlider = _interopRequireWildcard(__webpack_require__(49076));
+var _useSlider = __webpack_require__(49076);
 Object.keys(_useSlider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10353,7 +12509,7 @@ Object.keys(_useSlider).forEach(function (key) {
     }
   });
 });
-var _useSnackbar = _interopRequireWildcard(__webpack_require__(40969));
+var _useSnackbar = __webpack_require__(40969);
 Object.keys(_useSnackbar).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10365,7 +12521,7 @@ Object.keys(_useSnackbar).forEach(function (key) {
     }
   });
 });
-var _useSwitch = _interopRequireWildcard(__webpack_require__(64576));
+var _useSwitch = __webpack_require__(64576);
 Object.keys(_useSwitch).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10377,7 +12533,7 @@ Object.keys(_useSwitch).forEach(function (key) {
     }
   });
 });
-var _useTab = _interopRequireWildcard(__webpack_require__(45972));
+var _useTab = __webpack_require__(45972);
 Object.keys(_useTab).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10389,7 +12545,7 @@ Object.keys(_useTab).forEach(function (key) {
     }
   });
 });
-var _useTabPanel = _interopRequireWildcard(__webpack_require__(67283));
+var _useTabPanel = __webpack_require__(67283);
 Object.keys(_useTabPanel).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10401,7 +12557,7 @@ Object.keys(_useTabPanel).forEach(function (key) {
     }
   });
 });
-var _useTabs = _interopRequireWildcard(__webpack_require__(65186));
+var _useTabs = __webpack_require__(65186);
 Object.keys(_useTabs).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10413,7 +12569,7 @@ Object.keys(_useTabs).forEach(function (key) {
     }
   });
 });
-var _useTabsList = _interopRequireWildcard(__webpack_require__(8093));
+var _useTabsList = __webpack_require__(8093);
 Object.keys(_useTabsList).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -10425,8 +12581,867 @@ Object.keys(_useTabsList).forEach(function (key) {
     }
   });
 });
+var _unstable_useModal = __webpack_require__(39810);
+Object.keys(_unstable_useModal).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _unstable_useModal[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _unstable_useModal[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 70826:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.ModalManager = void 0;
+exports.ariaHidden = ariaHidden;
+var _utils = __webpack_require__(44268);
+// Is a vertical scrollbar displayed?
+function isOverflowing(container) {
+  const doc = (0, _utils.unstable_ownerDocument)(container);
+  if (doc.body === container) {
+    return (0, _utils.unstable_ownerWindow)(container).innerWidth > doc.documentElement.clientWidth;
+  }
+  return container.scrollHeight > container.clientHeight;
+}
+function ariaHidden(element, show) {
+  if (show) {
+    element.setAttribute('aria-hidden', 'true');
+  } else {
+    element.removeAttribute('aria-hidden');
+  }
+}
+function getPaddingRight(element) {
+  return parseInt((0, _utils.unstable_ownerWindow)(element).getComputedStyle(element).paddingRight, 10) || 0;
+}
+function isAriaHiddenForbiddenOnElement(element) {
+  // The forbidden HTML tags are the ones from ARIA specification that
+  // can be children of body and can't have aria-hidden attribute.
+  // cf. https://www.w3.org/TR/html-aria/#docconformance
+  const forbiddenTagNames = ['TEMPLATE', 'SCRIPT', 'STYLE', 'LINK', 'MAP', 'META', 'NOSCRIPT', 'PICTURE', 'COL', 'COLGROUP', 'PARAM', 'SLOT', 'SOURCE', 'TRACK'];
+  const isForbiddenTagName = forbiddenTagNames.indexOf(element.tagName) !== -1;
+  const isInputHidden = element.tagName === 'INPUT' && element.getAttribute('type') === 'hidden';
+  return isForbiddenTagName || isInputHidden;
+}
+function ariaHiddenSiblings(container, mountElement, currentElement, elementsToExclude, show) {
+  const blacklist = [mountElement, currentElement, ...elementsToExclude];
+  [].forEach.call(container.children, element => {
+    const isNotExcludedElement = blacklist.indexOf(element) === -1;
+    const isNotForbiddenElement = !isAriaHiddenForbiddenOnElement(element);
+    if (isNotExcludedElement && isNotForbiddenElement) {
+      ariaHidden(element, show);
+    }
+  });
+}
+function findIndexOf(items, callback) {
+  let idx = -1;
+  items.some((item, index) => {
+    if (callback(item)) {
+      idx = index;
+      return true;
+    }
+    return false;
+  });
+  return idx;
+}
+function handleContainer(containerInfo, props) {
+  const restoreStyle = [];
+  const container = containerInfo.container;
+  if (!props.disableScrollLock) {
+    if (isOverflowing(container)) {
+      // Compute the size before applying overflow hidden to avoid any scroll jumps.
+      const scrollbarSize = (0, _utils.unstable_getScrollbarSize)((0, _utils.unstable_ownerDocument)(container));
+      restoreStyle.push({
+        value: container.style.paddingRight,
+        property: 'padding-right',
+        el: container
+      });
+      // Use computed style, here to get the real padding to add our scrollbar width.
+      container.style.paddingRight = `${getPaddingRight(container) + scrollbarSize}px`;
+
+      // .mui-fixed is a global helper.
+      const fixedElements = (0, _utils.unstable_ownerDocument)(container).querySelectorAll('.mui-fixed');
+      [].forEach.call(fixedElements, element => {
+        restoreStyle.push({
+          value: element.style.paddingRight,
+          property: 'padding-right',
+          el: element
+        });
+        element.style.paddingRight = `${getPaddingRight(element) + scrollbarSize}px`;
+      });
+    }
+    let scrollContainer;
+    if (container.parentNode instanceof DocumentFragment) {
+      scrollContainer = (0, _utils.unstable_ownerDocument)(container).body;
+    } else {
+      // Support html overflow-y: auto for scroll stability between pages
+      // https://css-tricks.com/snippets/css/force-vertical-scrollbar/
+      const parent = container.parentElement;
+      const containerWindow = (0, _utils.unstable_ownerWindow)(container);
+      scrollContainer = (parent == null ? void 0 : parent.nodeName) === 'HTML' && containerWindow.getComputedStyle(parent).overflowY === 'scroll' ? parent : container;
+    }
+
+    // Block the scroll even if no scrollbar is visible to account for mobile keyboard
+    // screensize shrink.
+    restoreStyle.push({
+      value: scrollContainer.style.overflow,
+      property: 'overflow',
+      el: scrollContainer
+    }, {
+      value: scrollContainer.style.overflowX,
+      property: 'overflow-x',
+      el: scrollContainer
+    }, {
+      value: scrollContainer.style.overflowY,
+      property: 'overflow-y',
+      el: scrollContainer
+    });
+    scrollContainer.style.overflow = 'hidden';
+  }
+  const restore = () => {
+    restoreStyle.forEach(({
+      value,
+      el,
+      property
+    }) => {
+      if (value) {
+        el.style.setProperty(property, value);
+      } else {
+        el.style.removeProperty(property);
+      }
+    });
+  };
+  return restore;
+}
+function getHiddenSiblings(container) {
+  const hiddenSiblings = [];
+  [].forEach.call(container.children, element => {
+    if (element.getAttribute('aria-hidden') === 'true') {
+      hiddenSiblings.push(element);
+    }
+  });
+  return hiddenSiblings;
+}
+/**
+ * @ignore - do not document.
+ *
+ * Proper state management for containers and the modals in those containers.
+ * Simplified, but inspired by react-overlay's ModalManager class.
+ * Used by the Modal to ensure proper styling of containers.
+ */
+class ModalManager {
+  constructor() {
+    this.containers = void 0;
+    this.modals = void 0;
+    this.modals = [];
+    this.containers = [];
+  }
+  add(modal, container) {
+    let modalIndex = this.modals.indexOf(modal);
+    if (modalIndex !== -1) {
+      return modalIndex;
+    }
+    modalIndex = this.modals.length;
+    this.modals.push(modal);
+
+    // If the modal we are adding is already in the DOM.
+    if (modal.modalRef) {
+      ariaHidden(modal.modalRef, false);
+    }
+    const hiddenSiblings = getHiddenSiblings(container);
+    ariaHiddenSiblings(container, modal.mount, modal.modalRef, hiddenSiblings, true);
+    const containerIndex = findIndexOf(this.containers, item => item.container === container);
+    if (containerIndex !== -1) {
+      this.containers[containerIndex].modals.push(modal);
+      return modalIndex;
+    }
+    this.containers.push({
+      modals: [modal],
+      container,
+      restore: null,
+      hiddenSiblings
+    });
+    return modalIndex;
+  }
+  mount(modal, props) {
+    const containerIndex = findIndexOf(this.containers, item => item.modals.indexOf(modal) !== -1);
+    const containerInfo = this.containers[containerIndex];
+    if (!containerInfo.restore) {
+      containerInfo.restore = handleContainer(containerInfo, props);
+    }
+  }
+  remove(modal, ariaHiddenState = true) {
+    const modalIndex = this.modals.indexOf(modal);
+    if (modalIndex === -1) {
+      return modalIndex;
+    }
+    const containerIndex = findIndexOf(this.containers, item => item.modals.indexOf(modal) !== -1);
+    const containerInfo = this.containers[containerIndex];
+    containerInfo.modals.splice(containerInfo.modals.indexOf(modal), 1);
+    this.modals.splice(modalIndex, 1);
+
+    // If that was the last modal in a container, clean up the container.
+    if (containerInfo.modals.length === 0) {
+      // The modal might be closed before it had the chance to be mounted in the DOM.
+      if (containerInfo.restore) {
+        containerInfo.restore();
+      }
+      if (modal.modalRef) {
+        // In case the modal wasn't in the DOM yet.
+        ariaHidden(modal.modalRef, ariaHiddenState);
+      }
+      ariaHiddenSiblings(containerInfo.container, modal.mount, modal.modalRef, containerInfo.hiddenSiblings, false);
+      this.containers.splice(containerIndex, 1);
+    } else {
+      // Otherwise make sure the next top modal is visible to a screen reader.
+      const nextTop = containerInfo.modals[containerInfo.modals.length - 1];
+      // as soon as a modal is adding its modalRef is undefined. it can't set
+      // aria-hidden because the dom element doesn't exist either
+      // when modal was unmounted before modalRef gets null
+      if (nextTop.modalRef) {
+        ariaHidden(nextTop.modalRef, false);
+      }
+    }
+    return modalIndex;
+  }
+  isTopModal(modal) {
+    return this.modals.length > 0 && this.modals[this.modals.length - 1] === modal;
+  }
+}
+exports.ModalManager = ModalManager;
+
+/***/ }),
+
+/***/ 39810:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  unstable_useModal: true
+};
+Object.defineProperty(exports, "unstable_useModal", ({
+  enumerable: true,
+  get: function () {
+    return _useModal.useModal;
+  }
+}));
+var _useModal = __webpack_require__(80352);
+var _useModal2 = __webpack_require__(55044);
+Object.keys(_useModal2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _useModal2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useModal2[key];
+    }
+  });
+});
+var _ModalManager = __webpack_require__(70826);
+Object.keys(_ModalManager).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _ModalManager[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _ModalManager[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 80352:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.useModal = useModal;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _utils = __webpack_require__(44268);
+var _utils2 = __webpack_require__(67392);
+var _ModalManager = __webpack_require__(70826);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+function getContainer(container) {
+  return typeof container === 'function' ? container() : container;
+}
+function getHasTransition(children) {
+  return children ? children.props.hasOwnProperty('in') : false;
+}
+
+// A modal manager used to track and manage the state of open Modals.
+// Modals don't open on the server so this won't conflict with concurrent requests.
+const defaultManager = new _ModalManager.ModalManager();
+/**
+ *
+ * Demos:
+ *
+ * - [Modal](https://mui.com/base-ui/react-modal/#hook)
+ *
+ * API:
+ *
+ * - [useModal API](https://mui.com/base-ui/react-modal/hooks-api/#use-modal)
+ */
+function useModal(parameters) {
+  const {
+    container,
+    disableEscapeKeyDown = false,
+    disableScrollLock = false,
+    // @ts-ignore internal logic - Base UI supports the manager as a prop too
+    manager = defaultManager,
+    closeAfterTransition = false,
+    onTransitionEnter,
+    onTransitionExited,
+    children,
+    onClose,
+    open,
+    rootRef
+  } = parameters;
+
+  // @ts-ignore internal logic
+  const modal = React.useRef({});
+  const mountNodeRef = React.useRef(null);
+  const modalRef = React.useRef(null);
+  const handleRef = (0, _utils.unstable_useForkRef)(modalRef, rootRef);
+  const [exited, setExited] = React.useState(!open);
+  const hasTransition = getHasTransition(children);
+  let ariaHiddenProp = true;
+  if (parameters['aria-hidden'] === 'false' || parameters['aria-hidden'] === false) {
+    ariaHiddenProp = false;
+  }
+  const getDoc = () => (0, _utils.unstable_ownerDocument)(mountNodeRef.current);
+  const getModal = () => {
+    modal.current.modalRef = modalRef.current;
+    modal.current.mount = mountNodeRef.current;
+    return modal.current;
+  };
+  const handleMounted = () => {
+    manager.mount(getModal(), {
+      disableScrollLock
+    });
+
+    // Fix a bug on Chrome where the scroll isn't initially 0.
+    if (modalRef.current) {
+      modalRef.current.scrollTop = 0;
+    }
+  };
+  const handleOpen = (0, _utils.unstable_useEventCallback)(() => {
+    const resolvedContainer = getContainer(container) || getDoc().body;
+    manager.add(getModal(), resolvedContainer);
+
+    // The element was already mounted.
+    if (modalRef.current) {
+      handleMounted();
+    }
+  });
+  const isTopModal = React.useCallback(() => manager.isTopModal(getModal()), [manager]);
+  const handlePortalRef = (0, _utils.unstable_useEventCallback)(node => {
+    mountNodeRef.current = node;
+    if (!node) {
+      return;
+    }
+    if (open && isTopModal()) {
+      handleMounted();
+    } else if (modalRef.current) {
+      (0, _ModalManager.ariaHidden)(modalRef.current, ariaHiddenProp);
+    }
+  });
+  const handleClose = React.useCallback(() => {
+    manager.remove(getModal(), ariaHiddenProp);
+  }, [ariaHiddenProp, manager]);
+  React.useEffect(() => {
+    return () => {
+      handleClose();
+    };
+  }, [handleClose]);
+  React.useEffect(() => {
+    if (open) {
+      handleOpen();
+    } else if (!hasTransition || !closeAfterTransition) {
+      handleClose();
+    }
+  }, [open, handleClose, hasTransition, closeAfterTransition, handleOpen]);
+  const createHandleKeyDown = otherHandlers => event => {
+    var _otherHandlers$onKeyD;
+    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null || _otherHandlers$onKeyD.call(otherHandlers, event);
+
+    // The handler doesn't take event.defaultPrevented into account:
+    //
+    // event.preventDefault() is meant to stop default behaviors like
+    // clicking a checkbox to check it, hitting a button to submit a form,
+    // and hitting left arrow to move the cursor in a text input etc.
+    // Only special HTML elements have these default behaviors.
+    if (event.key !== 'Escape' || !isTopModal()) {
+      return;
+    }
+    if (!disableEscapeKeyDown) {
+      // Swallow the event, in case someone is listening for the escape key on the body.
+      event.stopPropagation();
+      if (onClose) {
+        onClose(event, 'escapeKeyDown');
+      }
+    }
+  };
+  const createHandleBackdropClick = otherHandlers => event => {
+    var _otherHandlers$onClic;
+    (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (onClose) {
+      onClose(event, 'backdropClick');
+    }
+  };
+  const getRootProps = (otherHandlers = {}) => {
+    const propsEventHandlers = (0, _utils2.extractEventHandlers)(parameters);
+
+    // The custom event handlers shouldn't be spread on the root element
+    delete propsEventHandlers.onTransitionEnter;
+    delete propsEventHandlers.onTransitionExited;
+    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, otherHandlers);
+    return (0, _extends2.default)({
+      role: 'presentation'
+    }, externalEventHandlers, {
+      onKeyDown: createHandleKeyDown(externalEventHandlers),
+      ref: handleRef
+    });
+  };
+  const getBackdropProps = (otherHandlers = {}) => {
+    const externalEventHandlers = otherHandlers;
+    return (0, _extends2.default)({
+      'aria-hidden': true
+    }, externalEventHandlers, {
+      onClick: createHandleBackdropClick(externalEventHandlers),
+      open
+    });
+  };
+  const getTransitionProps = () => {
+    const handleEnter = () => {
+      setExited(false);
+      if (onTransitionEnter) {
+        onTransitionEnter();
+      }
+    };
+    const handleExited = () => {
+      setExited(true);
+      if (onTransitionExited) {
+        onTransitionExited();
+      }
+      if (closeAfterTransition) {
+        handleClose();
+      }
+    };
+    return {
+      onEnter: (0, _utils.unstable_createChainedFunction)(handleEnter, children == null ? void 0 : children.props.onEnter),
+      onExited: (0, _utils.unstable_createChainedFunction)(handleExited, children == null ? void 0 : children.props.onExited)
+    };
+  };
+  return {
+    getRootProps,
+    getBackdropProps,
+    getTransitionProps,
+    rootRef: handleRef,
+    portalRef: handlePortalRef,
+    isTopModal,
+    exited,
+    hasTransition
+  };
+}
+
+/***/ }),
+
+/***/ 55044:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 34754:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  unstable_useNumberInput: true
+};
+Object.defineProperty(exports, "unstable_useNumberInput", ({
+  enumerable: true,
+  get: function () {
+    return _useNumberInput.useNumberInput;
+  }
+}));
+var _useNumberInput = __webpack_require__(9665);
+var _useNumberInput2 = __webpack_require__(34081);
+Object.keys(_useNumberInput2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _useNumberInput2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useNumberInput2[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 9665:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.useNumberInput = useNumberInput;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var _utils = __webpack_require__(44268);
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _FormControl = __webpack_require__(58168);
+var _utils2 = __webpack_require__(50439);
+var _extractEventHandlers = __webpack_require__(71688);
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const STEP_KEYS = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
+const SUPPORTED_KEYS = [...STEP_KEYS, 'Home', 'End'];
+function parseInput(v) {
+  return v ? String(v.trim()) : String(v);
+}
+
+/**
+ *
+ * Demos:
+ *
+ * - [Number Input](https://mui.com/base-ui/react-number-input/#hook)
+ *
+ * API:
+ *
+ * - [useNumberInput API](https://mui.com/base-ui/react-number-input/hooks-api/#use-number-input)
+ */
+function useNumberInput(parameters) {
+  const {
+    min,
+    max,
+    step,
+    shiftMultiplier = 10,
+    defaultValue: defaultValueProp,
+    disabled: disabledProp = false,
+    error: errorProp = false,
+    onBlur,
+    onInputChange,
+    onFocus,
+    onChange,
+    required: requiredProp = false,
+    readOnly: readOnlyProp = false,
+    value: valueProp,
+    inputRef: inputRefProp,
+    inputId: inputIdProp
+  } = parameters;
+
+  // TODO: make it work with FormControl
+  const formControlContext = (0, _FormControl.useFormControlContext)();
+  const {
+    current: isControlled
+  } = React.useRef(valueProp != null);
+  const handleInputRefWarning = React.useCallback(instance => {
+    if (false) {}
+  }, []);
+  const inputRef = React.useRef(null);
+  const handleInputRef = (0, _utils.unstable_useForkRef)(inputRef, inputRefProp, handleInputRefWarning);
+  const inputId = (0, _utils.unstable_useId)(inputIdProp);
+  const [focused, setFocused] = React.useState(false);
+
+  // the "final" value
+  const [value, setValue] = React.useState(valueProp != null ? valueProp : defaultValueProp);
+  // the (potentially) dirty or invalid input value
+  const [dirtyValue, setDirtyValue] = React.useState(value ? String(value) : undefined);
+  React.useEffect(() => {
+    if (!formControlContext && disabledProp && focused) {
+      setFocused(false);
+      onBlur == null || onBlur();
+    }
+  }, [formControlContext, disabledProp, focused, onBlur]);
+  const handleFocus = otherHandlers => event => {
+    var _otherHandlers$onFocu;
+    (_otherHandlers$onFocu = otherHandlers.onFocus) == null || _otherHandlers$onFocu.call(otherHandlers, event);
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (formControlContext && formControlContext.onFocus) {
+      var _formControlContext$o;
+      formControlContext == null || (_formControlContext$o = formControlContext.onFocus) == null || _formControlContext$o.call(formControlContext);
+    }
+    setFocused(true);
+  };
+  const handleValueChange = () => (event, val) => {
+    let newValue;
+    if (val === undefined) {
+      newValue = val;
+      setDirtyValue('');
+    } else {
+      newValue = (0, _utils2.clamp)(val, min, max, step);
+      setDirtyValue(String(newValue));
+    }
+    setValue(newValue);
+    if ((0, _utils2.isNumber)(newValue)) {
+      onChange == null || onChange(event, newValue);
+    } else {
+      onChange == null || onChange(event, undefined);
+    }
+  };
+  const handleInputChange = otherHandlers => event => {
+    var _formControlContext$o2, _otherHandlers$onInpu;
+    if (!isControlled && event.target === null) {
+      throw new Error( false ? 0 : (0, _utils.formatMuiErrorMessage)(17));
+    }
+    formControlContext == null || (_formControlContext$o2 = formControlContext.onChange) == null || _formControlContext$o2.call(formControlContext, event);
+    (_otherHandlers$onInpu = otherHandlers.onInputChange) == null || _otherHandlers$onInpu.call(otherHandlers, event);
+    const val = parseInput(event.currentTarget.value);
+    if (val === '' || val === '-') {
+      setDirtyValue(val);
+      setValue(undefined);
+    }
+    if (val.match(/^-?\d+?$/)) {
+      setDirtyValue(val);
+      setValue(parseInt(val, 10));
+    }
+  };
+  const handleBlur = otherHandlers => event => {
+    var _otherHandlers$onBlur;
+    const val = parseInput(event.currentTarget.value);
+    (_otherHandlers$onBlur = otherHandlers.onBlur) == null || _otherHandlers$onBlur.call(otherHandlers, event);
+    if (val === '' || val === '-') {
+      handleValueChange()(event, undefined);
+    } else {
+      handleValueChange()(event, parseInt(val, 10));
+    }
+    if (formControlContext && formControlContext.onBlur) {
+      formControlContext.onBlur();
+    }
+    setFocused(false);
+  };
+  const handleClick = otherHandlers => event => {
+    var _otherHandlers$onClic;
+    if (inputRef.current && event.currentTarget === event.target) {
+      inputRef.current.focus();
+    }
+    (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
+  };
+  const handleStep = direction => event => {
+    let newValue;
+    if ((0, _utils2.isNumber)(value)) {
+      const multiplier = event.shiftKey || event.key === 'PageUp' || event.key === 'PageDown' ? shiftMultiplier : 1;
+      newValue = {
+        up: value + (step != null ? step : 1) * multiplier,
+        down: value - (step != null ? step : 1) * multiplier
+      }[direction];
+    } else {
+      // no value
+      newValue = {
+        up: min != null ? min : 0,
+        down: max != null ? max : 0
+      }[direction];
+    }
+    handleValueChange()(event, newValue);
+  };
+  const handleKeyDown = otherHandlers => event => {
+    var _otherHandlers$onKeyD;
+    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null || _otherHandlers$onKeyD.call(otherHandlers, event);
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (SUPPORTED_KEYS.includes(event.key)) {
+      event.preventDefault();
+    }
+    if (STEP_KEYS.includes(event.key)) {
+      const direction = {
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        PageUp: 'up',
+        PageDown: 'down'
+      }[event.key];
+      handleStep(direction)(event);
+    }
+    if (event.key === 'Home' && (0, _utils2.isNumber)(max)) {
+      handleValueChange()(event, max);
+    }
+    if (event.key === 'End' && (0, _utils2.isNumber)(min)) {
+      handleValueChange()(event, min);
+    }
+  };
+  const getRootProps = (externalProps = {}) => {
+    const propsEventHandlers = (0, _extractEventHandlers.extractEventHandlers)(parameters, ['onBlur', 'onInputChange', 'onFocus', 'onChange']);
+    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, (0, _extractEventHandlers.extractEventHandlers)(externalProps));
+    return (0, _extends2.default)({}, externalProps, externalEventHandlers, {
+      onClick: handleClick(externalEventHandlers)
+    });
+  };
+  const getInputProps = (externalProps = {}) => {
+    var _ref;
+    const externalEventHandlers = (0, _extends2.default)({
+      onBlur,
+      onFocus
+    }, (0, _extractEventHandlers.extractEventHandlers)(externalProps, ['onInputChange']));
+    const mergedEventHandlers = (0, _extends2.default)({}, externalProps, externalEventHandlers, {
+      onFocus: handleFocus(externalEventHandlers),
+      onChange: handleInputChange((0, _extends2.default)({}, externalEventHandlers, {
+        onInputChange
+      })),
+      onBlur: handleBlur(externalEventHandlers),
+      onKeyDown: handleKeyDown(externalEventHandlers)
+    });
+    const displayValue = (_ref = focused ? dirtyValue : value) != null ? _ref : '';
+    return (0, _extends2.default)({}, mergedEventHandlers, {
+      type: 'text',
+      id: inputId,
+      'aria-invalid': errorProp || undefined,
+      defaultValue: undefined,
+      ref: handleInputRef,
+      value: displayValue,
+      'aria-valuenow': displayValue,
+      'aria-valuetext': String(displayValue),
+      'aria-valuemin': min,
+      'aria-valuemax': max,
+      autoComplete: 'off',
+      autoCorrect: 'off',
+      spellCheck: 'false',
+      required: requiredProp,
+      readOnly: readOnlyProp,
+      'aria-disabled': disabledProp,
+      disabled: disabledProp
+    });
+  };
+  const handleStepperButtonMouseDown = event => {
+    event.preventDefault();
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+  const stepperButtonCommonProps = {
+    'aria-controls': inputId,
+    tabIndex: -1
+  };
+  const isIncrementDisabled = disabledProp || ((0, _utils2.isNumber)(value) ? value >= (max != null ? max : Number.MAX_SAFE_INTEGER) : false);
+  const getIncrementButtonProps = (externalProps = {}) => {
+    return (0, _extends2.default)({}, externalProps, stepperButtonCommonProps, {
+      disabled: isIncrementDisabled,
+      'aria-disabled': isIncrementDisabled,
+      onMouseDown: handleStepperButtonMouseDown,
+      onClick: handleStep('up')
+    });
+  };
+  const isDecrementDisabled = disabledProp || ((0, _utils2.isNumber)(value) ? value <= (min != null ? min : Number.MIN_SAFE_INTEGER) : false);
+  const getDecrementButtonProps = (externalProps = {}) => {
+    return (0, _extends2.default)({}, externalProps, stepperButtonCommonProps, {
+      disabled: isDecrementDisabled,
+      'aria-disabled': isDecrementDisabled,
+      onMouseDown: handleStepperButtonMouseDown,
+      onClick: handleStep('down')
+    });
+  };
+  return {
+    disabled: disabledProp,
+    error: errorProp,
+    focused,
+    formControlContext,
+    getInputProps,
+    getIncrementButtonProps,
+    getDecrementButtonProps,
+    getRootProps,
+    required: requiredProp,
+    value: focused ? dirtyValue : value,
+    isIncrementDisabled,
+    isDecrementDisabled,
+    inputValue: dirtyValue
+  };
+}
+
+/***/ }),
+
+/***/ 34081:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 50439:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.clamp = clamp;
+exports.isNumber = isNumber;
+function simpleClamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER) {
+  return Math.max(min, Math.min(val, max));
+}
+function clamp(val, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER, stepProp = NaN) {
+  if (Number.isNaN(stepProp)) {
+    return simpleClamp(val, min, max);
+  }
+  const step = stepProp || 1;
+  const remainder = val % step;
+  const positivity = Math.sign(remainder);
+  if (Math.abs(remainder) > step / 2) {
+    return simpleClamp(val + positivity * (step - Math.abs(remainder)), min, max);
+  }
+  return simpleClamp(val - positivity * Math.abs(remainder), min, max);
+}
+function isNumber(val) {
+  return typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
+}
 
 /***/ }),
 
@@ -10440,17 +13455,9 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useAutocomplete.default;
-  }
-}));
-var _useAutocomplete = _interopRequireWildcard(__webpack_require__(13667));
+var _useAutocomplete = __webpack_require__(13667);
 Object.keys(_useAutocomplete).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _useAutocomplete[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -10459,8 +13466,6 @@ Object.keys(_useAutocomplete).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -10477,7 +13482,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.createFilterOptions = createFilterOptions;
-exports["default"] = useAutocomplete;
+exports.useAutocomplete = useAutocomplete;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
@@ -11303,7 +14308,7 @@ function useAutocomplete(props) {
     firstFocus.current = false;
   };
   const handleInputMouseDown = event => {
-    if (inputValue === '' || !open) {
+    if (!disabledProp && (inputValue === '' || !open)) {
       handlePopupIndicator(event);
     }
   };
@@ -11436,18 +14441,19 @@ function useAutocomplete(props) {
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useBadge: true
+};
+Object.defineProperty(exports, "useBadge", ({
   enumerable: true,
   get: function () {
-    return _useBadge.default;
+    return _useBadge.useBadge;
   }
 }));
-var _useBadge = _interopRequireDefault(__webpack_require__(66003));
+var _useBadge = __webpack_require__(66003);
 var _useBadge2 = __webpack_require__(13579);
 Object.keys(_useBadge2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -11473,7 +14479,7 @@ Object.keys(_useBadge2).forEach(function (key) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useBadge;
+exports.useBadge = useBadge;
 var _utils = __webpack_require__(44268);
 /**
  *
@@ -11534,18 +14540,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useButton: true
+};
+Object.defineProperty(exports, "useButton", ({
   enumerable: true,
   get: function () {
-    return _useButton.default;
+    return _useButton.useButton;
   }
 }));
-var _useButton = _interopRequireDefault(__webpack_require__(85934));
+var _useButton = __webpack_require__(85934);
 var _useButton2 = __webpack_require__(98402);
 Object.keys(_useButton2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -11572,11 +14579,11 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useButton;
+exports.useButton = useButton;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _extractEventHandlers = _interopRequireDefault(__webpack_require__(71688));
+var _extractEventHandlers = __webpack_require__(71688);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /**
@@ -11620,7 +14627,7 @@ function useButton(parameters = {}) {
     if (focusVisible) {
       event.preventDefault();
     }
-    (_otherHandlers$onMous = otherHandlers.onMouseLeave) == null ? void 0 : _otherHandlers$onMous.call(otherHandlers, event);
+    (_otherHandlers$onMous = otherHandlers.onMouseLeave) == null || _otherHandlers$onMous.call(otherHandlers, event);
   };
   const createHandleBlur = otherHandlers => event => {
     var _otherHandlers$onBlur;
@@ -11628,7 +14635,7 @@ function useButton(parameters = {}) {
     if (isFocusVisibleRef.current === false) {
       setFocusVisible(false);
     }
-    (_otherHandlers$onBlur = otherHandlers.onBlur) == null ? void 0 : _otherHandlers$onBlur.call(otherHandlers, event);
+    (_otherHandlers$onBlur = otherHandlers.onBlur) == null || _otherHandlers$onBlur.call(otherHandlers, event);
   };
   const createHandleFocus = otherHandlers => event => {
     var _otherHandlers$onFocu2;
@@ -11640,9 +14647,9 @@ function useButton(parameters = {}) {
     if (isFocusVisibleRef.current === true) {
       var _otherHandlers$onFocu;
       setFocusVisible(true);
-      (_otherHandlers$onFocu = otherHandlers.onFocusVisible) == null ? void 0 : _otherHandlers$onFocu.call(otherHandlers, event);
+      (_otherHandlers$onFocu = otherHandlers.onFocusVisible) == null || _otherHandlers$onFocu.call(otherHandlers, event);
     }
-    (_otherHandlers$onFocu2 = otherHandlers.onFocus) == null ? void 0 : _otherHandlers$onFocu2.call(otherHandlers, event);
+    (_otherHandlers$onFocu2 = otherHandlers.onFocus) == null || _otherHandlers$onFocu2.call(otherHandlers, event);
   };
   const isNativeButton = () => {
     const button = buttonRef.current;
@@ -11651,7 +14658,7 @@ function useButton(parameters = {}) {
   const createHandleClick = otherHandlers => event => {
     if (!disabled) {
       var _otherHandlers$onClic;
-      (_otherHandlers$onClic = otherHandlers.onClick) == null ? void 0 : _otherHandlers$onClic.call(otherHandlers, event);
+      (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
     }
   };
   const createHandleMouseDown = otherHandlers => event => {
@@ -11664,11 +14671,11 @@ function useButton(parameters = {}) {
         once: true
       });
     }
-    (_otherHandlers$onMous2 = otherHandlers.onMouseDown) == null ? void 0 : _otherHandlers$onMous2.call(otherHandlers, event);
+    (_otherHandlers$onMous2 = otherHandlers.onMouseDown) == null || _otherHandlers$onMous2.call(otherHandlers, event);
   };
   const createHandleKeyDown = otherHandlers => event => {
     var _otherHandlers$onKeyD;
-    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null ? void 0 : _otherHandlers$onKeyD.call(otherHandlers, event);
+    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null || _otherHandlers$onKeyD.call(otherHandlers, event);
     if (event.defaultMuiPrevented) {
       return;
     }
@@ -11682,7 +14689,7 @@ function useButton(parameters = {}) {
     // Keyboard accessibility for non interactive elements
     if (event.target === event.currentTarget && !isNativeButton() && event.key === 'Enter' && !disabled) {
       var _otherHandlers$onClic2;
-      (_otherHandlers$onClic2 = otherHandlers.onClick) == null ? void 0 : _otherHandlers$onClic2.call(otherHandlers, event);
+      (_otherHandlers$onClic2 = otherHandlers.onClick) == null || _otherHandlers$onClic2.call(otherHandlers, event);
       event.preventDefault();
     }
   };
@@ -11694,12 +14701,12 @@ function useButton(parameters = {}) {
     if (event.target === event.currentTarget) {
       setActive(false);
     }
-    (_otherHandlers$onKeyU = otherHandlers.onKeyUp) == null ? void 0 : _otherHandlers$onKeyU.call(otherHandlers, event);
+    (_otherHandlers$onKeyU = otherHandlers.onKeyUp) == null || _otherHandlers$onKeyU.call(otherHandlers, event);
 
     // Keyboard accessibility for non interactive elements
     if (event.target === event.currentTarget && !isNativeButton() && !disabled && event.key === ' ' && !event.defaultMuiPrevented) {
       var _otherHandlers$onClic3;
-      (_otherHandlers$onClic3 = otherHandlers.onClick) == null ? void 0 : _otherHandlers$onClic3.call(otherHandlers, event);
+      (_otherHandlers$onClic3 = otherHandlers.onClick) == null || _otherHandlers$onClic3.call(otherHandlers, event);
     }
   };
   const updateHostElementName = React.useCallback(instance => {
@@ -11708,6 +14715,9 @@ function useButton(parameters = {}) {
   }, []);
   const handleRef = (0, _utils.unstable_useForkRef)(updateHostElementName, externalRef, focusVisibleRef, buttonRef);
   const buttonProps = {};
+  if (tabIndex !== undefined) {
+    buttonProps.tabIndex = tabIndex;
+  }
   if (hostElementName === 'BUTTON') {
     buttonProps.type = type != null ? type : 'button';
     if (focusableWhenDisabled) {
@@ -11725,16 +14735,11 @@ function useButton(parameters = {}) {
       buttonProps.tabIndex = focusableWhenDisabled ? tabIndex != null ? tabIndex : 0 : -1;
     }
   }
-  const getRootProps = (otherHandlers = {}) => {
-    const propsEventHandlers = (0, _extractEventHandlers.default)(parameters);
-    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, otherHandlers);
-
-    // onFocusVisible can be present on the props, but since it's not a valid React event handler,
-    // it must not be forwarded to the inner component.
-    delete externalEventHandlers.onFocusVisible;
-    return (0, _extends2.default)({
+  const getRootProps = (externalProps = {}) => {
+    const externalEventHandlers = (0, _extends2.default)({}, (0, _extractEventHandlers.extractEventHandlers)(parameters), (0, _extractEventHandlers.extractEventHandlers)(externalProps));
+    const props = (0, _extends2.default)({
       type
-    }, externalEventHandlers, buttonProps, {
+    }, externalEventHandlers, buttonProps, externalProps, {
       onBlur: createHandleBlur(externalEventHandlers),
       onClick: createHandleClick(externalEventHandlers),
       onFocus: createHandleFocus(externalEventHandlers),
@@ -11744,6 +14749,12 @@ function useButton(parameters = {}) {
       onMouseLeave: createHandleMouseLeave(externalEventHandlers),
       ref: handleRef
     });
+
+    // onFocusVisible can be present on the props or parameters,
+    // but it's not a valid React event handler so it must not be forwarded to the inner component.
+    // If present, it will be handled by the focus handler.
+    delete props.onFocusVisible;
+    return props;
   };
   return {
     getRootProps,
@@ -11768,6 +14779,207 @@ Object.defineProperty(exports, "__esModule", ({
 
 /***/ }),
 
+/***/ 3690:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.DropdownContext = void 0;
+var React = _interopRequireWildcard(__webpack_require__(18038));
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const DropdownContext = /*#__PURE__*/React.createContext(null);
+exports.DropdownContext = DropdownContext;
+
+/***/ }),
+
+/***/ 82726:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.dropdownReducer = dropdownReducer;
+var _useDropdown = __webpack_require__(96366);
+function dropdownReducer(state, action) {
+  switch (action.type) {
+    case _useDropdown.DropdownActionTypes.blur:
+      return {
+        open: false
+      };
+    case _useDropdown.DropdownActionTypes.escapeKeyDown:
+      return {
+        open: false
+      };
+    case _useDropdown.DropdownActionTypes.toggle:
+      return {
+        open: !state.open
+      };
+    case _useDropdown.DropdownActionTypes.open:
+      return {
+        open: true
+      };
+    case _useDropdown.DropdownActionTypes.close:
+      return {
+        open: false
+      };
+    default:
+      throw new Error(`Unhandled action`);
+  }
+}
+
+/***/ }),
+
+/***/ 23035:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _useDropdown = __webpack_require__(82695);
+Object.keys(_useDropdown).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _useDropdown[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useDropdown[key];
+    }
+  });
+});
+var _useDropdown2 = __webpack_require__(96366);
+Object.keys(_useDropdown2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _useDropdown2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useDropdown2[key];
+    }
+  });
+});
+var _DropdownContext = __webpack_require__(3690);
+Object.keys(_DropdownContext).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _DropdownContext[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _DropdownContext[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 82695:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.useDropdown = useDropdown;
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _useControllableReducer = __webpack_require__(62045);
+var _useDropdown = __webpack_require__(96366);
+var _dropdownReducer = __webpack_require__(82726);
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+/**
+ *
+ * Demos:
+ *
+ * - [Menu](https://mui.com/base-ui/react-menu/#hooks)
+ *
+ * API:
+ *
+ * - [useDropdown API](https://mui.com/base-ui/react-menu/hooks-api/#use-dropdown)
+ */
+function useDropdown(parameters = {}) {
+  const {
+    defaultOpen,
+    onOpenChange,
+    open: openProp
+  } = parameters;
+  const [popupId, setPopupId] = React.useState('');
+  const [triggerElement, setTriggerElement] = React.useState(null);
+  const lastActionType = React.useRef(null);
+  const handleStateChange = React.useCallback((event, field, value, reason) => {
+    if (field === 'open') {
+      onOpenChange == null || onOpenChange(event, value);
+    }
+    lastActionType.current = reason;
+  }, [onOpenChange]);
+  const controlledProps = React.useMemo(() => openProp !== undefined ? {
+    open: openProp
+  } : {}, [openProp]);
+  const [state, dispatch] = (0, _useControllableReducer.useControllableReducer)({
+    controlledProps,
+    initialState: defaultOpen ? {
+      open: true
+    } : {
+      open: false
+    },
+    onStateChange: handleStateChange,
+    reducer: _dropdownReducer.dropdownReducer
+  });
+  React.useEffect(() => {
+    if (!state.open && lastActionType.current !== null && lastActionType.current !== _useDropdown.DropdownActionTypes.blur) {
+      triggerElement == null || triggerElement.focus();
+    }
+  }, [state.open, triggerElement]);
+  const contextValue = {
+    state,
+    dispatch,
+    popupId,
+    registerPopup: setPopupId,
+    registerTrigger: setTriggerElement,
+    triggerElement
+  };
+  return {
+    contextValue,
+    open: state.open
+  };
+}
+
+/***/ }),
+
+/***/ 96366:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.DropdownActionTypes = void 0;
+const DropdownActionTypes = {
+  blur: 'dropdown:blur',
+  escapeKeyDown: 'dropdown:escapeKeyDown',
+  toggle: 'dropdown:toggle',
+  open: 'dropdown:open',
+  close: 'dropdown:close'
+};
+exports.DropdownActionTypes = DropdownActionTypes;
+
+/***/ }),
+
 /***/ 18606:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -11775,18 +14987,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useInput: true
+};
+Object.defineProperty(exports, "useInput", ({
   enumerable: true,
   get: function () {
-    return _useInput.default;
+    return _useInput.useInput;
   }
 }));
-var _useInput = _interopRequireDefault(__webpack_require__(65065));
+var _useInput = __webpack_require__(65065);
 var _useInput2 = __webpack_require__(93787);
 Object.keys(_useInput2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -11813,12 +15026,12 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useInput;
+exports.useInput = useInput;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _utils = __webpack_require__(44268);
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _FormControl = __webpack_require__(58168);
-var _extractEventHandlers = _interopRequireDefault(__webpack_require__(71688));
+var _extractEventHandlers = __webpack_require__(71688);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /**
@@ -11831,7 +15044,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
  *
  * - [useInput API](https://mui.com/base-ui/react-input/hooks-api/#use-input)
  */
-function useInput(parameters) {
+function useInput(parameters = {}) {
   const {
     defaultValue: defaultValueProp,
     disabled: disabledProp = false,
@@ -11881,7 +15094,7 @@ function useInput(parameters) {
       setFocused(false);
 
       // @ts-ignore
-      onBlur == null ? void 0 : onBlur();
+      onBlur == null || onBlur();
     }
   }, [formControlContext, disabled, focused, onBlur]);
   const handleFocus = otherHandlers => event => {
@@ -11892,17 +15105,17 @@ function useInput(parameters) {
       event.stopPropagation();
       return;
     }
-    (_otherHandlers$onFocu = otherHandlers.onFocus) == null ? void 0 : _otherHandlers$onFocu.call(otherHandlers, event);
+    (_otherHandlers$onFocu = otherHandlers.onFocus) == null || _otherHandlers$onFocu.call(otherHandlers, event);
     if (formControlContext && formControlContext.onFocus) {
       var _formControlContext$o;
-      formControlContext == null || (_formControlContext$o = formControlContext.onFocus) == null ? void 0 : _formControlContext$o.call(formControlContext);
+      formControlContext == null || (_formControlContext$o = formControlContext.onFocus) == null || _formControlContext$o.call(formControlContext);
     } else {
       setFocused(true);
     }
   };
   const handleBlur = otherHandlers => event => {
     var _otherHandlers$onBlur;
-    (_otherHandlers$onBlur = otherHandlers.onBlur) == null ? void 0 : _otherHandlers$onBlur.call(otherHandlers, event);
+    (_otherHandlers$onBlur = otherHandlers.onBlur) == null || _otherHandlers$onBlur.call(otherHandlers, event);
     if (formControlContext && formControlContext.onBlur) {
       formControlContext.onBlur();
     } else {
@@ -11917,22 +15130,22 @@ function useInput(parameters) {
         throw new Error( false ? 0 : (0, _utils.formatMuiErrorMessage)(17));
       }
     }
-    formControlContext == null || (_formControlContext$o2 = formControlContext.onChange) == null ? void 0 : _formControlContext$o2.call(formControlContext, event);
+    formControlContext == null || (_formControlContext$o2 = formControlContext.onChange) == null || _formControlContext$o2.call(formControlContext, event);
 
     // @ts-ignore
-    (_otherHandlers$onChan = otherHandlers.onChange) == null ? void 0 : _otherHandlers$onChan.call(otherHandlers, event, ...args);
+    (_otherHandlers$onChan = otherHandlers.onChange) == null || _otherHandlers$onChan.call(otherHandlers, event, ...args);
   };
   const handleClick = otherHandlers => event => {
     var _otherHandlers$onClic;
     if (inputRef.current && event.currentTarget === event.target) {
       inputRef.current.focus();
     }
-    (_otherHandlers$onClic = otherHandlers.onClick) == null ? void 0 : _otherHandlers$onClic.call(otherHandlers, event);
+    (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
   };
   const getRootProps = (externalProps = {}) => {
     // onBlur, onChange and onFocus are forwarded to the input slot.
-    const propsEventHandlers = (0, _extractEventHandlers.default)(parameters, ['onBlur', 'onChange', 'onFocus']);
-    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, (0, _extractEventHandlers.default)(externalProps));
+    const propsEventHandlers = (0, _extractEventHandlers.extractEventHandlers)(parameters, ['onBlur', 'onChange', 'onFocus']);
+    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, (0, _extractEventHandlers.extractEventHandlers)(externalProps));
     return (0, _extends2.default)({}, externalProps, externalEventHandlers, {
       onClick: handleClick(externalEventHandlers)
     });
@@ -11943,8 +15156,8 @@ function useInput(parameters) {
       onChange,
       onFocus
     };
-    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, (0, _extractEventHandlers.default)(externalProps));
-    const mergedEventHandlers = (0, _extends2.default)({}, externalProps, externalEventHandlers, {
+    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, (0, _extractEventHandlers.extractEventHandlers)(externalProps));
+    const mergedEventHandlers = (0, _extends2.default)({}, externalEventHandlers, {
       onBlur: handleBlur(externalEventHandlers),
       onChange: handleChange(externalEventHandlers),
       onFocus: handleFocus(externalEventHandlers)
@@ -11952,11 +15165,12 @@ function useInput(parameters) {
     return (0, _extends2.default)({}, mergedEventHandlers, {
       'aria-invalid': error || undefined,
       defaultValue: defaultValue,
-      ref: handleInputRef,
       value: value,
       required,
       disabled
-    });
+    }, externalProps, {
+      ref: handleInputRef
+    }, mergedEventHandlers);
   };
   return {
     disabled,
@@ -12011,33 +15225,26 @@ if (false) {}
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  useListItem: true,
-  listReducer: true
+  useList: true,
+  useListItem: true
 };
-Object.defineProperty(exports, "default", ({
+Object.defineProperty(exports, "useList", ({
   enumerable: true,
   get: function () {
-    return _useList.default;
-  }
-}));
-Object.defineProperty(exports, "listReducer", ({
-  enumerable: true,
-  get: function () {
-    return _listReducer.default;
+    return _useList.useList;
   }
 }));
 Object.defineProperty(exports, "useListItem", ({
   enumerable: true,
   get: function () {
-    return _useListItem.default;
+    return _useListItem.useListItem;
   }
 }));
-var _useList = _interopRequireDefault(__webpack_require__(50419));
+var _useList = __webpack_require__(50419);
 var _useList2 = __webpack_require__(81462);
 Object.keys(_useList2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -12050,7 +15257,7 @@ Object.keys(_useList2).forEach(function (key) {
     }
   });
 });
-var _useListItem = _interopRequireDefault(__webpack_require__(84121));
+var _useListItem = __webpack_require__(84121);
 var _useListItem2 = __webpack_require__(48536);
 Object.keys(_useListItem2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -12063,7 +15270,7 @@ Object.keys(_useListItem2).forEach(function (key) {
     }
   });
 });
-var _listReducer = _interopRequireWildcard(__webpack_require__(62536));
+var _listReducer = __webpack_require__(62536);
 Object.keys(_listReducer).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -12099,8 +15306,6 @@ Object.keys(_ListContext).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -12142,7 +15347,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = listReducer;
+exports.listReducer = listReducer;
 exports.moveHighlight = moveHighlight;
 exports.toggleSelection = toggleSelection;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
@@ -12489,17 +15694,17 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useList = useList;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
 var _listActions = __webpack_require__(31933);
-var _listReducer = _interopRequireDefault(__webpack_require__(62536));
-var _useListChangeNotifiers = _interopRequireDefault(__webpack_require__(36675));
-var _useControllableReducer = _interopRequireDefault(__webpack_require__(62045));
-var _areArraysEqual = _interopRequireDefault(__webpack_require__(1975));
-var _useLatest = _interopRequireDefault(__webpack_require__(68303));
-var _useTextNavigation = _interopRequireDefault(__webpack_require__(26398));
+var _listReducer = __webpack_require__(62536);
+var _useListChangeNotifiers = __webpack_require__(36675);
+var _useControllableReducer = __webpack_require__(62045);
+var _areArraysEqual = __webpack_require__(1975);
+var _useLatest = __webpack_require__(68303);
+var _useTextNavigation = __webpack_require__(26398);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 const EMPTY_OBJECT = {};
@@ -12559,26 +15764,26 @@ function useList(params) {
   const listRef = React.useRef(null);
   const handleRef = (0, _utils.unstable_useForkRef)(externalListRef, listRef);
   const handleHighlightChange = React.useCallback((event, value, reason) => {
-    onHighlightChange == null ? void 0 : onHighlightChange(event, value, reason);
+    onHighlightChange == null || onHighlightChange(event, value, reason);
     if (focusManagement === 'DOM' && value != null && (reason === _listActions.ListActionTypes.itemClick || reason === _listActions.ListActionTypes.keyDown || reason === _listActions.ListActionTypes.textNavigation)) {
       var _getItemDomElement;
-      getItemDomElement == null || (_getItemDomElement = getItemDomElement(value)) == null ? void 0 : _getItemDomElement.focus();
+      getItemDomElement == null || (_getItemDomElement = getItemDomElement(value)) == null || _getItemDomElement.focus();
     }
   }, [getItemDomElement, onHighlightChange, focusManagement]);
   const stateComparers = React.useMemo(() => ({
     highlightedValue: itemComparer,
-    selectedValues: (valuesArray1, valuesArray2) => (0, _areArraysEqual.default)(valuesArray1, valuesArray2, itemComparer)
+    selectedValues: (valuesArray1, valuesArray2) => (0, _areArraysEqual.areArraysEqual)(valuesArray1, valuesArray2, itemComparer)
   }), [itemComparer]);
 
   // This gets called whenever a reducer changes the state.
   const handleStateChange = React.useCallback((event, field, value, reason, state) => {
-    onStateChange == null ? void 0 : onStateChange(event, field, value, reason, state);
+    onStateChange == null || onStateChange(event, field, value, reason, state);
     switch (field) {
       case 'highlightedValue':
         handleHighlightChange(event, value, reason);
         break;
       case 'selectedValues':
-        onChange == null ? void 0 : onChange(event, value, reason);
+        onChange == null || onChange(event, value, reason);
         break;
       default:
         break;
@@ -12604,9 +15809,9 @@ function useList(params) {
     };
   }, [disabledItemsFocusable, disableListWrap, focusManagement, isItemDisabled, itemComparer, items, getItemAsString, handleHighlightChange, orientation, pageSize, selectionMode, stateComparers]);
   const initialState = getInitialState();
-  const reducer = externalReducer != null ? externalReducer : _listReducer.default;
+  const reducer = externalReducer != null ? externalReducer : _listReducer.listReducer;
   const actionContext = React.useMemo(() => (0, _extends2.default)({}, reducerActionContext, listActionContext), [reducerActionContext, listActionContext]);
-  const [state, dispatch] = (0, _useControllableReducer.default)({
+  const [state, dispatch] = (0, _useControllableReducer.useControllableReducer)({
     reducer,
     actionContext,
     initialState: initialState,
@@ -12618,20 +15823,20 @@ function useList(params) {
     highlightedValue,
     selectedValues
   } = state;
-  const handleTextNavigation = (0, _useTextNavigation.default)((searchString, event) => dispatch({
+  const handleTextNavigation = (0, _useTextNavigation.useTextNavigation)((searchString, event) => dispatch({
     type: _listActions.ListActionTypes.textNavigation,
     event,
     searchString
   }));
 
   // introducing refs to avoid recreating the getItemState function on each change.
-  const latestSelectedValues = (0, _useLatest.default)(selectedValues);
-  const latestHighlightedValue = (0, _useLatest.default)(highlightedValue);
+  const latestSelectedValues = (0, _useLatest.useLatest)(selectedValues);
+  const latestHighlightedValue = (0, _useLatest.useLatest)(highlightedValue);
   const previousItems = React.useRef([]);
   React.useEffect(() => {
     // Whenever the `items` object changes, we need to determine if the actual items changed.
     // If they did, we need to dispatch an `itemsChange` action, so the selected/highlighted state is updated.
-    if ((0, _areArraysEqual.default)(previousItems.current, items, itemComparer)) {
+    if ((0, _areArraysEqual.areArraysEqual)(previousItems.current, items, itemComparer)) {
       return;
     }
     dispatch({
@@ -12641,7 +15846,7 @@ function useList(params) {
       previousItems: previousItems.current
     });
     previousItems.current = items;
-    onItemsChange == null ? void 0 : onItemsChange(items);
+    onItemsChange == null || onItemsChange(items);
   }, [items, itemComparer, dispatch, onItemsChange]);
 
   // Subitems are notified of changes to the highlighted and selected values.
@@ -12653,7 +15858,7 @@ function useList(params) {
     notifyHighlightChanged,
     registerHighlightChangeHandler,
     registerSelectionChangeHandler
-  } = (0, _useListChangeNotifiers.default)();
+  } = (0, _useListChangeNotifiers.useListChangeNotifiers)();
   React.useEffect(() => {
     notifySelectionChanged(selectedValues);
   }, [selectedValues, notifySelectionChanged]);
@@ -12662,7 +15867,7 @@ function useList(params) {
   }, [highlightedValue, notifyHighlightChanged]);
   const createHandleKeyDown = other => event => {
     var _other$onKeyDown;
-    (_other$onKeyDown = other.onKeyDown) == null ? void 0 : _other$onKeyDown.call(other, event);
+    (_other$onKeyDown = other.onKeyDown) == null || _other$onKeyDown.call(other, event);
     if (event.defaultMuiPrevented) {
       return;
     }
@@ -12691,7 +15896,7 @@ function useList(params) {
   };
   const createHandleBlur = other => event => {
     var _other$onBlur, _listRef$current;
-    (_other$onBlur = other.onBlur) == null ? void 0 : _other$onBlur.call(other, event);
+    (_other$onBlur = other.onBlur) == null || _other$onBlur.call(other, event);
     if (event.defaultMuiPrevented) {
       return;
     }
@@ -12745,8 +15950,6 @@ function useList(params) {
     state
   };
 }
-var _default = useList;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -12769,13 +15972,12 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useSelectChangeNotifiers;
+exports.useListChangeNotifiers = useListChangeNotifiers;
 var React = _interopRequireWildcard(__webpack_require__(18038));
-var _useMessageBus = _interopRequireDefault(__webpack_require__(53954));
+var _useMessageBus = __webpack_require__(53954);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 const SELECTION_CHANGE_TOPIC = 'select:change-selection';
@@ -12783,10 +15985,10 @@ const HIGHLIGHT_CHANGE_TOPIC = 'select:change-highlight';
 /**
  * @ignore - internal hook.
  *
- * This hook is used to notify any interested components about changes in the Select's selection and highlight.
+ * This hook is used to notify any interested components about changes in the list's selection and highlight.
  */
-function useSelectChangeNotifiers() {
-  const messageBus = (0, _useMessageBus.default)();
+function useListChangeNotifiers() {
+  const messageBus = (0, _useMessageBus.useMessageBus)();
   const notifySelectionChanged = React.useCallback(newSelectedItems => {
     messageBus.publish(SELECTION_CHANGE_TOPIC, newSelectedItems);
   }, [messageBus]);
@@ -12820,11 +16022,11 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useListItem;
+exports.useListItem = useListItem;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _useForcedRerendering = _interopRequireDefault(__webpack_require__(50249));
+var _useForcedRerendering = __webpack_require__(50249);
 var _listActions = __webpack_require__(31933);
 var _ListContext = __webpack_require__(61941);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -12860,7 +16062,7 @@ function useListItem(parameters) {
     selected,
     focusable
   } = getItemState(item);
-  const rerender = (0, _useForcedRerendering.default)();
+  const rerender = (0, _useForcedRerendering.useForcedRerendering)();
   (0, _utils.unstable_useEnhancedEffect)(() => {
     function updateHighlightedState(highlightedItem) {
       if (highlightedItem === item && !highlighted) {
@@ -12885,7 +16087,7 @@ function useListItem(parameters) {
   }, [registerSelectionChangeHandler, rerender, selected, item]);
   const createHandleClick = React.useCallback(other => event => {
     var _other$onClick;
-    (_other$onClick = other.onClick) == null ? void 0 : _other$onClick.call(other, event);
+    (_other$onClick = other.onClick) == null || _other$onClick.call(other, event);
     if (event.defaultPrevented) {
       return;
     }
@@ -12897,7 +16099,7 @@ function useListItem(parameters) {
   }, [dispatch, item]);
   const createHandlePointerOver = React.useCallback(other => event => {
     var _other$onMouseOver;
-    (_other$onMouseOver = other.onMouseOver) == null ? void 0 : _other$onMouseOver.call(other, event);
+    (_other$onMouseOver = other.onMouseOver) == null || _other$onMouseOver.call(other, event);
     if (event.defaultPrevented) {
       return;
     }
@@ -12939,7 +16141,42 @@ Object.defineProperty(exports, "__esModule", ({
 
 /***/ }),
 
-/***/ 71038:
+/***/ 31030:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  useMenuButton: true
+};
+Object.defineProperty(exports, "useMenuButton", ({
+  enumerable: true,
+  get: function () {
+    return _useMenuButton.useMenuButton;
+  }
+}));
+var _useMenuButton = __webpack_require__(7969);
+var _useMenuButton2 = __webpack_require__(34080);
+Object.keys(_useMenuButton2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _useMenuButton2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _useMenuButton2[key];
+    }
+  });
+});
+
+/***/ }),
+
+/***/ 7969:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -12950,14 +16187,132 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+exports.useMenuButton = useMenuButton;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+var _utils = __webpack_require__(44268);
+var _DropdownContext = __webpack_require__(3690);
+var _useDropdown = __webpack_require__(96366);
+var _useButton = __webpack_require__(85934);
+var _combineHooksSlotProps = __webpack_require__(15530);
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+/**
+ *
+ * Demos:
+ *
+ * - [Menu](https://mui.com/base-ui/react-menu/#hooks)
+ *
+ * API:
+ *
+ * - [useMenuButton API](https://mui.com/base-ui/react-menu/hooks-api/#use-menu-button)
+ */
+function useMenuButton(parameters = {}) {
+  const {
+    disabled = false,
+    focusableWhenDisabled,
+    rootRef: externalRef
+  } = parameters;
+  const menuContext = React.useContext(_DropdownContext.DropdownContext);
+  if (menuContext === null) {
+    throw new Error('useMenuButton: no menu context available.');
+  }
+  const {
+    state,
+    dispatch,
+    registerTrigger,
+    popupId
+  } = menuContext;
+  const {
+    getRootProps: getButtonRootProps,
+    rootRef: buttonRootRef,
+    active
+  } = (0, _useButton.useButton)({
+    disabled,
+    focusableWhenDisabled,
+    rootRef: externalRef
+  });
+  const handleRef = (0, _utils.unstable_useForkRef)(buttonRootRef, registerTrigger);
+  const createHandleClick = otherHandlers => event => {
+    var _otherHandlers$onClic;
+    (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
+    if (event.defaultMuiPrevented) {
+      return;
+    }
+    dispatch({
+      type: _useDropdown.DropdownActionTypes.toggle,
+      event
+    });
+  };
+  const createHandleKeyDown = otherHandlers => event => {
+    var _otherHandlers$onKeyD;
+    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null || _otherHandlers$onKeyD.call(otherHandlers, event);
+    if (event.defaultMuiPrevented) {
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      dispatch({
+        type: _useDropdown.DropdownActionTypes.open,
+        event
+      });
+    }
+  };
+  const getOwnRootProps = (otherHandlers = {}) => ({
+    onClick: createHandleClick(otherHandlers),
+    onKeyDown: createHandleKeyDown(otherHandlers)
+  });
+  const getRootProps = (otherHandlers = {}) => {
+    const getCombinedProps = (0, _combineHooksSlotProps.combineHooksSlotProps)(getButtonRootProps, getOwnRootProps);
+    return (0, _extends2.default)({}, getCombinedProps(otherHandlers), {
+      'aria-haspopup': 'menu',
+      'aria-expanded': state.open,
+      'aria-controls': popupId,
+      ref: handleRef
+    });
+  };
+  return {
+    active,
+    getRootProps,
+    open: state.open,
+    rootRef: handleRef
+  };
+}
+
+/***/ }),
+
+/***/ 34080:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+
+/***/ }),
+
+/***/ 71038:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+'use client';
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+var _exportNames = {
+  useMenuItem: true
+};
+Object.defineProperty(exports, "useMenuItem", ({
   enumerable: true,
   get: function () {
-    return _useMenuItem.default;
+    return _useMenuItem.useMenuItem;
   }
 }));
-var _useMenuItem = _interopRequireDefault(__webpack_require__(2414));
+var _useMenuItem = __webpack_require__(2414);
 var _useMenuItem2 = __webpack_require__(67154);
 Object.keys(_useMenuItem2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -12984,18 +16339,31 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useMenuItem;
+exports.useMenuItem = useMenuItem;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _useButton = _interopRequireDefault(__webpack_require__(83851));
+var _useButton = __webpack_require__(83851);
 var _useList = __webpack_require__(51312);
+var _useDropdown = __webpack_require__(23035);
+var _DropdownContext = __webpack_require__(3690);
+var _combineHooksSlotProps = __webpack_require__(15530);
 var _useCompoundItem = __webpack_require__(93412);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function idGenerator(existingKeys) {
   return `menu-item-${existingKeys.size}`;
 }
+const FALLBACK_MENU_CONTEXT = {
+  dispatch: () => {},
+  popupId: '',
+  registerPopup: () => {},
+  registerTrigger: () => {},
+  state: {
+    open: true
+  },
+  triggerElement: null
+};
 
 /**
  *
@@ -13008,6 +16376,7 @@ function idGenerator(existingKeys) {
  * - [useMenuItem API](https://mui.com/base-ui/react-menu/hooks-api/#use-menu-item)
  */
 function useMenuItem(params) {
+  var _React$useContext;
   const {
     disabled = false,
     id: idParam,
@@ -13023,6 +16392,9 @@ function useMenuItem(params) {
     ref: itemRef
   }), [disabled, id, label]);
   const {
+    dispatch
+  } = (_React$useContext = React.useContext(_DropdownContext.DropdownContext)) != null ? _React$useContext : FALLBACK_MENU_CONTEXT;
+  const {
     getRootProps: getListRootProps,
     highlighted,
     rootRef: listItemRefHandler
@@ -13037,7 +16409,7 @@ function useMenuItem(params) {
     getRootProps: getButtonProps,
     focusVisible,
     rootRef: buttonRefHandler
-  } = (0, _useButton.default)({
+  } = (0, _useButton.useButton)({
     disabled,
     focusableWhenDisabled: true
   });
@@ -13048,14 +16420,33 @@ function useMenuItem(params) {
     disabled,
     label
   });
+  const createHandleClick = otherHandlers => event => {
+    var _otherHandlers$onClic;
+    (_otherHandlers$onClic = otherHandlers.onClick) == null || _otherHandlers$onClic.call(otherHandlers, event);
+    if (event.defaultMuiPrevented) {
+      return;
+    }
+    dispatch({
+      type: _useDropdown.DropdownActionTypes.close,
+      event
+    });
+  };
+  const getOwnHandlers = (otherHandlers = {}) => (0, _extends2.default)({}, otherHandlers, {
+    onClick: createHandleClick(otherHandlers)
+  });
+  function getRootProps(otherHandlers = {}) {
+    const getCombinedRootProps = (0, _combineHooksSlotProps.combineHooksSlotProps)(getOwnHandlers, (0, _combineHooksSlotProps.combineHooksSlotProps)(getButtonProps, getListRootProps));
+    return (0, _extends2.default)({}, getCombinedRootProps(otherHandlers), {
+      ref: handleRef,
+      role: 'menuitem'
+    });
+  }
 
   // If `id` is undefined (during SSR in React < 18), we fall back to rendering a simplified menu item
   // which does not have access to infortmation about its position or highlighted state.
   if (id === undefined) {
     return {
-      getRootProps: (otherHandlers = {}) => (0, _extends2.default)({}, otherHandlers, getButtonProps(otherHandlers), {
-        role: 'menuitem'
-      }),
+      getRootProps,
       disabled: false,
       focusVisible,
       highlighted: false,
@@ -13064,14 +16455,6 @@ function useMenuItem(params) {
       rootRef: handleRef
     };
   }
-  const getRootProps = (otherHandlers = {}) => {
-    const resolvedButtonProps = (0, _extends2.default)({}, otherHandlers, getButtonProps(otherHandlers));
-    const resolvedMenuItemProps = (0, _extends2.default)({}, resolvedButtonProps, getListRootProps(resolvedButtonProps));
-    return (0, _extends2.default)({}, otherHandlers, resolvedButtonProps, resolvedMenuItemProps, {
-      role: 'menuitem',
-      ref: handleRef
-    });
-  };
   return {
     getRootProps,
     disabled,
@@ -13107,7 +16490,7 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = MenuProvider;
+exports.MenuProvider = MenuProvider;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _ListContext = __webpack_require__(61941);
 var _useCompound = __webpack_require__(76346);
@@ -13163,26 +16546,19 @@ function MenuProvider(props) {
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  MenuProvider: true
+  useMenu: true
 };
-Object.defineProperty(exports, "MenuProvider", ({
+Object.defineProperty(exports, "useMenu", ({
   enumerable: true,
   get: function () {
-    return _MenuProvider.default;
+    return _useMenu.useMenu;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useMenu.default;
-  }
-}));
-var _useMenu = _interopRequireDefault(__webpack_require__(94728));
+var _useMenu = __webpack_require__(94728);
 var _useMenu2 = __webpack_require__(32261);
 Object.keys(_useMenu2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -13195,7 +16571,7 @@ Object.keys(_useMenu2).forEach(function (key) {
     }
   });
 });
-var _MenuProvider = _interopRequireWildcard(__webpack_require__(68601));
+var _MenuProvider = __webpack_require__(68601);
 Object.keys(_MenuProvider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -13207,8 +16583,6 @@ Object.keys(_MenuProvider).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -13222,7 +16596,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = menuReducer;
+exports.menuReducer = menuReducer;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _useList = __webpack_require__(51312);
 function menuReducer(state, action) {
@@ -13277,15 +16651,29 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useMenu;
+exports.useMenu = useMenu;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _useList = _interopRequireDefault(__webpack_require__(51312));
+var _menuReducer = __webpack_require__(19920);
+var _DropdownContext = __webpack_require__(3690);
+var _useList = __webpack_require__(51312);
+var _useDropdown = __webpack_require__(23035);
 var _useCompound = __webpack_require__(76346);
-var _menuReducer = _interopRequireDefault(__webpack_require__(19920));
+var _combineHooksSlotProps = __webpack_require__(15530);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+const FALLBACK_MENU_CONTEXT = {
+  dispatch: () => {},
+  popupId: '',
+  registerPopup: () => {},
+  registerTrigger: () => {},
+  state: {
+    open: true
+  },
+  triggerElement: null
+};
+
 /**
  *
  * Demos:
@@ -13297,15 +16685,27 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
  * - [useMenu API](https://mui.com/base-ui/react-menu/hooks-api/#use-menu)
  */
 function useMenu(parameters = {}) {
+  var _useId, _React$useContext;
   const {
-    defaultOpen,
     listboxRef: listboxRefProp,
-    open: openProp,
     onItemsChange,
-    onOpenChange
+    id: idParam
   } = parameters;
-  const listboxRef = React.useRef(null);
-  const handleRef = (0, _utils.unstable_useForkRef)(listboxRef, listboxRefProp);
+  const rootRef = React.useRef(null);
+  const handleRef = (0, _utils.unstable_useForkRef)(rootRef, listboxRefProp);
+  const listboxId = (_useId = (0, _utils.unstable_useId)(idParam)) != null ? _useId : '';
+  const {
+    state: {
+      open
+    },
+    dispatch: menuDispatch,
+    triggerElement,
+    registerPopup
+  } = (_React$useContext = React.useContext(_DropdownContext.DropdownContext)) != null ? _React$useContext : FALLBACK_MENU_CONTEXT;
+
+  // store the initial open state to prevent focus stealing
+  // (the first menu items gets focued only when the menu is opened by the user)
+  const isInitiallyOpen = React.useRef(open);
   const {
     subitems,
     contextValue: compoundComponentContextValue
@@ -13318,72 +16718,91 @@ function useMenu(parameters = {}) {
     }
     return (_subitems$get$ref$cur = (_subitems$get = subitems.get(itemId)) == null ? void 0 : _subitems$get.ref.current) != null ? _subitems$get$ref$cur : null;
   }, [subitems]);
-  const controlledProps = React.useMemo(() => ({
-    open: openProp
-  }), [openProp]);
-  const stateChangeHandler = React.useCallback((event, field, fieldValue, reason, state) => {
-    if (field === 'open') {
-      onOpenChange == null ? void 0 : onOpenChange(fieldValue);
-      if (fieldValue === true && state.highlightedValue !== null) {
-        var _subitems$get2;
-        (_subitems$get2 = subitems.get(state.highlightedValue)) == null || (_subitems$get2 = _subitems$get2.ref.current) == null ? void 0 : _subitems$get2.focus();
-      }
-    }
-  }, [onOpenChange, subitems]);
   const {
-    dispatch,
-    getRootProps,
+    dispatch: listDispatch,
+    getRootProps: getListRootProps,
     contextValue: listContextValue,
     state: {
-      open,
       highlightedValue
     },
     rootRef: mergedListRef
-  } = (0, _useList.default)({
-    controlledProps,
+  } = (0, _useList.useList)({
     disabledItemsFocusable: true,
     focusManagement: 'DOM',
     getItemDomElement,
     getInitialState: () => ({
       selectedValues: [],
-      highlightedValue: null,
-      open: defaultOpen != null ? defaultOpen : false
+      highlightedValue: null
     }),
     isItemDisabled: id => {
-      var _subitems$get3;
-      return (subitems == null || (_subitems$get3 = subitems.get(id)) == null ? void 0 : _subitems$get3.disabled) || false;
+      var _subitems$get2;
+      return (subitems == null || (_subitems$get2 = subitems.get(id)) == null ? void 0 : _subitems$get2.disabled) || false;
     },
     items: subitemKeys,
     getItemAsString: id => {
-      var _subitems$get4, _subitems$get5;
-      return ((_subitems$get4 = subitems.get(id)) == null ? void 0 : _subitems$get4.label) || ((_subitems$get5 = subitems.get(id)) == null || (_subitems$get5 = _subitems$get5.ref.current) == null ? void 0 : _subitems$get5.innerText);
+      var _subitems$get3, _subitems$get4;
+      return ((_subitems$get3 = subitems.get(id)) == null ? void 0 : _subitems$get3.label) || ((_subitems$get4 = subitems.get(id)) == null || (_subitems$get4 = _subitems$get4.ref.current) == null ? void 0 : _subitems$get4.innerText);
     },
     rootRef: handleRef,
     onItemsChange,
-    onStateChange: stateChangeHandler,
     reducerActionContext: {
-      listboxRef
+      listboxRef: rootRef
     },
     selectionMode: 'none',
-    stateReducer: _menuReducer.default
+    stateReducer: _menuReducer.menuReducer
   });
+  (0, _utils.unstable_useEnhancedEffect)(() => {
+    registerPopup(listboxId);
+  }, [listboxId, registerPopup]);
   React.useEffect(() => {
-    if (open && highlightedValue === subitemKeys[0]) {
-      var _subitems$get6;
-      (_subitems$get6 = subitems.get(subitemKeys[0])) == null || (_subitems$get6 = _subitems$get6.ref) == null || (_subitems$get6 = _subitems$get6.current) == null ? void 0 : _subitems$get6.focus();
+    if (open && highlightedValue === subitemKeys[0] && !isInitiallyOpen.current) {
+      var _subitems$get5;
+      (_subitems$get5 = subitems.get(subitemKeys[0])) == null || (_subitems$get5 = _subitems$get5.ref) == null || (_subitems$get5 = _subitems$get5.current) == null || _subitems$get5.focus();
     }
   }, [open, highlightedValue, subitems, subitemKeys]);
   React.useEffect(() => {
-    var _listboxRef$current;
+    var _rootRef$current;
     // set focus to the highlighted item (but prevent stealing focus from other elements on the page)
-    if ((_listboxRef$current = listboxRef.current) != null && _listboxRef$current.contains(document.activeElement) && highlightedValue !== null) {
-      var _subitems$get7;
-      subitems == null || (_subitems$get7 = subitems.get(highlightedValue)) == null || (_subitems$get7 = _subitems$get7.ref.current) == null ? void 0 : _subitems$get7.focus();
+    if ((_rootRef$current = rootRef.current) != null && _rootRef$current.contains(document.activeElement) && highlightedValue !== null) {
+      var _subitems$get6;
+      subitems == null || (_subitems$get6 = subitems.get(highlightedValue)) == null || (_subitems$get6 = _subitems$get6.ref.current) == null || _subitems$get6.focus();
     }
   }, [highlightedValue, subitems]);
+  const createHandleBlur = otherHandlers => event => {
+    var _otherHandlers$onBlur, _rootRef$current2;
+    (_otherHandlers$onBlur = otherHandlers.onBlur) == null || _otherHandlers$onBlur.call(otherHandlers, event);
+    if (event.defaultMuiPrevented) {
+      return;
+    }
+    if ((_rootRef$current2 = rootRef.current) != null && _rootRef$current2.contains(event.relatedTarget) || event.relatedTarget === triggerElement) {
+      return;
+    }
+    menuDispatch({
+      type: _useDropdown.DropdownActionTypes.blur,
+      event
+    });
+  };
+  const createHandleKeyDown = otherHandlers => event => {
+    var _otherHandlers$onKeyD;
+    (_otherHandlers$onKeyD = otherHandlers.onKeyDown) == null || _otherHandlers$onKeyD.call(otherHandlers, event);
+    if (event.defaultMuiPrevented) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      menuDispatch({
+        type: _useDropdown.DropdownActionTypes.escapeKeyDown,
+        event
+      });
+    }
+  };
+  const getOwnListboxHandlers = (otherHandlers = {}) => ({
+    onBlur: createHandleBlur(otherHandlers),
+    onKeyDown: createHandleKeyDown(otherHandlers)
+  });
   const getListboxProps = (otherHandlers = {}) => {
-    const rootProps = getRootProps(otherHandlers);
-    return (0, _extends2.default)({}, otherHandlers, rootProps, {
+    const getCombinedRootProps = (0, _combineHooksSlotProps.combineHooksSlotProps)(getOwnListboxHandlers, getListRootProps);
+    return (0, _extends2.default)({}, getCombinedRootProps(otherHandlers), {
+      id: listboxId,
       role: 'menu'
     });
   };
@@ -13393,12 +16812,13 @@ function useMenu(parameters = {}) {
   });
   return {
     contextValue: (0, _extends2.default)({}, compoundComponentContextValue, listContextValue),
-    dispatch,
+    dispatch: listDispatch,
     getListboxProps,
     highlightedValue,
     listboxRef: mergedListRef,
     menuItems: subitems,
-    open
+    open,
+    triggerElement
   };
 }
 
@@ -13423,18 +16843,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useOption: true
+};
+Object.defineProperty(exports, "useOption", ({
   enumerable: true,
   get: function () {
-    return _useOption.default;
+    return _useOption.useOption;
   }
 }));
-var _useOption = _interopRequireDefault(__webpack_require__(95833));
+var _useOption = __webpack_require__(95833);
 var _useOption2 = __webpack_require__(27079);
 Object.keys(_useOption2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -13461,7 +16882,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useOption;
+exports.useOption = useOption;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
@@ -13546,7 +16967,7 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = SelectProvider;
+exports.SelectProvider = SelectProvider;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _ListContext = __webpack_require__(61941);
 var _useCompound = __webpack_require__(76346);
@@ -13604,7 +17025,7 @@ function SelectProvider(props) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.defaultOptionStringifier = void 0;
 const defaultOptionStringifier = option => {
   const {
     label,
@@ -13620,8 +17041,7 @@ const defaultOptionStringifier = option => {
   // Fallback string representation
   return String(option);
 };
-var _default = defaultOptionStringifier;
-exports["default"] = _default;
+exports.defaultOptionStringifier = defaultOptionStringifier;
 
 /***/ }),
 
@@ -13632,26 +17052,19 @@ exports["default"] = _default;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  SelectProvider: true
+  useSelect: true
 };
-Object.defineProperty(exports, "SelectProvider", ({
+Object.defineProperty(exports, "useSelect", ({
   enumerable: true,
   get: function () {
-    return _SelectProvider.default;
+    return _useSelect.useSelect;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useSelect.default;
-  }
-}));
-var _useSelect = _interopRequireDefault(__webpack_require__(65894));
+var _useSelect = __webpack_require__(65894);
 var _useSelect2 = __webpack_require__(23855);
 Object.keys(_useSelect2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -13664,7 +17077,7 @@ Object.keys(_useSelect2).forEach(function (key) {
     }
   });
 });
-var _SelectProvider = _interopRequireWildcard(__webpack_require__(15670));
+var _SelectProvider = __webpack_require__(15670);
 Object.keys(_SelectProvider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -13676,8 +17089,6 @@ Object.keys(_SelectProvider).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -13691,7 +17102,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = selectReducer;
+exports.selectReducer = selectReducer;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _useList = __webpack_require__(51312);
 var _useSelect = __webpack_require__(23855);
@@ -13773,19 +17184,49 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useSelect = useSelect;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _useButton = _interopRequireDefault(__webpack_require__(83851));
+var _useButton = __webpack_require__(83851);
 var _useSelect = __webpack_require__(23855);
-var _useList = _interopRequireDefault(__webpack_require__(51312));
-var _defaultOptionStringifier = _interopRequireDefault(__webpack_require__(17660));
+var _useList = __webpack_require__(51312);
+var _defaultOptionStringifier = __webpack_require__(17660);
 var _useCompound = __webpack_require__(76346);
-var _selectReducer = _interopRequireDefault(__webpack_require__(4406));
-var _combineHooksSlotProps = _interopRequireDefault(__webpack_require__(15530));
+var _selectReducer = __webpack_require__(4406);
+var _combineHooksSlotProps = __webpack_require__(15530);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+// visually hidden style based on https://webaim.org/techniques/css/invisiblecontent/
+const visuallyHiddenStyle = {
+  clip: 'rect(1px, 1px, 1px, 1px)',
+  clipPath: 'inset(50%)',
+  height: '1px',
+  width: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  padding: 0,
+  position: 'absolute',
+  left: '50%',
+  bottom: 0 // to display the native browser validation error at the bottom of the Select.
+};
+
+const noop = () => {};
+function defaultFormValueProvider(selectedOption) {
+  if (Array.isArray(selectedOption)) {
+    if (selectedOption.length === 0) {
+      return '';
+    }
+    return JSON.stringify(selectedOption.map(o => o.value));
+  }
+  if ((selectedOption == null ? void 0 : selectedOption.value) == null) {
+    return '';
+  }
+  if (typeof selectedOption.value === 'string' || typeof selectedOption.value === 'number') {
+    return selectedOption.value;
+  }
+  return JSON.stringify(selectedOption.value);
+}
 function preventDefault(event) {
   event.preventDefault();
 }
@@ -13810,12 +17251,15 @@ function useSelect(props) {
     listboxId: listboxIdProp,
     listboxRef: listboxRefProp,
     multiple = false,
+    name,
+    required,
     onChange,
     onHighlightChange,
     onOpenChange,
     open: openProp,
     options: optionsParam,
-    getOptionAsString = _defaultOptionStringifier.default,
+    getOptionAsString = _defaultOptionStringifier.defaultOptionStringifier,
+    getSerializedValue = defaultFormValueProvider,
     value: valueProp
   } = props;
   const buttonRef = React.useRef(null);
@@ -13863,7 +17307,7 @@ function useSelect(props) {
     active: buttonActive,
     focusVisible: buttonFocusVisible,
     rootRef: mergedButtonRef
-  } = (0, _useButton.default)({
+  } = (0, _useButton.useButton)({
     disabled,
     rootRef: handleButtonRef
   });
@@ -13899,21 +17343,21 @@ function useSelect(props) {
   }, [options]);
   const handleSelectionChange = React.useCallback((event, newValues) => {
     if (multiple) {
-      onChange == null ? void 0 : onChange(event, newValues);
+      onChange == null || onChange(event, newValues);
     } else {
       var _newValues$;
-      onChange == null ? void 0 : onChange(event, (_newValues$ = newValues[0]) != null ? _newValues$ : null);
+      onChange == null || onChange(event, (_newValues$ = newValues[0]) != null ? _newValues$ : null);
     }
   }, [multiple, onChange]);
   const handleHighlightChange = React.useCallback((event, newValue) => {
-    onHighlightChange == null ? void 0 : onHighlightChange(event, newValue != null ? newValue : null);
+    onHighlightChange == null || onHighlightChange(event, newValue != null ? newValue : null);
   }, [onHighlightChange]);
   const handleStateChange = React.useCallback((event, field, fieldValue) => {
     if (field === 'open') {
-      onOpenChange == null ? void 0 : onOpenChange(fieldValue);
+      onOpenChange == null || onOpenChange(fieldValue);
       if (fieldValue === false && (event == null ? void 0 : event.type) !== 'blur') {
         var _buttonRef$current;
-        (_buttonRef$current = buttonRef.current) == null ? void 0 : _buttonRef$current.focus();
+        (_buttonRef$current = buttonRef.current) == null || _buttonRef$current.focus();
       }
     }
   }, [onOpenChange]);
@@ -13940,7 +17384,7 @@ function useSelect(props) {
     items: optionValues,
     getItemAsString: stringifyOption,
     selectionMode: multiple ? 'multiple' : 'single',
-    stateReducer: _selectReducer.default
+    stateReducer: _selectReducer.selectReducer
   };
   const {
     dispatch,
@@ -13952,10 +17396,10 @@ function useSelect(props) {
       selectedValues: selectedOptions
     },
     rootRef: mergedListRootRef
-  } = (0, _useList.default)(useListParameters);
-  const createHandleButtonClick = otherHandlers => event => {
-    var _otherHandlers$onClic;
-    otherHandlers == null || (_otherHandlers$onClic = otherHandlers.onClick) == null ? void 0 : _otherHandlers$onClic.call(otherHandlers, event);
+  } = (0, _useList.useList)(useListParameters);
+  const createHandleButtonMouseDown = otherHandlers => event => {
+    var _otherHandlers$onMous;
+    otherHandlers == null || (_otherHandlers$onMous = otherHandlers.onMouseDown) == null || _otherHandlers$onMous.call(otherHandlers, event);
     if (!event.defaultMuiPrevented) {
       const action = {
         type: _useSelect.SelectActionTypes.buttonClick,
@@ -13984,7 +17428,7 @@ function useSelect(props) {
   const getOptionMetadata = React.useCallback(optionValue => getOptionByValue(optionValue), [getOptionByValue]);
   const getSelectTriggerProps = (otherHandlers = {}) => {
     return (0, _extends2.default)({}, otherHandlers, {
-      onClick: createHandleButtonClick(otherHandlers),
+      onMouseDown: createHandleButtonMouseDown(otherHandlers),
       ref: mergedListRootRef,
       role: 'combobox',
       'aria-expanded': open,
@@ -13992,8 +17436,8 @@ function useSelect(props) {
     });
   };
   const getButtonProps = (otherHandlers = {}) => {
-    const listboxAndButtonProps = (0, _combineHooksSlotProps.default)(getButtonRootProps, getListboxRootProps);
-    const combinedProps = (0, _combineHooksSlotProps.default)(listboxAndButtonProps, getSelectTriggerProps);
+    const listboxAndButtonProps = (0, _combineHooksSlotProps.combineHooksSlotProps)(getButtonRootProps, getListboxRootProps);
+    const combinedProps = (0, _combineHooksSlotProps.combineHooksSlotProps)(listboxAndButtonProps, getSelectTriggerProps);
     return combinedProps(otherHandlers);
   };
   const getListboxProps = (otherHandlers = {}) => {
@@ -14018,6 +17462,22 @@ function useSelect(props) {
   } else {
     selectValue = selectedOptions.length > 0 ? selectedOptions[0] : null;
   }
+  let selectedOptionsMetadata;
+  if (multiple) {
+    selectedOptionsMetadata = selectValue.map(v => getOptionMetadata(v)).filter(o => o !== undefined);
+  } else {
+    var _getOptionMetadata;
+    selectedOptionsMetadata = (_getOptionMetadata = getOptionMetadata(selectValue)) != null ? _getOptionMetadata : null;
+  }
+  const getHiddenInputProps = (otherHandlers = {}) => (0, _extends2.default)({
+    name,
+    tabIndex: -1,
+    'aria-hidden': true,
+    required: required ? true : undefined,
+    value: getSerializedValue(selectedOptionsMetadata),
+    onChange: noop,
+    style: visuallyHiddenStyle
+  }, otherHandlers);
   return {
     buttonActive,
     buttonFocusVisible,
@@ -14026,6 +17486,7 @@ function useSelect(props) {
     disabled,
     dispatch,
     getButtonProps,
+    getHiddenInputProps,
     getListboxProps,
     getOptionMetadata,
     listboxRef: mergedListRootRef,
@@ -14035,8 +17496,6 @@ function useSelect(props) {
     highlightedOption
   };
 }
-var _default = useSelect;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -14067,17 +17526,9 @@ exports.SelectActionTypes = SelectActionTypes;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useSlider.default;
-  }
-}));
-var _useSlider = _interopRequireWildcard(__webpack_require__(20689));
+var _useSlider = __webpack_require__(20689);
 Object.keys(_useSlider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _useSlider[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -14089,7 +17540,6 @@ Object.keys(_useSlider).forEach(function (key) {
 var _useSlider2 = __webpack_require__(94962);
 Object.keys(_useSlider2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _useSlider2[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -14098,8 +17548,6 @@ Object.keys(_useSlider2).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -14115,7 +17563,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Identity = void 0;
-exports["default"] = useSlider;
+exports.useSlider = useSlider;
 exports.valueToPercent = valueToPercent;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
@@ -14210,7 +17658,7 @@ function focusThumb({
   const doc = (0, _utils.unstable_ownerDocument)(sliderRef.current);
   if (!((_sliderRef$current = sliderRef.current) != null && _sliderRef$current.contains(doc.activeElement)) || Number(doc == null || (_doc$activeElement = doc.activeElement) == null ? void 0 : _doc$activeElement.getAttribute('data-index')) !== activeIndex) {
     var _sliderRef$current2;
-    (_sliderRef$current2 = sliderRef.current) == null ? void 0 : _sliderRef$current2.querySelector(`[type="range"][data-index="${activeIndex}"]`).focus();
+    (_sliderRef$current2 = sliderRef.current) == null || _sliderRef$current2.querySelector(`[type="range"][data-index="${activeIndex}"]`).focus();
   }
   if (setActive) {
     setActive(activeIndex);
@@ -14360,7 +17808,7 @@ function useSlider(parameters) {
       setFocusedThumbIndex(index);
     }
     setOpen(index);
-    otherHandlers == null || (_otherHandlers$onFocu = otherHandlers.onFocus) == null ? void 0 : _otherHandlers$onFocu.call(otherHandlers, event);
+    otherHandlers == null || (_otherHandlers$onFocu = otherHandlers.onFocus) == null || _otherHandlers$onFocu.call(otherHandlers, event);
   };
   const createHandleHiddenInputBlur = otherHandlers => event => {
     var _otherHandlers$onBlur;
@@ -14369,7 +17817,7 @@ function useSlider(parameters) {
       setFocusedThumbIndex(-1);
     }
     setOpen(-1);
-    otherHandlers == null || (_otherHandlers$onBlur = otherHandlers.onBlur) == null ? void 0 : _otherHandlers$onBlur.call(otherHandlers, event);
+    otherHandlers == null || (_otherHandlers$onBlur = otherHandlers.onBlur) == null || _otherHandlers$onBlur.call(otherHandlers, event);
   };
   (0, _utils.unstable_useEnhancedEffect)(() => {
     if (disabled && sliderRef.current.contains(document.activeElement)) {
@@ -14378,7 +17826,7 @@ function useSlider(parameters) {
       // on a disabled element:
       // https://codesandbox.io/s/mui-pr-22247-forked-h151h?file=/src/App.js
       // @ts-ignore
-      (_document$activeEleme = document.activeElement) == null ? void 0 : _document$activeEleme.blur();
+      (_document$activeEleme = document.activeElement) == null || _document$activeEleme.blur();
     }
   }, [disabled]);
   if (disabled && active !== -1) {
@@ -14389,7 +17837,7 @@ function useSlider(parameters) {
   }
   const createHandleHiddenInputChange = otherHandlers => event => {
     var _otherHandlers$onChan;
-    (_otherHandlers$onChan = otherHandlers.onChange) == null ? void 0 : _otherHandlers$onChan.call(otherHandlers, event);
+    (_otherHandlers$onChan = otherHandlers.onChange) == null || _otherHandlers$onChan.call(otherHandlers, event);
     const index = Number(event.currentTarget.getAttribute('data-index'));
     const value = values[index];
     const marksIndex = marksValues.indexOf(value);
@@ -14627,7 +18075,7 @@ function useSlider(parameters) {
   }, [disabled, stopListening]);
   const createHandleMouseDown = otherHandlers => event => {
     var _otherHandlers$onMous;
-    (_otherHandlers$onMous = otherHandlers.onMouseDown) == null ? void 0 : _otherHandlers$onMous.call(otherHandlers, event);
+    (_otherHandlers$onMous = otherHandlers.onMouseDown) == null || _otherHandlers$onMous.call(otherHandlers, event);
     if (disabled) {
       return;
     }
@@ -14678,13 +18126,13 @@ function useSlider(parameters) {
   };
   const createHandleMouseOver = otherHandlers => event => {
     var _otherHandlers$onMous2;
-    (_otherHandlers$onMous2 = otherHandlers.onMouseOver) == null ? void 0 : _otherHandlers$onMous2.call(otherHandlers, event);
+    (_otherHandlers$onMous2 = otherHandlers.onMouseOver) == null || _otherHandlers$onMous2.call(otherHandlers, event);
     const index = Number(event.currentTarget.getAttribute('data-index'));
     setOpen(index);
   };
   const createHandleMouseLeave = otherHandlers => event => {
     var _otherHandlers$onMous3;
-    (_otherHandlers$onMous3 = otherHandlers.onMouseLeave) == null ? void 0 : _otherHandlers$onMous3.call(otherHandlers, event);
+    (_otherHandlers$onMous3 = otherHandlers.onMouseLeave) == null || _otherHandlers$onMous3.call(otherHandlers, event);
     setOpen(-1);
   };
   const getThumbProps = (otherHandlers = {}) => {
@@ -14770,18 +18218,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useSnackbar: true
+};
+Object.defineProperty(exports, "useSnackbar", ({
   enumerable: true,
   get: function () {
-    return _useSnackbar.default;
+    return _useSnackbar.useSnackbar;
   }
 }));
-var _useSnackbar = _interopRequireDefault(__webpack_require__(3888));
+var _useSnackbar = __webpack_require__(3888);
 var _useSnackbar2 = __webpack_require__(26390);
 Object.keys(_useSnackbar2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -14808,11 +18257,11 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useSnackbar;
+exports.useSnackbar = useSnackbar;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
-var _extractEventHandlers = _interopRequireDefault(__webpack_require__(71688));
+var _extractEventHandlers = __webpack_require__(71688);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /**
@@ -14826,7 +18275,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
  *
  * - [useSnackbar API](https://mui.com/base-ui/react-snackbar/hooks-api/#use-snackbar)
  */
-function useSnackbar(parameters) {
+function useSnackbar(parameters = {}) {
   const {
     autoHideDuration = null,
     disableWindowBlurListener = false,
@@ -14848,7 +18297,7 @@ function useSnackbar(parameters) {
         // IE11, Edge (prior to using Blink?) use 'Esc'
         if (nativeEvent.key === 'Escape' || nativeEvent.key === 'Esc') {
           // not calling `preventDefault` since we don't know if people may ignore this event e.g. a permanently open snackbar
-          onClose == null ? void 0 : onClose(nativeEvent, 'escapeKeyDown');
+          onClose == null || onClose(nativeEvent, 'escapeKeyDown');
         }
       }
     }
@@ -14858,7 +18307,7 @@ function useSnackbar(parameters) {
     };
   }, [open, onClose]);
   const handleClose = (0, _utils.unstable_useEventCallback)((event, reason) => {
-    onClose == null ? void 0 : onClose(event, reason);
+    onClose == null || onClose(event, reason);
   });
   const setAutoHideTimer = (0, _utils.unstable_useEventCallback)(autoHideDurationParam => {
     if (!onClose || autoHideDurationParam == null) {
@@ -14878,7 +18327,7 @@ function useSnackbar(parameters) {
     };
   }, [open, autoHideDuration, setAutoHideTimer]);
   const handleClickAway = event => {
-    onClose == null ? void 0 : onClose(event, 'clickaway');
+    onClose == null || onClose(event, 'clickaway');
   };
 
   // Pause the timer when the user is interacting with the Snackbar
@@ -14896,22 +18345,22 @@ function useSnackbar(parameters) {
   }, [autoHideDuration, resumeHideDuration, setAutoHideTimer]);
   const createHandleBlur = otherHandlers => event => {
     const onBlurCallback = otherHandlers.onBlur;
-    onBlurCallback == null ? void 0 : onBlurCallback(event);
+    onBlurCallback == null || onBlurCallback(event);
     handleResume();
   };
   const createHandleFocus = otherHandlers => event => {
     const onFocusCallback = otherHandlers.onFocus;
-    onFocusCallback == null ? void 0 : onFocusCallback(event);
+    onFocusCallback == null || onFocusCallback(event);
     handlePause();
   };
   const createMouseEnter = otherHandlers => event => {
     const onMouseEnterCallback = otherHandlers.onMouseEnter;
-    onMouseEnterCallback == null ? void 0 : onMouseEnterCallback(event);
+    onMouseEnterCallback == null || onMouseEnterCallback(event);
     handlePause();
   };
   const createMouseLeave = otherHandlers => event => {
     const onMouseLeaveCallback = otherHandlers.onMouseLeave;
-    onMouseLeaveCallback == null ? void 0 : onMouseLeaveCallback(event);
+    onMouseLeaveCallback == null || onMouseLeaveCallback(event);
     handleResume();
   };
   React.useEffect(() => {
@@ -14926,14 +18375,13 @@ function useSnackbar(parameters) {
     }
     return undefined;
   }, [disableWindowBlurListener, handleResume, open]);
-  const getRootProps = (otherHandlers = {}) => {
-    const propsEventHandlers = (0, _extractEventHandlers.default)(parameters);
-    const externalEventHandlers = (0, _extends2.default)({}, propsEventHandlers, otherHandlers);
+  const getRootProps = (externalProps = {}) => {
+    const externalEventHandlers = (0, _extends2.default)({}, (0, _extractEventHandlers.extractEventHandlers)(parameters), (0, _extractEventHandlers.extractEventHandlers)(externalProps));
     return (0, _extends2.default)({
       // ClickAwayListener adds an `onClick` prop which results in the alert not being announced.
       // See https://github.com/mui/material-ui/issues/29080
       role: 'presentation'
-    }, externalEventHandlers, {
+    }, externalProps, externalEventHandlers, {
       onBlur: createHandleBlur(externalEventHandlers),
       onFocus: createHandleFocus(externalEventHandlers),
       onMouseEnter: createMouseEnter(externalEventHandlers),
@@ -14967,18 +18415,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useSwitch: true
+};
+Object.defineProperty(exports, "useSwitch", ({
   enumerable: true,
   get: function () {
-    return _useSwitch.default;
+    return _useSwitch.useSwitch;
   }
 }));
-var _useSwitch = _interopRequireDefault(__webpack_require__(1980));
+var _useSwitch = __webpack_require__(1980);
 var _useSwitch2 = __webpack_require__(14994);
 Object.keys(_useSwitch2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -15005,7 +18454,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useSwitch;
+exports.useSwitch = useSwitch;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
@@ -15047,8 +18496,8 @@ function useSwitch(props) {
       return;
     }
     setCheckedState(event.target.checked);
-    onChange == null ? void 0 : onChange(event);
-    (_otherProps$onChange = otherProps.onChange) == null ? void 0 : _otherProps$onChange.call(otherProps, event);
+    onChange == null || onChange(event);
+    (_otherProps$onChange = otherProps.onChange) == null || _otherProps$onChange.call(otherProps, event);
   };
   const {
     isFocusVisibleRef,
@@ -15073,10 +18522,10 @@ function useSwitch(props) {
     handleFocusVisible(event);
     if (isFocusVisibleRef.current === true) {
       setFocusVisible(true);
-      onFocusVisible == null ? void 0 : onFocusVisible(event);
+      onFocusVisible == null || onFocusVisible(event);
     }
-    onFocus == null ? void 0 : onFocus(event);
-    (_otherProps$onFocus = otherProps.onFocus) == null ? void 0 : _otherProps$onFocus.call(otherProps, event);
+    onFocus == null || onFocus(event);
+    (_otherProps$onFocus = otherProps.onFocus) == null || _otherProps$onFocus.call(otherProps, event);
   };
   const createHandleBlur = otherProps => event => {
     var _otherProps$onBlur;
@@ -15084,8 +18533,8 @@ function useSwitch(props) {
     if (isFocusVisibleRef.current === false) {
       setFocusVisible(false);
     }
-    onBlur == null ? void 0 : onBlur(event);
-    (_otherProps$onBlur = otherProps.onBlur) == null ? void 0 : _otherProps$onBlur.call(otherProps, event);
+    onBlur == null || onBlur(event);
+    (_otherProps$onBlur = otherProps.onBlur) == null || _otherProps$onBlur.call(otherProps, event);
   };
   const handleInputRef = (0, _utils.unstable_useForkRef)(focusVisibleRef, inputRef);
   const getInputProps = (otherProps = {}) => (0, _extends2.default)({
@@ -15132,18 +18581,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useTabPanel: true
+};
+Object.defineProperty(exports, "useTabPanel", ({
   enumerable: true,
   get: function () {
-    return _useTabPanel.default;
+    return _useTabPanel.useTabPanel;
   }
 }));
-var _useTabPanel = _interopRequireDefault(__webpack_require__(36454));
+var _useTabPanel = __webpack_require__(36454);
 var _useTabPanel2 = __webpack_require__(73490);
 Object.keys(_useTabPanel2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -15169,7 +18619,7 @@ Object.keys(_useTabPanel2).forEach(function (key) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useTabPanel = useTabPanel;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
 var _Tabs = __webpack_require__(55307);
@@ -15230,8 +18680,6 @@ function useTabPanel(parameters) {
     rootRef: handleRef
   };
 }
-var _default = useTabPanel;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -15254,18 +18702,19 @@ Object.defineProperty(exports, "__esModule", ({
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {};
-Object.defineProperty(exports, "default", ({
+var _exportNames = {
+  useTab: true
+};
+Object.defineProperty(exports, "useTab", ({
   enumerable: true,
   get: function () {
-    return _useTab.default;
+    return _useTab.useTab;
   }
 }));
-var _useTab = _interopRequireDefault(__webpack_require__(15499));
+var _useTab = __webpack_require__(15499);
 var _useTab2 = __webpack_require__(38626);
 Object.keys(_useTab2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -15292,14 +18741,14 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useTab = useTab;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
 var _Tabs = __webpack_require__(55307);
 var _useCompoundItem = __webpack_require__(93412);
 var _useList = __webpack_require__(51312);
-var _useButton = _interopRequireDefault(__webpack_require__(83851));
+var _useButton = __webpack_require__(83851);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function tabValueGenerator(otherTabValues) {
@@ -15354,7 +18803,7 @@ function useTab(parameters) {
     active,
     focusVisible,
     setFocusVisible
-  } = (0, _useButton.default)({
+  } = (0, _useButton.useButton)({
     disabled,
     focusableWhenDisabled: !selectionFollowsFocus,
     type: 'button'
@@ -15386,8 +18835,6 @@ function useTab(parameters) {
     totalTabsCount
   };
 }
-var _default = useTab;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -15413,7 +18860,7 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = TabsListProvider;
+exports.TabsListProvider = TabsListProvider;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _ListContext = __webpack_require__(61941);
 var _useCompound = __webpack_require__(76346);
@@ -15469,26 +18916,19 @@ function TabsListProvider(props) {
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 var _exportNames = {
-  TabsListProvider: true
+  useTabsList: true
 };
-Object.defineProperty(exports, "TabsListProvider", ({
+Object.defineProperty(exports, "useTabsList", ({
   enumerable: true,
   get: function () {
-    return _TabsListProvider.default;
+    return _useTabsList.useTabsList;
   }
 }));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useTabsList.default;
-  }
-}));
-var _useTabsList = _interopRequireDefault(__webpack_require__(9240));
+var _useTabsList = __webpack_require__(9240);
 var _useTabsList2 = __webpack_require__(16861);
 Object.keys(_useTabsList2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -15501,7 +18941,7 @@ Object.keys(_useTabsList2).forEach(function (key) {
     }
   });
 });
-var _TabsListProvider = _interopRequireWildcard(__webpack_require__(95885));
+var _TabsListProvider = __webpack_require__(95885);
 Object.keys(_TabsListProvider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -15513,8 +18953,6 @@ Object.keys(_TabsListProvider).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -15528,7 +18966,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = tabsListReducer;
+exports.tabsListReducer = tabsListReducer;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _useList = __webpack_require__(51312);
 var _useTabsList = __webpack_require__(16861);
@@ -15573,14 +19011,14 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useTabsList = useTabsList;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _Tabs = __webpack_require__(55307);
 var _useTabsList = __webpack_require__(16861);
 var _useCompound = __webpack_require__(76346);
-var _useList = _interopRequireDefault(__webpack_require__(51312));
-var _tabsListReducer = _interopRequireDefault(__webpack_require__(70213));
+var _useList = __webpack_require__(51312);
+var _tabsListReducer = __webpack_require__(70213);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 /**
@@ -15657,7 +19095,7 @@ function useTabsList(parameters) {
       selectedValues
     },
     rootRef: mergedRootRef
-  } = (0, _useList.default)({
+  } = (0, _useList.useList)({
     controlledProps,
     disabledItemsFocusable: !selectionFollowsFocus,
     focusManagement: 'DOM',
@@ -15671,7 +19109,7 @@ function useTabsList(parameters) {
       selectionFollowsFocus: selectionFollowsFocus || false
     }), [selectionFollowsFocus]),
     selectionMode: 'single',
-    stateReducer: _tabsListReducer.default
+    stateReducer: _tabsListReducer.tabsListReducer
   });
   React.useEffect(() => {
     if (value === undefined) {
@@ -15704,8 +19142,6 @@ function useTabsList(parameters) {
     selectedValue: (_selectedValues$ = selectedValues[0]) != null ? _selectedValues$ : null
   };
 }
-var _default = useTabsList;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -15733,13 +19169,12 @@ exports.TabsListActionTypes = TabsListActionTypes;
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = TabsProvider;
+exports.TabsProvider = TabsProvider;
 var React = _interopRequireWildcard(__webpack_require__(18038));
-var _TabsContext = _interopRequireDefault(__webpack_require__(79946));
+var _TabsContext = __webpack_require__(79946);
 var _useCompound = __webpack_require__(76346);
 var _jsxRuntime = __webpack_require__(56786);
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -15784,7 +19219,7 @@ function TabsProvider(props) {
   }), [direction, getTabId, getTabPanelId, onSelected, orientation, registerTabIdLookup, selectionFollowsFocus, value]);
   return /*#__PURE__*/(0, _jsxRuntime.jsx)(_useCompound.CompoundComponentContext.Provider, {
     value: compoundComponentContextValue,
-    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsContext.default.Provider, {
+    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_TabsContext.TabsContext.Provider, {
       value: tabsContextValue,
       children: children
     })
@@ -15803,25 +19238,9 @@ function TabsProvider(props) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _exportNames = {
-  TabsProvider: true
-};
-Object.defineProperty(exports, "TabsProvider", ({
-  enumerable: true,
-  get: function () {
-    return _TabsProvider.default;
-  }
-}));
-Object.defineProperty(exports, "default", ({
-  enumerable: true,
-  get: function () {
-    return _useTabs.default;
-  }
-}));
-var _useTabs = _interopRequireWildcard(__webpack_require__(65555));
+var _useTabs = __webpack_require__(65555);
 Object.keys(_useTabs).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _useTabs[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -15833,7 +19252,6 @@ Object.keys(_useTabs).forEach(function (key) {
 var _useTabs2 = __webpack_require__(36302);
 Object.keys(_useTabs2).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _useTabs2[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -15842,10 +19260,9 @@ Object.keys(_useTabs2).forEach(function (key) {
     }
   });
 });
-var _TabsProvider = _interopRequireWildcard(__webpack_require__(44103));
+var _TabsProvider = __webpack_require__(44103);
 Object.keys(_TabsProvider).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
   if (key in exports && exports[key] === _TabsProvider[key]) return;
   Object.defineProperty(exports, key, {
     enumerable: true,
@@ -15854,8 +19271,6 @@ Object.keys(_TabsProvider).forEach(function (key) {
     }
   });
 });
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 /***/ }),
 
@@ -15870,7 +19285,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = void 0;
+exports.useTabs = useTabs;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _utils = __webpack_require__(44268);
@@ -15904,7 +19319,7 @@ function useTabs(parameters) {
   });
   const onSelected = React.useCallback((event, newValue) => {
     setValue(newValue);
-    onChange == null ? void 0 : onChange(event, newValue);
+    onChange == null || onChange(event, newValue);
   }, [onChange, setValue]);
   const {
     subitems: tabPanels,
@@ -15934,8 +19349,6 @@ function useTabs(parameters) {
     }, compoundComponentContextValue)
   };
 }
-var _default = useTabs;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -15961,7 +19374,7 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = ClassNameConfigurator;
+exports.ClassNameConfigurator = ClassNameConfigurator;
 exports.useClassNamesOverride = useClassNamesOverride;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _jsxRuntime = __webpack_require__(56786);
@@ -16032,9 +19445,9 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = appendOwnerState;
+exports.appendOwnerState = appendOwnerState;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
-var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
+var _isHostComponent = __webpack_require__(84044);
 /**
  * Type of the ownerState based on the type of an element it applies to.
  * This resolves to the provided OwnerState for React components and `undefined` for host components.
@@ -16049,7 +19462,7 @@ var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
  * @param ownerState
  */
 function appendOwnerState(elementType, otherProps, ownerState) {
-  if (elementType === undefined || (0, _isHostComponent.default)(elementType)) {
+  if (elementType === undefined || (0, _isHostComponent.isHostComponent)(elementType)) {
     return otherProps;
   }
   return (0, _extends2.default)({}, otherProps, {
@@ -16068,7 +19481,7 @@ function appendOwnerState(elementType, otherProps, ownerState) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = areArraysEqual;
+exports.areArraysEqual = areArraysEqual;
 function areArraysEqual(array1, array2, itemComparer = (a, b) => a === b) {
   return array1.length === array2.length && array1.every((value, index) => itemComparer(value, array2[index]));
 }
@@ -16085,7 +19498,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = combineHooksSlotProps;
+exports.combineHooksSlotProps = combineHooksSlotProps;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 /**
  * Combines the two get*Props functions from Base UI hooks into one.
@@ -16102,7 +19515,7 @@ var _extends2 = _interopRequireDefault(__webpack_require__(43259));
  * @param getSecondProps - A getter function that returns the props for the second slot. It receives the result of the getFirstProps function as its argument.
  */
 function combineHooksSlotProps(getFirstProps, getSecondProps) {
-  return external => {
+  return function getCombinedProps(external = {}) {
     const firstResult = (0, _extends2.default)({}, external, getFirstProps(external));
     const result = (0, _extends2.default)({}, firstResult, getSecondProps(firstResult));
     return result;
@@ -16120,7 +19533,7 @@ function combineHooksSlotProps(getFirstProps, getSecondProps) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = extractEventHandlers;
+exports.extractEventHandlers = extractEventHandlers;
 /**
  * Extracts event handlers from a given object.
  * A prop is considered an event handler if it is a function and its name starts with `on`.
@@ -16148,7 +19561,6 @@ function extractEventHandlers(object, excludeKeys = []) {
 
 'use client';
 
-var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -16160,64 +19572,72 @@ var _exportNames = {
   isHostComponent: true,
   resolveComponentProps: true,
   useSlotProps: true,
-  mergeSlotProps: true
+  mergeSlotProps: true,
+  prepareForSlot: true
 };
 Object.defineProperty(exports, "ClassNameConfigurator", ({
   enumerable: true,
   get: function () {
-    return _ClassNameConfigurator.default;
+    return _ClassNameConfigurator.ClassNameConfigurator;
   }
 }));
 Object.defineProperty(exports, "appendOwnerState", ({
   enumerable: true,
   get: function () {
-    return _appendOwnerState.default;
+    return _appendOwnerState.appendOwnerState;
   }
 }));
 Object.defineProperty(exports, "areArraysEqual", ({
   enumerable: true,
   get: function () {
-    return _areArraysEqual.default;
+    return _areArraysEqual.areArraysEqual;
   }
 }));
 Object.defineProperty(exports, "extractEventHandlers", ({
   enumerable: true,
   get: function () {
-    return _extractEventHandlers.default;
+    return _extractEventHandlers.extractEventHandlers;
   }
 }));
 Object.defineProperty(exports, "isHostComponent", ({
   enumerable: true,
   get: function () {
-    return _isHostComponent.default;
+    return _isHostComponent.isHostComponent;
   }
 }));
 Object.defineProperty(exports, "mergeSlotProps", ({
   enumerable: true,
   get: function () {
-    return _mergeSlotProps.default;
+    return _mergeSlotProps.mergeSlotProps;
+  }
+}));
+Object.defineProperty(exports, "prepareForSlot", ({
+  enumerable: true,
+  get: function () {
+    return _prepareForSlot.prepareForSlot;
   }
 }));
 Object.defineProperty(exports, "resolveComponentProps", ({
   enumerable: true,
   get: function () {
-    return _resolveComponentProps.default;
+    return _resolveComponentProps.resolveComponentProps;
   }
 }));
 Object.defineProperty(exports, "useSlotProps", ({
   enumerable: true,
   get: function () {
-    return _useSlotProps.default;
+    return _useSlotProps.useSlotProps;
   }
 }));
-var _appendOwnerState = _interopRequireDefault(__webpack_require__(63834));
-var _areArraysEqual = _interopRequireDefault(__webpack_require__(1975));
-var _ClassNameConfigurator = _interopRequireDefault(__webpack_require__(15593));
-var _extractEventHandlers = _interopRequireDefault(__webpack_require__(71688));
-var _isHostComponent = _interopRequireDefault(__webpack_require__(84044));
-var _resolveComponentProps = _interopRequireDefault(__webpack_require__(31318));
-var _useSlotProps = _interopRequireDefault(__webpack_require__(36780));
-var _mergeSlotProps = _interopRequireDefault(__webpack_require__(39279));
+var _appendOwnerState = __webpack_require__(63834);
+var _areArraysEqual = __webpack_require__(1975);
+var _ClassNameConfigurator = __webpack_require__(15593);
+var _extractEventHandlers = __webpack_require__(71688);
+var _isHostComponent = __webpack_require__(84044);
+var _resolveComponentProps = __webpack_require__(31318);
+var _useSlotProps = __webpack_require__(36780);
+var _mergeSlotProps = __webpack_require__(39279);
+var _prepareForSlot = __webpack_require__(893);
 var _PolymorphicComponent = __webpack_require__(52627);
 Object.keys(_PolymorphicComponent).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -16254,7 +19674,7 @@ Object.keys(_types).forEach(function (key) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = isHostComponent;
+exports.isHostComponent = isHostComponent;
 /**
  * Determines if a given element is a DOM element name (i.e. not a React component).
  */
@@ -16274,11 +19694,11 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = mergeSlotProps;
+exports.mergeSlotProps = mergeSlotProps;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
-var _extractEventHandlers = _interopRequireDefault(__webpack_require__(71688));
-var _omitEventHandlers = _interopRequireDefault(__webpack_require__(4373));
+var _extractEventHandlers = __webpack_require__(71688);
+var _omitEventHandlers = __webpack_require__(4373);
 /**
  * Merges the slot component internal props (usually coming from a hook)
  * with the externally provided ones.
@@ -16321,9 +19741,9 @@ function mergeSlotProps(parameters) {
   // In this case, getSlotProps is responsible for calling the external event handlers.
   // We don't need to include them in the merged props because of this.
 
-  const eventHandlers = (0, _extractEventHandlers.default)((0, _extends2.default)({}, externalForwardedProps, externalSlotProps));
-  const componentsPropsWithoutEventHandlers = (0, _omitEventHandlers.default)(externalSlotProps);
-  const otherPropsWithoutEventHandlers = (0, _omitEventHandlers.default)(externalForwardedProps);
+  const eventHandlers = (0, _extractEventHandlers.extractEventHandlers)((0, _extends2.default)({}, externalForwardedProps, externalSlotProps));
+  const componentsPropsWithoutEventHandlers = (0, _omitEventHandlers.omitEventHandlers)(externalSlotProps);
+  const otherPropsWithoutEventHandlers = (0, _omitEventHandlers.omitEventHandlers)(externalForwardedProps);
   const internalSlotProps = getSlotProps(eventHandlers);
 
   // The order of classes is important here.
@@ -16356,7 +19776,7 @@ function mergeSlotProps(parameters) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = omitEventHandlers;
+exports.omitEventHandlers = omitEventHandlers;
 /**
  * Removes event handlers from the given object.
  * A field is considered an event handler if it is a function with a name beginning with `on`.
@@ -16377,6 +19797,34 @@ function omitEventHandlers(object) {
 
 /***/ }),
 
+/***/ 893:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(92439);
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.prepareForSlot = prepareForSlot;
+var _extends2 = _interopRequireDefault(__webpack_require__(43259));
+var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
+var React = _interopRequireWildcard(__webpack_require__(18038));
+const _excluded = ["ownerState"];
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+function prepareForSlot(Component) {
+  return /*#__PURE__*/React.forwardRef(function Slot(props, ref) {
+    const other = (0, _objectWithoutPropertiesLoose2.default)(props, _excluded);
+    return /*#__PURE__*/React.createElement(Component, (0, _extends2.default)({}, other, {
+      ref
+    }));
+  });
+}
+
+/***/ }),
+
 /***/ 31318:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -16386,7 +19834,7 @@ function omitEventHandlers(object) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = resolveComponentProps;
+exports.resolveComponentProps = resolveComponentProps;
 /**
  * If `componentProps` is a function, calls it with the provided `ownerState`.
  * Otherwise, just returns `componentProps`.
@@ -16577,7 +20025,7 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useControllableReducer;
+exports.useControllableReducer = useControllableReducer;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -16630,7 +20078,7 @@ function useStateChangeDetection(parameters) {
       const previousStateItem = previousState[key];
       if (previousStateItem == null && nextStateItem != null || previousStateItem != null && nextStateItem == null || previousStateItem != null && nextStateItem != null && !stateComparer(nextStateItem, previousStateItem)) {
         var _event, _type;
-        onStateChange == null ? void 0 : onStateChange((_event = lastActionRef.current.event) != null ? _event : null, key, nextStateItem, (_type = lastActionRef.current.type) != null ? _type : '', nextState);
+        onStateChange == null || onStateChange((_event = lastActionRef.current.event) != null ? _event : null, key, nextStateItem, (_type = lastActionRef.current.type) != null ? _type : '', nextState);
       }
     });
     internalPreviousStateRef.current = nextState;
@@ -16711,7 +20159,7 @@ function useControllableReducer(parameters) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useForcedRerendering;
+exports.useForcedRerendering = useForcedRerendering;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -16737,7 +20185,7 @@ function useForcedRerendering() {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useLatest;
+exports.useLatest = useLatest;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -16776,7 +20224,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.createMessageBus = createMessageBus;
-exports["default"] = useMessageBus;
+exports.useMessageBus = useMessageBus;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -16833,13 +20281,13 @@ var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useSlotProps;
+exports.useSlotProps = useSlotProps;
 var _extends2 = _interopRequireDefault(__webpack_require__(43259));
 var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(54845));
 var _utils = __webpack_require__(44268);
-var _appendOwnerState = _interopRequireDefault(__webpack_require__(63834));
-var _mergeSlotProps = _interopRequireDefault(__webpack_require__(39279));
-var _resolveComponentProps = _interopRequireDefault(__webpack_require__(31318));
+var _appendOwnerState = __webpack_require__(63834);
+var _mergeSlotProps = __webpack_require__(39279);
+var _resolveComponentProps = __webpack_require__(31318);
 const _excluded = ["elementType", "externalSlotProps", "ownerState", "skipResolvingSlotProps"];
 /**
  * @ignore - do not document.
@@ -16858,15 +20306,15 @@ function useSlotProps(parameters) {
       skipResolvingSlotProps = false
     } = parameters,
     rest = (0, _objectWithoutPropertiesLoose2.default)(parameters, _excluded);
-  const resolvedComponentsProps = skipResolvingSlotProps ? {} : (0, _resolveComponentProps.default)(externalSlotProps, ownerState);
+  const resolvedComponentsProps = skipResolvingSlotProps ? {} : (0, _resolveComponentProps.resolveComponentProps)(externalSlotProps, ownerState);
   const {
     props: mergedProps,
     internalRef
-  } = (0, _mergeSlotProps.default)((0, _extends2.default)({}, rest, {
+  } = (0, _mergeSlotProps.mergeSlotProps)((0, _extends2.default)({}, rest, {
     externalSlotProps: resolvedComponentsProps
   }));
   const ref = (0, _utils.unstable_useForkRef)(internalRef, resolvedComponentsProps == null ? void 0 : resolvedComponentsProps.ref, (_parameters$additiona = parameters.additionalProps) == null ? void 0 : _parameters$additiona.ref);
-  const props = (0, _appendOwnerState.default)(elementType, (0, _extends2.default)({}, mergedProps, {
+  const props = (0, _appendOwnerState.appendOwnerState)(elementType, (0, _extends2.default)({}, mergedProps, {
     ref
   }), ownerState);
   return props;
@@ -16884,7 +20332,7 @@ function useSlotProps(parameters) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = useTextNavigation;
+exports.useTextNavigation = useTextNavigation;
 var React = _interopRequireWildcard(__webpack_require__(18038));
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -16983,8 +20431,8 @@ var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
 var _utils = __webpack_require__(44268);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
-var _useBadge = _interopRequireDefault(__webpack_require__(62222));
+var _composeClasses = __webpack_require__(29178);
+var _useBadge = __webpack_require__(62222);
 var _base = __webpack_require__(93832);
 var _styled = _interopRequireDefault(__webpack_require__(76276));
 var _useThemeProps = _interopRequireDefault(__webpack_require__(54061));
@@ -17009,7 +20457,7 @@ const useUtilityClasses = ownerState => {
     root: ['root'],
     badge: ['badge', variant, invisible && 'invisible', `anchorOrigin${(0, _capitalize.default)(anchorOrigin.vertical)}${(0, _capitalize.default)(anchorOrigin.horizontal)}`, `anchorOrigin${(0, _capitalize.default)(anchorOrigin.vertical)}${(0, _capitalize.default)(anchorOrigin.horizontal)}${(0, _capitalize.default)(overlap)}`, `overlap${(0, _capitalize.default)(overlap)}`, color !== 'default' && `color${(0, _capitalize.default)(color)}`]
   };
-  return (0, _composeClasses.default)(slots, _badgeClasses.getBadgeUtilityClass, classes);
+  return (0, _composeClasses.unstable_composeClasses)(slots, _badgeClasses.getBadgeUtilityClass, classes);
 };
 const BadgeRoot = (0, _styled.default)('span', {
   name: 'MuiBadge',
@@ -17167,7 +20615,7 @@ const Badge = /*#__PURE__*/React.forwardRef(function Badge(inProps, ref) {
     invisible: invisibleFromHook,
     max,
     displayValue: displayValueFromHook
-  } = (0, _useBadge.default)({
+  } = (0, _useBadge.useBadge)({
     max: maxProp,
     invisible: invisibleProp,
     badgeContent: badgeContentProp,
@@ -17322,7 +20770,7 @@ var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
 var _utils = __webpack_require__(44268);
-var _composeClasses = _interopRequireDefault(__webpack_require__(29178));
+var _composeClasses = __webpack_require__(29178);
 var _styled = _interopRequireDefault(__webpack_require__(76276));
 var _useThemeProps = _interopRequireDefault(__webpack_require__(54061));
 var _useForkRef = _interopRequireDefault(__webpack_require__(99215));
@@ -17344,7 +20792,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', disabled && 'disabled', focusVisible && 'focusVisible']
   };
-  const composedClasses = (0, _composeClasses.default)(slots, _buttonBaseClasses.getButtonBaseUtilityClass, classes);
+  const composedClasses = (0, _composeClasses.unstable_composeClasses)(slots, _buttonBaseClasses.getButtonBaseUtilityClass, classes);
   if (focusVisible && focusVisibleClassName) {
     composedClasses.root += ` ${focusVisibleClassName}`;
   }
@@ -18166,7 +21614,7 @@ var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
 var _utils = __webpack_require__(44268);
-var _base = __webpack_require__(93832);
+var _composeClasses = __webpack_require__(29178);
 var _system = __webpack_require__(19659);
 var _styled = _interopRequireDefault(__webpack_require__(76276));
 var _useThemeProps = _interopRequireDefault(__webpack_require__(54061));
@@ -18188,7 +21636,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', disabled && 'disabled', color !== 'default' && `color${(0, _capitalize.default)(color)}`, edge && `edge${(0, _capitalize.default)(edge)}`, `size${(0, _capitalize.default)(size)}`]
   };
-  return (0, _base.unstable_composeClasses)(slots, _iconButtonClasses.getIconButtonUtilityClass, classes);
+  return (0, _composeClasses.unstable_composeClasses)(slots, _iconButtonClasses.getIconButtonUtilityClass, classes);
 };
 const IconButtonRoot = (0, _styled.default)(_ButtonBase.default, {
   name: 'MuiIconButton',
@@ -18387,7 +21835,7 @@ var _objectWithoutPropertiesLoose2 = _interopRequireDefault(__webpack_require__(
 var React = _interopRequireWildcard(__webpack_require__(18038));
 var _propTypes = _interopRequireDefault(__webpack_require__(55601));
 var _clsx = _interopRequireDefault(__webpack_require__(80391));
-var _base = __webpack_require__(93832);
+var _composeClasses = __webpack_require__(29178);
 var _capitalize = _interopRequireDefault(__webpack_require__(20587));
 var _useThemeProps = _interopRequireDefault(__webpack_require__(54061));
 var _styled = _interopRequireDefault(__webpack_require__(76276));
@@ -18405,7 +21853,7 @@ const useUtilityClasses = ownerState => {
   const slots = {
     root: ['root', color !== 'inherit' && `color${(0, _capitalize.default)(color)}`, `fontSize${(0, _capitalize.default)(fontSize)}`]
   };
-  return (0, _base.unstable_composeClasses)(slots, _svgIconClasses.getSvgIconUtilityClass, classes);
+  return (0, _composeClasses.unstable_composeClasses)(slots, _svgIconClasses.getSvgIconUtilityClass, classes);
 };
 const SvgIconRoot = (0, _styled.default)('svg', {
   name: 'MuiSvgIcon',
@@ -19601,6 +23049,7 @@ function createTypography(palette, typography) {
     button: buildVariant(fontWeightMedium, 14, 1.75, 0.4, caseAllCaps),
     caption: buildVariant(fontWeightRegular, 12, 1.66, 0.4),
     overline: buildVariant(fontWeightRegular, 12, 2.66, 1, caseAllCaps),
+    // TODO v6: Remove handling of 'inherit' variant from the theme as it is already handled in Material UI's Typography component. Also, remember to remove the associated types.
     inherit: {
       fontFamily: 'inherit',
       fontWeight: 'inherit',
@@ -20982,7 +24431,7 @@ Object.defineProperty(exports, "useIsFocusVisible", ({
     return _useIsFocusVisible.default;
   }
 }));
-var _className = __webpack_require__(96816);
+var _ClassNameGenerator = __webpack_require__(66386);
 var _capitalize = _interopRequireDefault(__webpack_require__(20587));
 var _createChainedFunction = _interopRequireDefault(__webpack_require__(92334));
 var _createSvgIcon = _interopRequireDefault(__webpack_require__(39537));
@@ -21005,7 +24454,7 @@ var _useIsFocusVisible = _interopRequireDefault(__webpack_require__(10283));
 const unstable_ClassNameGenerator = {
   configure: generator => {
     if (false) {}
-    _className.unstable_ClassNameGenerator.configure(generator);
+    _ClassNameGenerator.unstable_ClassNameGenerator.configure(generator);
   }
 };
 exports.unstable_ClassNameGenerator = unstable_ClassNameGenerator;
@@ -21320,7 +24769,7 @@ exports["default"] = _default;
 
 "use strict";
 /**
- * @mui/private-theming v5.13.7
+ * @mui/private-theming v5.14.9
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -21434,6 +24883,7 @@ function useTheme() {
 
 "use strict";
 
+'use client';
 
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
@@ -21468,6 +24918,7 @@ function GlobalStyles(props) {
 
 "use strict";
 
+'use client';
 
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
@@ -21488,6 +24939,7 @@ var _GlobalStyles = _interopRequireDefault(__webpack_require__(72981));
 
 "use strict";
 
+'use client';
 
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
@@ -21529,6 +24981,7 @@ function StyledEngineProvider(props) {
 
 "use strict";
 
+'use client';
 
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
@@ -21549,14 +25002,16 @@ var _StyledEngineProvider = _interopRequireDefault(__webpack_require__(13879));
 
 "use strict";
 /**
- * @mui/styled-engine v5.13.2
+ * @mui/styled-engine v5.14.9
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
+'use client';
 
+/* eslint-disable no-underscore-dangle */
 var _interopRequireDefault = __webpack_require__(92439);
 Object.defineProperty(exports, "__esModule", ({
   value: true
@@ -21597,8 +25052,6 @@ var _styled = _interopRequireDefault(__webpack_require__(80887));
 var _react = __webpack_require__(31466);
 var _StyledEngineProvider = _interopRequireDefault(__webpack_require__(84909));
 var _GlobalStyles = _interopRequireDefault(__webpack_require__(61218));
-/* eslint-disable no-underscore-dangle */
-
 function styled(tag, options) {
   const stylesFactory = (0, _styled.default)(tag, options);
   if (false) {}
@@ -22136,8 +25589,12 @@ const style = ({
         };
       }
       return {
+        // The useFlexGap={false} implement relies on each child to give up control of the margin.
+        // We need to reset the margin to avoid double spacing.
+        '& > :not(style):not(style)': {
+          margin: 0
+        },
         '& > :not(style) ~ :not(style)': {
-          margin: 0,
           [`margin${getSideFromDirection(breakpoint ? directionValues[breakpoint] : ownerState.direction)}`]: (0, _spacing.getValue)(transformer, propValue)
         }
       };
@@ -23782,6 +27239,9 @@ function shouldForwardProp(prop) {
 const systemDefaultTheme = (0, _createTheme.default)();
 exports.systemDefaultTheme = systemDefaultTheme;
 const lowercaseFirstLetter = string => {
+  if (!string) {
+    return string;
+  }
   return string.charAt(0).toLowerCase() + string.slice(1);
 };
 function resolveTheme({
@@ -23790,6 +27250,12 @@ function resolveTheme({
   themeId
 }) {
   return isEmpty(theme) ? defaultTheme : theme[themeId] || theme;
+}
+function defaultOverridesResolver(slot) {
+  if (!slot) {
+    return null;
+  }
+  return (props, styles) => styles[slot];
 }
 function createStyled(input = {}) {
   const {
@@ -23815,17 +27281,25 @@ function createStyled(input = {}) {
         slot: componentSlot,
         skipVariantsResolver: inputSkipVariantsResolver,
         skipSx: inputSkipSx,
-        overridesResolver
+        // TODO v6: remove `lowercaseFirstLetter()` in the next major release
+        // For more details: https://github.com/mui/material-ui/pull/37908
+        overridesResolver = defaultOverridesResolver(lowercaseFirstLetter(componentSlot))
       } = inputOptions,
       options = (0, _objectWithoutPropertiesLoose2.default)(inputOptions, _excluded);
 
     // if skipVariantsResolver option is defined, take the value, otherwise, true for root and false for other slots.
-    const skipVariantsResolver = inputSkipVariantsResolver !== undefined ? inputSkipVariantsResolver : componentSlot && componentSlot !== 'Root' || false;
+    const skipVariantsResolver = inputSkipVariantsResolver !== undefined ? inputSkipVariantsResolver :
+    // TODO v6: remove `Root` in the next major release
+    // For more details: https://github.com/mui/material-ui/pull/37908
+    componentSlot && componentSlot !== 'Root' && componentSlot !== 'root' || false;
     const skipSx = inputSkipSx || false;
     let label;
     if (false) {}
     let shouldForwardPropOption = shouldForwardProp;
-    if (componentSlot === 'Root') {
+
+    // TODO v6: remove `Root` in the next major release
+    // For more details: https://github.com/mui/material-ui/pull/37908
+    if (componentSlot === 'Root' || componentSlot === 'root') {
       shouldForwardPropOption = rootShouldForwardProp;
     } else if (componentSlot) {
       // any other slot specified
@@ -24802,31 +28276,29 @@ function getInitColorSchemeScript(options) {
   return /*#__PURE__*/(0, _jsxRuntime.jsx)("script", {
     // eslint-disable-next-line react/no-danger
     dangerouslySetInnerHTML: {
-      __html: `(function() { try {
-        var mode = localStorage.getItem('${modeStorageKey}') || '${defaultMode}';
-        var cssColorScheme = mode;
-        var colorScheme = '';
-        if (mode === 'system') {
-          // handle system mode
-          var mql = window.matchMedia('(prefers-color-scheme: dark)');
-          if (mql.matches) {
-            cssColorScheme = 'dark';
-            colorScheme = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
-          } else {
-            cssColorScheme = 'light';
-            colorScheme = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
-          }
-        }
-        if (mode === 'light') {
-          colorScheme = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
-        }
-        if (mode === 'dark') {
-          colorScheme = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
-        }
-        if (colorScheme) {
-          ${colorSchemeNode}.setAttribute('${attribute}', colorScheme);
-        }
-      } catch (e) {} })();`
+      __html: `(function() {
+try {
+  var mode = localStorage.getItem('${modeStorageKey}') || '${defaultMode}';
+  var colorScheme = '';
+  if (mode === 'system') {
+    // handle system mode
+    var mql = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mql.matches) {
+      colorScheme = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
+    } else {
+      colorScheme = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
+    }
+  }
+  if (mode === 'light') {
+    colorScheme = localStorage.getItem('${colorSchemeStorageKey}-light') || '${defaultLightColorScheme}';
+  }
+  if (mode === 'dark') {
+    colorScheme = localStorage.getItem('${colorSchemeStorageKey}-dark') || '${defaultDarkColorScheme}';
+  }
+  if (colorScheme) {
+    ${colorSchemeNode}.setAttribute('${attribute}', colorScheme);
+  }
+} catch(e){}})();`
     }
   }, "mui-color-scheme-init");
 }
@@ -25341,7 +28813,7 @@ exports["default"] = _default;
 
 "use strict";
 /**
- * @mui/system v5.14.1
+ * @mui/system v5.14.9
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -26148,10 +29620,20 @@ exports.width = width;
 const maxWidth = props => {
   if (props.maxWidth !== undefined && props.maxWidth !== null) {
     const styleFromPropValue = propValue => {
-      var _props$theme;
+      var _props$theme, _props$theme2;
       const breakpoint = ((_props$theme = props.theme) == null || (_props$theme = _props$theme.breakpoints) == null || (_props$theme = _props$theme.values) == null ? void 0 : _props$theme[propValue]) || _breakpoints.values[propValue];
+      if (!breakpoint) {
+        return {
+          maxWidth: sizingTransform(propValue)
+        };
+      }
+      if (((_props$theme2 = props.theme) == null || (_props$theme2 = _props$theme2.breakpoints) == null ? void 0 : _props$theme2.unit) !== 'px') {
+        return {
+          maxWidth: `${breakpoint}${props.theme.breakpoints.unit}`
+        };
+      }
       return {
-        maxWidth: breakpoint || sizingTransform(propValue)
+        maxWidth: breakpoint
       };
     };
     return (0, _breakpoints.handleBreakpoints)(props, props.maxWidth, styleFromPropValue);
@@ -26892,6 +30374,8 @@ function unstable_createStyleFunctionSx() {
     if (val == null) {
       return null;
     }
+
+    // TODO v6: remove, see https://github.com/mui/material-ui/pull/38123
     if (themeKey === 'typography' && val === 'inherit') {
       return {
         [prop]: val
@@ -27400,7 +30884,7 @@ exports["default"] = composeClasses;
 function composeClasses(slots, getUtilityClass, classes = undefined) {
   const output = {};
   Object.keys(slots).forEach(
-  // `Objet.keys(slots)` can't be wider than `T` because we infer `T` from `slots`.
+  // `Object.keys(slots)` can't be wider than `T` because we infer `T` from `slots`.
   // @ts-expect-error https://github.com/microsoft/TypeScript/pull/12253#issuecomment-263132208
   slot => {
     output[slot] = slots[slot].reduce((acc, key) => {
@@ -27820,16 +31304,19 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = generateUtilityClass;
 var _ClassNameGenerator = _interopRequireDefault(__webpack_require__(28372));
+// If GlobalStateSlot is changed, GLOBAL_STATE_CLASSES in
+// \packages\api-docs-builder\utils\parseSlotsAndClasses.ts must be updated accordingly.
 const globalStateClassesMapping = {
   active: 'active',
   checked: 'checked',
   completed: 'completed',
   disabled: 'disabled',
-  readOnly: 'readOnly',
   error: 'error',
   expanded: 'expanded',
   focused: 'focused',
   focusVisible: 'focusVisible',
+  open: 'open',
+  readOnly: 'readOnly',
   required: 'required',
   selected: 'selected'
 };
@@ -28000,7 +31487,7 @@ function getScrollbarSize(doc) {
 
 "use strict";
 /**
- * @mui/utils v5.14.1
+ * @mui/utils v5.14.9
  *
  * @license MIT
  * This source code is licensed under the MIT license found in the
@@ -42517,10 +46004,10 @@ function AiFillClockCircle (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm176.5 585.7l-28.6 39a7.99 7.99 0 0 1-11.2 1.7L483.3 569.8a7.92 7.92 0 0 1-3.3-6.5V288c0-4.4 3.6-8 8-8h48.1c4.4 0 8 3.6 8 8v247.5l142.6 103.1c3.6 2.5 4.4 7.5 1.8 11.1z"}}]})(props);
 };
 function AiFillCloseCircle (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm165.4 618.2l-66-.3L512 563.4l-99.3 118.4-66.1.3c-4.4 0-8-3.5-8-8 0-1.9.7-3.7 1.9-5.2l130.1-155L340.5 359a8.32 8.32 0 0 1-1.9-5.2c0-4.4 3.6-8 8-8l66.1.3L512 464.6l99.3-118.4 66-.3c4.4 0 8 3.5 8 8 0 1.9-.7 3.7-1.9 5.2L553.5 514l130 155c1.2 1.5 1.9 3.3 1.9 5.2 0 4.4-3.6 8-8 8z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M512 64c247.4 0 448 200.6 448 448S759.4 960 512 960 64 759.4 64 512 264.6 64 512 64Zm127.978 274.82-.034.006c-.023.007-.042.018-.083.059L512 466.745l-127.86-127.86c-.042-.041-.06-.052-.084-.059a.118.118 0 0 0-.07 0c-.022.007-.041.018-.082.059l-45.02 45.019c-.04.04-.05.06-.058.083a.118.118 0 0 0 0 .07l.01.022a.268.268 0 0 0 .049.06L466.745 512l-127.86 127.862c-.041.04-.052.06-.059.083a.118.118 0 0 0 0 .07c.007.022.018.041.059.082l45.019 45.02c.04.04.06.05.083.058a.118.118 0 0 0 .07 0c.022-.007.041-.018.082-.059L512 557.254l127.862 127.861c.04.041.06.052.083.059a.118.118 0 0 0 .07 0c.022-.007.041-.018.082-.059l45.02-45.019c.04-.04.05-.06.058-.083a.118.118 0 0 0 0-.07l-.01-.022a.268.268 0 0 0-.049-.06L557.254 512l127.861-127.86c.041-.042.052-.06.059-.084a.118.118 0 0 0 0-.07c-.007-.022-.018-.041-.059-.082l-45.019-45.02c-.04-.04-.06-.05-.083-.058a.118.118 0 0 0-.07 0Z"}}]})(props);
 };
 function AiFillCloseSquare (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zM676.1 657.9c4.4 5.2.7 13.1-6.1 13.1h-58.9c-4.7 0-9.2-2.1-12.3-5.7L512 561.8l-86.8 103.5c-3 3.6-7.5 5.7-12.3 5.7H354c-6.8 0-10.5-7.9-6.1-13.1L470.2 512 347.9 366.1A7.95 7.95 0 0 1 354 353h58.9c4.7 0 9.2 2.1 12.3 5.7L512 462.2l86.8-103.5c3-3.6 7.5-5.7 12.3-5.7H670c6.8 0 10.5 7.9 6.1 13.1L553.8 512l122.3 145.9z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M880 112c17.7 0 32 14.3 32 32v736c0 17.7-14.3 32-32 32H144c-17.7 0-32-14.3-32-32V144c0-17.7 14.3-32 32-32ZM639.978 338.82l-.034.006c-.023.007-.042.018-.083.059L512 466.745l-127.86-127.86c-.042-.041-.06-.052-.084-.059a.118.118 0 0 0-.07 0c-.022.007-.041.018-.082.059l-45.02 45.019c-.04.04-.05.06-.058.083a.118.118 0 0 0 0 .07l.01.022a.268.268 0 0 0 .049.06L466.745 512l-127.86 127.862c-.041.04-.052.06-.059.083a.118.118 0 0 0 0 .07c.007.022.018.041.059.082l45.019 45.02c.04.04.06.05.083.058a.118.118 0 0 0 .07 0c.022-.007.041-.018.082-.059L512 557.254l127.862 127.861c.04.041.06.052.083.059a.118.118 0 0 0 .07 0c.022-.007.041-.018.082-.059l45.02-45.019c.04-.04.05-.06.058-.083a.118.118 0 0 0 0-.07l-.01-.022a.268.268 0 0 0-.049-.06L557.254 512l127.861-127.86c.041-.042.052-.06.059-.084a.118.118 0 0 0 0-.07c-.007-.022-.018-.041-.059-.082l-45.019-45.02c-.04-.04-.06-.05-.083-.058a.118.118 0 0 0-.07 0Z"}}]})(props);
 };
 function AiFillCloud (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M811.4 418.7C765.6 297.9 648.9 212 512.2 212S258.8 297.8 213 418.6C127.3 441.1 64 519.1 64 612c0 110.5 89.5 200 199.9 200h496.2C870.5 812 960 722.5 960 612c0-92.7-63.1-170.7-148.6-193.3z"}}]})(props);
@@ -43282,13 +46769,13 @@ function AiOutlineClockCircle (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"}},{"tag":"path","attr":{"d":"M686.7 638.6L544.1 535.5V288c0-4.4-3.6-8-8-8H488c-4.4 0-8 3.6-8 8v275.4c0 2.6 1.2 5 3.3 6.5l165.4 120.6c3.6 2.6 8.6 1.8 11.2-1.7l28.6-39c2.6-3.7 1.8-8.7-1.8-11.2z"}}]})(props);
 };
 function AiOutlineCloseCircle (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M685.4 354.8c0-4.4-3.6-8-8-8l-66 .3L512 465.6l-99.3-118.4-66.1-.3c-4.4 0-8 3.5-8 8 0 1.9.7 3.7 1.9 5.2l130.1 155L340.5 670a8.32 8.32 0 0 0-1.9 5.2c0 4.4 3.6 8 8 8l66.1-.3L512 564.4l99.3 118.4 66 .3c4.4 0 8-3.5 8-8 0-1.9-.7-3.7-1.9-5.2L553.5 515l130.1-155c1.2-1.4 1.8-3.3 1.8-5.2z"}},{"tag":"path","attr":{"d":"M512 65C264.6 65 64 265.6 64 513s200.6 448 448 448 448-200.6 448-448S759.4 65 512 65zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M512 64c247.4 0 448 200.6 448 448S759.4 960 512 960 64 759.4 64 512 264.6 64 512 64Zm0 76c-205.4 0-372 166.6-372 372s166.6 372 372 372 372-166.6 372-372-166.6-372-372-372Zm128.013 198.826c.023.007.042.018.083.059l45.02 45.019c.04.04.05.06.058.083a.118.118 0 0 1 0 .07c-.007.022-.018.041-.059.082L557.254 512l127.861 127.862a.268.268 0 0 1 .05.06l.009.023a.118.118 0 0 1 0 .07c-.007.022-.018.041-.059.082l-45.019 45.02c-.04.04-.06.05-.083.058a.118.118 0 0 1-.07 0c-.022-.007-.041-.018-.082-.059L512 557.254 384.14 685.115c-.042.041-.06.052-.084.059a.118.118 0 0 1-.07 0c-.022-.007-.041-.018-.082-.059l-45.02-45.019c-.04-.04-.05-.06-.058-.083a.118.118 0 0 1 0-.07c.007-.022.018-.041.059-.082L466.745 512l-127.86-127.86a.268.268 0 0 1-.05-.061l-.009-.023a.118.118 0 0 1 0-.07c.007-.022.018-.041.059-.082l45.019-45.02c.04-.04.06-.05.083-.058a.118.118 0 0 1 .07 0c.022.007.041.018.082.059L512 466.745l127.862-127.86c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z"}}]})(props);
 };
 function AiOutlineCloseSquare (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M354 671h58.9c4.7 0 9.2-2.1 12.3-5.7L512 561.8l86.8 103.5c3 3.6 7.5 5.7 12.3 5.7H670c6.8 0 10.5-7.9 6.1-13.1L553.8 512l122.4-145.9c4.4-5.2.7-13.1-6.1-13.1h-58.9c-4.7 0-9.2 2.1-12.3 5.7L512 462.2l-86.8-103.5c-3-3.6-7.5-5.7-12.3-5.7H354c-6.8 0-10.5 7.9-6.1 13.1L470.2 512 347.9 657.9A7.95 7.95 0 0 0 354 671z"}},{"tag":"path","attr":{"d":"M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M880 112c17.7 0 32 14.3 32 32v736c0 17.7-14.3 32-32 32H144c-17.7 0-32-14.3-32-32V144c0-17.7 14.3-32 32-32Zm-40 72H184v656h656V184ZM640.013 338.826c.023.007.042.018.083.059l45.02 45.019c.04.04.05.06.058.083a.118.118 0 0 1 0 .07c-.007.022-.018.041-.059.082L557.254 512l127.861 127.862a.268.268 0 0 1 .05.06l.009.023a.118.118 0 0 1 0 .07c-.007.022-.018.041-.059.082l-45.019 45.02c-.04.04-.06.05-.083.058a.118.118 0 0 1-.07 0c-.022-.007-.041-.018-.082-.059L512 557.254 384.14 685.115c-.042.041-.06.052-.084.059a.118.118 0 0 1-.07 0c-.022-.007-.041-.018-.082-.059l-45.02-45.019c-.04-.04-.05-.06-.058-.083a.118.118 0 0 1 0-.07c.007-.022.018-.041.059-.082L466.745 512l-127.86-127.86a.268.268 0 0 1-.05-.061l-.009-.023a.118.118 0 0 1 0-.07c.007-.022.018-.041.059-.082l45.019-45.02c.04-.04.06-.05.083-.058a.118.118 0 0 1 .07 0c.022.007.041.018.082.059L512 466.745l127.862-127.86c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z"}}]})(props);
 };
 function AiOutlineClose (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M563.8 512l262.5-312.9c4.4-5.2.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 0 0 203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z"}}]})(props);
 };
 function AiOutlineCloudDownload (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M624 706.3h-74.1V464c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v242.3H400c-6.7 0-10.4 7.7-6.3 12.9l112 141.7a8 8 0 0 0 12.6 0l112-141.7c4.1-5.2.4-12.9-6.3-12.9z"}},{"tag":"path","attr":{"d":"M811.4 366.7C765.6 245.9 648.9 160 512.2 160S258.8 245.8 213 366.6C127.3 389.1 64 467.2 64 560c0 110.5 89.5 200 199.9 200H304c4.4 0 8-3.6 8-8v-60c0-4.4-3.6-8-8-8h-40.1c-33.7 0-65.4-13.4-89-37.7-23.5-24.2-36-56.8-34.9-90.6.9-26.4 9.9-51.2 26.2-72.1 16.7-21.3 40.1-36.8 66.1-43.7l37.9-9.9 13.9-36.6c8.6-22.8 20.6-44.1 35.7-63.4a245.6 245.6 0 0 1 52.4-49.9c41.1-28.9 89.5-44.2 140-44.2s98.9 15.3 140 44.2c19.9 14 37.5 30.8 52.4 49.9 15.1 19.3 27.1 40.7 35.7 63.4l13.8 36.5 37.8 10C846.1 454.5 884 503.8 884 560c0 33.1-12.9 64.3-36.3 87.7a123.07 123.07 0 0 1-87.6 36.3H720c-4.4 0-8 3.6-8 8v60c0 4.4 3.6 8 8 8h40.1C870.5 760 960 670.5 960 560c0-92.7-63.1-170.7-148.6-193.3z"}}]})(props);
@@ -43486,7 +46973,7 @@ function AiOutlineExperiment (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M512 472a40 40 0 1 0 80 0 40 40 0 1 0-80 0zm367 352.9L696.3 352V178H768v-68H256v68h71.7v174L145 824.9c-2.8 7.4-4.3 15.2-4.3 23.1 0 35.3 28.7 64 64 64h614.6c7.9 0 15.7-1.5 23.1-4.3 33-12.7 49.4-49.8 36.6-82.8zM395.7 364.7V180h232.6v184.7L719.2 600c-20.7-5.3-42.1-8-63.9-8-61.2 0-119.2 21.5-165.3 60a188.78 188.78 0 0 1-121.3 43.9c-32.7 0-64.1-8.3-91.8-23.7l118.8-307.5zM210.5 844l41.7-107.8c35.7 18.1 75.4 27.8 116.6 27.8 61.2 0 119.2-21.5 165.3-60 33.9-28.2 76.3-43.9 121.3-43.9 35 0 68.4 9.5 97.6 27.1L813.5 844h-603z"}}]})(props);
 };
 function AiOutlineExport (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zm18.6-251.7L765 393.7c-5.3-4.2-13-.4-13 6.3v76H438c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h314v76c0 6.7 7.8 10.5 13 6.3l141.9-112a8 8 0 0 0 0-12.6z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h360c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H184V184h656v320c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V144c0-17.7-14.3-32-32-32ZM770.87 824.869l-52.2 52.2c-4.7 4.7-1.9 12.8 4.7 13.6l179.4 21c5.1.6 9.5-3.7 8.9-8.9l-21-179.4c-.8-6.6-8.9-9.4-13.6-4.7l-52.4 52.4-256.2-256.2c-3.1-3.1-8.2-3.1-11.3 0l-42.4 42.4c-3.1 3.1-3.1 8.2 0 11.3l256.1 256.3Z","transform":"matrix(1 0 0 -1 0 1024)"}}]})(props);
 };
 function AiOutlineEyeInvisible (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M942.2 486.2Q889.47 375.11 816.7 305l-50.88 50.88C807.31 395.53 843.45 447.4 874.7 512 791.5 684.2 673.4 766 512 766q-72.67 0-133.87-22.38L323 798.75Q408 838 512 838q288.3 0 430.2-300.3a60.29 60.29 0 0 0 0-51.5zm-63.57-320.64L836 122.88a8 8 0 0 0-11.32 0L715.31 232.2Q624.86 186 512 186q-288.3 0-430.2 300.3a60.3 60.3 0 0 0 0 51.5q56.69 119.4 136.5 191.41L112.48 835a8 8 0 0 0 0 11.31L155.17 889a8 8 0 0 0 11.31 0l712.15-712.12a8 8 0 0 0 0-11.32zM149.3 512C232.6 339.8 350.7 258 512 258c54.54 0 104.13 9.36 149.12 28.39l-70.3 70.3a176 176 0 0 0-238.13 238.13l-83.42 83.42C223.1 637.49 183.3 582.28 149.3 512zm246.7 0a112.11 112.11 0 0 1 146.2-106.69L401.31 546.2A112 112 0 0 1 396 512z"}},{"tag":"path","attr":{"d":"M508 624c-3.46 0-6.87-.16-10.25-.47l-52.82 52.82a176.09 176.09 0 0 0 227.42-227.42l-52.82 52.82c.31 3.38.47 6.79.47 10.25a111.94 111.94 0 0 1-112 112z"}}]})(props);
@@ -43699,7 +47186,7 @@ function AiOutlineIe (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M852.6 367.6c16.3-36.9 32.1-90.7 32.1-131.8 0-109.1-119.5-147.6-314.5-57.9-161.4-10.8-316.8 110.5-355.6 279.7 46.3-52.3 117.4-123.4 183-151.7C316.1 378.3 246.7 470 194 565.6c-31.1 56.9-66 148.8-66 217.5 0 147.9 139.3 129.8 270.4 63 47.1 23.1 99.8 23.4 152.5 23.4 145.7 0 276.4-81.4 325.2-219H694.9c-78.8 132.9-295.2 79.5-295.2-71.2h493.2c9.6-65.4-2.5-143.6-40.3-211.7zM224.8 648.3c26.6 76.7 80.6 143.8 150.4 185-133.1 73.4-259.9 43.6-150.4-185zm174-163.3c3-82.7 75.4-142.3 156-142.3 80.1 0 153 59.6 156 142.3h-312zm276.8-281.4c32.1-15.4 72.8-33 108.8-33 47.1 0 81.4 32.6 81.4 80.6 0 30-11.1 73.5-21.9 101.8-39.3-63.5-98.9-122.4-168.3-149.4z"}}]})(props);
 };
 function AiOutlineImport (props) {
-  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 0 0 0 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024","fill":"currentColor","fillRule":"evenodd"},"child":[{"tag":"path","attr":{"d":"M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h360c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H184V184h656v320c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V144c0-17.7-14.3-32-32-32ZM653.3 599.4l52.2-52.2c4.7-4.7 1.9-12.8-4.7-13.6l-179.4-21c-5.1-.6-9.5 3.7-8.9 8.9l21 179.4c.8 6.6 8.9 9.4 13.6 4.7l52.4-52.4 256.2 256.2c3.1 3.1 8.2 3.1 11.3 0l42.4-42.4c3.1-3.1 3.1-8.2 0-11.3L653.3 599.4Z","transform":"matrix(1 0 0 -1 0 1024)"}}]})(props);
 };
 function AiOutlineInbox (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M885.2 446.3l-.2-.8-112.2-285.1c-5-16.1-19.9-27.2-36.8-27.2H281.2c-17 0-32.1 11.3-36.9 27.6L139.4 443l-.3.7-.2.8c-1.3 4.9-1.7 9.9-1 14.8-.1 1.6-.2 3.2-.2 4.8V830a60.9 60.9 0 0 0 60.8 60.8h627.2c33.5 0 60.8-27.3 60.9-60.8V464.1c0-1.3 0-2.6-.1-3.7.4-4.9 0-9.6-1.3-14.1zm-295.8-43l-.3 15.7c-.8 44.9-31.8 75.1-77.1 75.1-22.1 0-41.1-7.1-54.8-20.6S436 441.2 435.6 419l-.3-15.7H229.5L309 210h399.2l81.7 193.3H589.4zm-375 76.8h157.3c24.3 57.1 76 90.8 140.4 90.8 33.7 0 65-9.4 90.3-27.2 22.2-15.6 39.5-37.4 50.7-63.6h156.5V814H214.4V480.1z"}}]})(props);
@@ -43915,7 +47402,7 @@ function AiOutlinePlusSquare (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M328 544h152v152c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V544h152c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H544V328c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v152H328c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8z"}},{"tag":"path","attr":{"d":"M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"}}]})(props);
 };
 function AiOutlinePlus (props) {
-  return GenIcon({"tag":"svg","attr":{"t":"1551322312294","style":"","viewBox":"0 0 1024 1024","version":"1.1"},"child":[{"tag":"defs","attr":{},"child":[]},{"tag":"path","attr":{"d":"M474 152m8 0l60 0q8 0 8 8l0 704q0 8-8 8l-60 0q-8 0-8-8l0-704q0-8 8-8Z"}},{"tag":"path","attr":{"d":"M168 474m8 0l672 0q8 0 8 8l0 60q0 8-8 8l-672 0q-8 0-8-8l0-60q0-8 8-8Z"}}]})(props);
+  return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8Z"}},{"tag":"path","attr":{"d":"M192 474h672q8 0 8 8v60q0 8-8 8H160q-8 0-8-8v-60q0-8 8-8Z"}}]})(props);
 };
 function AiOutlinePoundCircle (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372zm138-209.8H469.8v-4.7c27.4-17.2 43.9-50.4 43.9-91.1 0-14.1-2.2-27.9-5.3-41H607c4.4 0 8-3.6 8-8v-30c0-4.4-3.6-8-8-8H495c-7.2-22.6-13.4-45.7-13.4-70.5 0-43.5 34-70.2 87.3-70.2 21.5 0 42.5 4.1 60.4 10.5 5.2 1.9 10.6-2 10.6-7.6v-39.5c0-3.3-2.1-6.3-5.2-7.5-18.8-7.2-43.8-12.7-70.3-12.7-92.9 0-151.5 44.5-151.5 120.3 0 26.3 6.9 52 14.6 77.1H374c-4.4 0-8 3.6-8 8v30c0 4.4 3.6 8 8 8h67.1c3.4 14.7 5.9 29.4 5.9 44.2 0 45.2-28.8 83.3-72.8 94.2-3.6.9-6.1 4.1-6.1 7.8V722c0 4.4 3.6 8 8 8H650c4.4 0 8-3.6 8-8v-39.8c0-4.4-3.6-8-8-8z"}}]})(props);
@@ -45148,7 +48635,7 @@ if (true) {
 
 /***/ }),
 
-/***/ 70320:
+/***/ 22602:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -45158,7 +48645,7 @@ __webpack_require__.d(__webpack_exports__, {
   s5: () => (/* reexport */ RotatingLines)
 });
 
-// UNUSED EXPORTS: Audio, BallTriangle, Bars, Blocks, Circles, CirclesWithBar, ColorRing, Comment, Discuss, Dna, FallingLines, FidgetSpinner, Grid, Hearts, InfinitySpin, LineWave, MagnifyingGlass, MutatingDots, Oval, ProgressBar, Puff, Radio, RevolvingDot, Rings, RotatingSquare, RotatingTriangles, TailSpin, ThreeCircles, ThreeDots, Triangle, Vortex, Watch
+// UNUSED EXPORTS: Audio, BallTriangle, Bars, Blocks, Circles, CirclesWithBar, ColorRing, Comment, Discuss, Dna, FallingLines, FidgetSpinner, Grid, Hearts, Hourglass, InfinitySpin, LineWave, MagnifyingGlass, MutatingDots, Oval, ProgressBar, Puff, Radio, RevolvingDot, Rings, RotatingSquare, RotatingTriangles, TailSpin, ThreeCircles, ThreeDots, Triangle, Vortex, Watch
 
 // EXTERNAL MODULE: external "next/dist/compiled/react"
 var react_ = __webpack_require__(18038);
@@ -45511,7 +48998,7 @@ var getViewBoxSize = function (strokeWidth, secondaryStrokeWidth, radius) {
 };
 var Oval = function (_a) {
     var _b = _a.height, height = _b === void 0 ? 80 : _b, _c = _a.width, width = _c === void 0 ? 80 : _c, _d = _a.color, color = _d === void 0 ? DEFAULT_COLOR : _d, _e = _a.secondaryColor, secondaryColor = _e === void 0 ? DEFAULT_COLOR : _e, _f = _a.ariaLabel, ariaLabel = _f === void 0 ? 'oval-loading' : _f, wrapperStyle = _a.wrapperStyle, wrapperClass = _a.wrapperClass, _g = _a.visible, visible = _g === void 0 ? true : _g, _h = _a.strokeWidth, strokeWidth = _h === void 0 ? 2 : _h, strokeWidthSecondary = _a.strokeWidthSecondary;
-    return (React.createElement("div", Oval_assign({ style: Oval_assign(Oval_assign(Oval_assign({}, getDefaultStyle(visible)), wrapperStyle), { padding: 3 }), className: wrapperClass, "data-testid": "oval-loading", "aria-label": ariaLabel }, DEFAULT_WAI_ARIA_ATTRIBUTE),
+    return (React.createElement("div", Oval_assign({ style: Oval_assign(Oval_assign({}, getDefaultStyle(visible)), wrapperStyle), className: wrapperClass, "data-testid": "oval-loading", "aria-label": ariaLabel }, DEFAULT_WAI_ARIA_ATTRIBUTE),
         React.createElement("svg", { width: width, height: height, viewBox: getViewBoxSize(Number(strokeWidth), Number(strokeWidthSecondary || strokeWidth), RADIUS), xmlns: "http://www.w3.org/2000/svg", stroke: color, "data-testid": "oval-svg" },
             React.createElement("g", { fill: "none", fillRule: "evenodd" },
                 React.createElement("g", { transform: "translate(1 1)", strokeWidth: Number(strokeWidthSecondary || strokeWidth), "data-testid": "oval-secondary-group" },
@@ -45685,19 +49172,23 @@ var TailSpin_assign = (undefined && undefined.__assign) || function () {
 
 
 var TailSpin = function (_a) {
-    var _b = _a.height, height = _b === void 0 ? 80 : _b, _c = _a.width, width = _c === void 0 ? 80 : _c, _d = _a.radius, radius = _d === void 0 ? 1 : _d, _e = _a.color, color = _e === void 0 ? DEFAULT_COLOR : _e, _f = _a.ariaLabel, ariaLabel = _f === void 0 ? 'tail-spin-loading' : _f, wrapperStyle = _a.wrapperStyle, wrapperClass = _a.wrapperClass, _g = _a.visible, visible = _g === void 0 ? true : _g;
+    var _b = _a.height, height = _b === void 0 ? 80 : _b, _c = _a.width, width = _c === void 0 ? 80 : _c, _d = _a.strokeWidth, strokeWidth = _d === void 0 ? 2 : _d, _e = _a.radius, radius = _e === void 0 ? 1 : _e, _f = _a.color, color = _f === void 0 ? DEFAULT_COLOR : _f, _g = _a.ariaLabel, ariaLabel = _g === void 0 ? 'tail-spin-loading' : _g, wrapperStyle = _a.wrapperStyle, wrapperClass = _a.wrapperClass, _h = _a.visible, visible = _h === void 0 ? true : _h;
+    var strokeWidthNum = parseInt(String(strokeWidth));
+    var viewBoxValue = strokeWidthNum + 36;
+    var halfStrokeWidth = strokeWidthNum / 2;
+    var processedRadius = halfStrokeWidth + parseInt(String(radius)) - 1;
     return (React.createElement("div", TailSpin_assign({ style: TailSpin_assign(TailSpin_assign({}, getDefaultStyle(visible)), wrapperStyle), className: wrapperClass, "data-testid": "tail-spin-loading", "aria-label": ariaLabel }, DEFAULT_WAI_ARIA_ATTRIBUTE),
-        React.createElement("svg", { width: width, height: height, viewBox: "0 0 38 38", xmlns: "http://www.w3.org/2000/svg", "data-testid": "tail-spin-svg" },
+        React.createElement("svg", { width: width, height: height, viewBox: "0 0 ".concat(viewBoxValue, " ").concat(viewBoxValue), xmlns: "http://www.w3.org/2000/svg", "data-testid": "tail-spin-svg" },
             React.createElement("defs", null,
                 React.createElement("linearGradient", { x1: "8.042%", y1: "0%", x2: "65.682%", y2: "23.865%", id: "a" },
                     React.createElement("stop", { stopColor: color, stopOpacity: "0", offset: "0%" }),
                     React.createElement("stop", { stopColor: color, stopOpacity: ".631", offset: "63.146%" }),
                     React.createElement("stop", { stopColor: color, offset: "100%" }))),
             React.createElement("g", { fill: "none", fillRule: "evenodd" },
-                React.createElement("g", { transform: "translate(1 1)" },
-                    React.createElement("path", { d: "M36 18c0-9.94-8.06-18-18-18", id: "Oval-2", stroke: color, strokeWidth: "2" },
+                React.createElement("g", { transform: "translate(".concat(halfStrokeWidth, " ").concat(halfStrokeWidth, ")") },
+                    React.createElement("path", { d: "M36 18c0-9.94-8.06-18-18-18", id: "Oval-2", stroke: color, strokeWidth: strokeWidth },
                         React.createElement("animateTransform", { attributeName: "transform", type: "rotate", from: "0 18 18", to: "360 18 18", dur: "0.9s", repeatCount: "indefinite" })),
-                    React.createElement("circle", { fill: "#fff", cx: "36", cy: "18", r: radius },
+                    React.createElement("circle", { fill: "#fff", cx: "36", cy: "18", r: processedRadius },
                         React.createElement("animateTransform", { attributeName: "transform", type: "rotate", from: "0 18 18", to: "360 18 18", dur: "0.9s", repeatCount: "indefinite" })))))));
 };
 /* harmony default export */ const loader_TailSpin = ((/* unused pure expression or super */ null && (TailSpin)));
@@ -46232,7 +49723,36 @@ function Blocks(_a) {
             React.createElement("animate", { attributeName: "fill", values: "#0dceff;#577c9b;#577c9b", keyTimes: "0;0.125;1", dur: "1s", repeatCount: "indefinite", begin: "0.5s", calcMode: "discrete" }))));
 }
 
+;// CONCATENATED MODULE: ./node_modules/react-loader-spinner/dist/esm/loader/Hourglass.js
+var Hourglass_assign = (undefined && undefined.__assign) || function () {
+    Hourglass_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return Hourglass_assign.apply(this, arguments);
+};
+
+
+function Hourglass(_a) {
+    var _b = _a.visible, visible = _b === void 0 ? true : _b, _c = _a.width, width = _c === void 0 ? '80' : _c, _d = _a.height, height = _d === void 0 ? '80' : _d, _e = _a.wrapperClass, wrapperClass = _e === void 0 ? '' : _e, _f = _a.wrapperStyle, wrapperStyle = _f === void 0 ? {} : _f, _g = _a.ariaLabel, ariaLabel = _g === void 0 ? 'hourglass-loading' : _g, _h = _a.colors, colors = _h === void 0 ? ['#306cce', '#72a1ed'] : _h;
+    return !visible ? null : (React.createElement("svg", Hourglass_assign({ width: width, height: height, xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 350 350", preserveAspectRatio: "xMidYMid", className: wrapperClass, style: wrapperStyle, "aria-label": ariaLabel, "data-testid": "hourglass-svg" }, DEFAULT_WAI_ARIA_ATTRIBUTE),
+        React.createElement("animateTransform", { attributeName: "transform", type: "rotate", values: "0; 0; -30; 360; 360", keyTimes: "0; 0.40; 0.55; 0.65; 1", dur: "3s", begin: "0s", calcMode: "linear", repeatCount: "indefinite" }),
+        React.createElement("g", null,
+            React.createElement("path", { fill: colors[0], stroke: colors[0], d: "M324.658,20.572v-2.938C324.658,7.935,316.724,0,307.025,0H40.313c-9.699,0-17.635,7.935-17.635,17.634v2.938\n\t\t\t\tc0,9.699,7.935,17.634,17.635,17.634h6.814c3.5,0,3.223,3.267,3.223,4.937c0,19.588,8.031,42.231,14.186,56.698\n\t\t\t\tc12.344,29.012,40.447,52.813,63.516,69.619c4.211,3.068,3.201,5.916,0.756,7.875c-22.375,17.924-51.793,40.832-64.271,70.16\n\t\t\t\tc-6.059,14.239-13.934,36.4-14.18,55.772c-0.025,1.987,0.771,5.862-3.979,5.862h-6.064c-9.699,0-17.635,7.936-17.635,17.634v2.94\n\t\t\t\tc0,9.698,7.935,17.634,17.635,17.634h266.713c9.699,0,17.633-7.936,17.633-17.634v-2.94c0-9.698-7.934-17.634-17.633-17.634\n\t\t\t\th-3.816c-7,0-6.326-5.241-6.254-7.958c0.488-18.094-4.832-38.673-12.617-54.135c-17.318-34.389-44.629-56.261-61.449-68.915\n\t\t\t\tc-3.65-2.745-4.018-6.143,0-8.906c17.342-11.929,44.131-34.526,61.449-68.916c8.289-16.464,13.785-38.732,12.447-57.621\n\t\t\t\tc-0.105-1.514-0.211-4.472,3.758-4.472h6.482C316.725,38.206,324.658,30.272,324.658,20.572z M270.271,93.216\n\t\t\t\tc-16.113,31.998-41.967,54.881-64.455,68.67c-1.354,0.831-3.936,2.881-3.936,8.602v6.838c0,6.066,2.752,7.397,4.199,8.286\n\t\t\t\tc22.486,13.806,48.143,36.636,64.191,68.508c7.414,14.727,11.266,32.532,10.885,46.702c-0.078,2.947,1.053,8.308-6.613,8.308\n\t\t\t\tH72.627c-6.75,0-6.475-3.37-6.459-5.213c0.117-12.895,4.563-30.757,12.859-50.255c14.404-33.854,44.629-54.988,64.75-67.577\n\t\t\t\tc0.896-0.561,2.629-1.567,2.629-6.922v-10.236c0-5.534-2.656-7.688-4.057-8.57c-20.098-12.688-49.256-33.618-63.322-66.681\n\t\t\t\tc-8.383-19.702-12.834-37.732-12.861-50.657c-0.002-1.694,0.211-4.812,3.961-4.812h206.582c4.168,0,4.127,3.15,4.264,4.829\n\t\t\t\tC282.156,57.681,278.307,77.257,270.271,93.216z" }),
+            React.createElement("g", null,
+                React.createElement("path", { fill: colors[1], stroke: colors[1], d: "M169.541,196.2l-68.748,86.03c-2.27,2.842-1.152,5.166,2.484,5.166h140.781c3.637,0,4.756-2.324,2.484-5.166\n\t\t\t\tl-68.746-86.03C175.525,193.358,171.811,193.358,169.541,196.2z" }),
+                React.createElement("animate", { attributeName: "opacity", values: "0; 0; 1; 1; 0; 0", keyTimes: "0; 0.1; 0.4; 0.6; 0.61; 1", dur: "3s", repeatCount: "indefinite" })),
+            React.createElement("g", null,
+                React.createElement("path", { fill: colors[1], stroke: colors[1], d: "M168.986,156.219c2.576,2.568,6.789,2.568,9.363,0l34.576-34.489c2.574-2.568,1.707-4.67-1.932-4.67H136.34\n\t\t\t\tc-3.637,0-4.506,2.102-1.932,4.67L168.986,156.219z" }),
+                React.createElement("animate", { attributeName: "opacity", values: "1; 1; 0; 0; 1; 1", keyTimes: "0; 0.1; 0.4; 0.65; 0.66; 1", dur: "3s", repeatCount: "indefinite" })))));
+}
+
 ;// CONCATENATED MODULE: ./node_modules/react-loader-spinner/dist/esm/index.js
+
 
 
 
@@ -51562,26 +55082,26 @@ module.exports = _interopRequireDefault, module.exports.__esModule = true, modul
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var defineProperty = __webpack_require__(513);
-function ownKeys(object, enumerableOnly) {
-  var keys = Object.keys(object);
+function ownKeys(e, r) {
+  var t = Object.keys(e);
   if (Object.getOwnPropertySymbols) {
-    var symbols = Object.getOwnPropertySymbols(object);
-    enumerableOnly && (symbols = symbols.filter(function (sym) {
-      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-    })), keys.push.apply(keys, symbols);
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
   }
-  return keys;
+  return t;
 }
-function _objectSpread2(target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = null != arguments[i] ? arguments[i] : {};
-    i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
-      defineProperty(target, key, source[key]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
-      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      defineProperty(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
     });
   }
-  return target;
+  return e;
 }
 module.exports = _objectSpread2, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
@@ -51640,14 +55160,14 @@ module.exports = _toPropertyKey, module.exports.__esModule = true, module.export
 /***/ 67236:
 /***/ ((module) => {
 
-function _typeof(obj) {
+function _typeof(o) {
   "@babel/helpers - typeof";
 
-  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(obj);
+  return (module.exports = _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) {
+    return typeof o;
+  } : function (o) {
+    return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
+  }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(o);
 }
 module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
@@ -51807,7 +55327,7 @@ var use_event = __webpack_require__(78099);
 var t;let a=(t=react_.startTransition)!=null?t:function(i){i()};
 
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/components/disclosure/disclosure.js
-var q=(o=>(o[o.Open=0]="Open",o[o.Closed=1]="Closed",o))(q||{}),z=(t=>(t[t.ToggleDisclosure=0]="ToggleDisclosure",t[t.CloseDisclosure=1]="CloseDisclosure",t[t.SetButtonId=2]="SetButtonId",t[t.SetPanelId=3]="SetPanelId",t[t.LinkPanel=4]="LinkPanel",t[t.UnlinkPanel=5]="UnlinkPanel",t))(z||{});let Q={[0]:e=>({...e,disclosureState:(0,match/* match */.E)(e.disclosureState,{[0]:1,[1]:0})}),[1]:e=>e.disclosureState===1?e:{...e,disclosureState:1},[4](e){return e.linkedPanel===!0?e:{...e,linkedPanel:!0}},[5](e){return e.linkedPanel===!1?e:{...e,linkedPanel:!1}},[2](e,n){return e.buttonId===n.buttonId?e:{...e,buttonId:n.buttonId}},[3](e,n){return e.panelId===n.panelId?e:{...e,panelId:n.panelId}}},k=(0,react_.createContext)(null);k.displayName="DisclosureContext";function M(e){let n=(0,react_.useContext)(k);if(n===null){let o=new Error(`<${e} /> is missing a parent <Disclosure /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(o,M),o}return n}let v=(0,react_.createContext)(null);v.displayName="DisclosureAPIContext";function w(e){let n=(0,react_.useContext)(v);if(n===null){let o=new Error(`<${e} /> is missing a parent <Disclosure /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(o,w),o}return n}let H=(0,react_.createContext)(null);H.displayName="DisclosurePanelContext";function V(){return (0,react_.useContext)(H)}function Y(e,n){return (0,match/* match */.E)(n.type,Q,e,n)}let Z=react_.Fragment;function ee(e,n){let{defaultOpen:o=!1,...u}=e,T=(0,react_.useRef)(null),l=(0,use_sync_refs/* useSyncRefs */.T)(n,(0,use_sync_refs/* optionalRef */.h)(a=>{T.current=a},e.as===void 0||e.as===react_.Fragment)),t=(0,react_.useRef)(null),f=(0,react_.useRef)(null),s=(0,react_.useReducer)(Y,{disclosureState:o?0:1,linkedPanel:!1,buttonRef:f,panelRef:t,buttonId:null,panelId:null}),[{disclosureState:i,buttonId:c},D]=s,d=(0,use_event/* useEvent */.z)(a=>{D({type:1});let r=(0,owner/* getOwnerDocument */.r)(T);if(!r||!c)return;let p=(()=>a?a instanceof HTMLElement?a:a.current instanceof HTMLElement?a.current:r.getElementById(c):r.getElementById(c))();p==null||p.focus()}),P=(0,react_.useMemo)(()=>({close:d}),[d]),b=(0,react_.useMemo)(()=>({open:i===0,close:d}),[i,d]),y={ref:l};return react_.createElement(k.Provider,{value:s},react_.createElement(v.Provider,{value:P},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(i,{[0]:open_closed/* State */.ZM.Open,[1]:open_closed/* State */.ZM.Closed})},(0,render/* render */.sY)({ourProps:y,theirProps:u,slot:b,defaultTag:Z,name:"Disclosure"}))))}let te="button";function ne(e,n){let o=(0,use_id/* useId */.M)(),{id:u=`headlessui-disclosure-button-${o}`,...T}=e,[l,t]=M("Disclosure.Button"),f=V(),s=f===null?!1:f===l.panelId,i=(0,react_.useRef)(null),c=(0,use_sync_refs/* useSyncRefs */.T)(i,n,s?null:l.buttonRef);(0,react_.useEffect)(()=>{if(!s)return t({type:2,buttonId:u}),()=>{t({type:2,buttonId:null})}},[u,t,s]);let D=(0,use_event/* useEvent */.z)(r=>{var p;if(s){if(l.disclosureState===1)return;switch(r.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:r.preventDefault(),r.stopPropagation(),t({type:0}),(p=l.buttonRef.current)==null||p.focus();break}}else switch(r.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:r.preventDefault(),r.stopPropagation(),t({type:0});break}}),d=(0,use_event/* useEvent */.z)(r=>{switch(r.key){case keyboard/* Keys */.R.Space:r.preventDefault();break}}),P=(0,use_event/* useEvent */.z)(r=>{var p;(0,bugs/* isDisabledReactIssue7711 */.P)(r.currentTarget)||e.disabled||(s?(t({type:0}),(p=l.buttonRef.current)==null||p.focus()):t({type:0}))}),b=(0,react_.useMemo)(()=>({open:l.disclosureState===0}),[l]),y=(0,use_resolve_button_type/* useResolveButtonType */.f)(e,i),a=s?{ref:c,type:y,onKeyDown:D,onClick:P}:{ref:c,id:u,type:y,"aria-expanded":e.disabled?void 0:l.disclosureState===0,"aria-controls":l.linkedPanel?l.panelId:void 0,onKeyDown:D,onKeyUp:d,onClick:P};return (0,render/* render */.sY)({ourProps:a,theirProps:T,slot:b,defaultTag:te,name:"Disclosure.Button"})}let le="div",oe=render/* Features */.AN.RenderStrategy|render/* Features */.AN.Static;function re(e,n){let o=(0,use_id/* useId */.M)(),{id:u=`headlessui-disclosure-panel-${o}`,...T}=e,[l,t]=M("Disclosure.Panel"),{close:f}=w("Disclosure.Panel"),s=(0,use_sync_refs/* useSyncRefs */.T)(n,l.panelRef,P=>{a(()=>t({type:P?4:5}))});(0,react_.useEffect)(()=>(t({type:3,panelId:u}),()=>{t({type:3,panelId:null})}),[u,t]);let i=(0,open_closed/* useOpenClosed */.oJ)(),c=(()=>i!==null?(i&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open:l.disclosureState===0)(),D=(0,react_.useMemo)(()=>({open:l.disclosureState===0,close:f}),[l,f]),d={ref:s,id:u};return react_.createElement(H.Provider,{value:l.panelId},(0,render/* render */.sY)({ourProps:d,theirProps:T,slot:D,defaultTag:le,features:oe,visible:c,name:"Disclosure.Panel"}))}let se=(0,render/* forwardRefWithAs */.yV)(ee),ue=(0,render/* forwardRefWithAs */.yV)(ne),ie=(0,render/* forwardRefWithAs */.yV)(re),ve=Object.assign(se,{Button:ue,Panel:ie});
+var q=(o=>(o[o.Open=0]="Open",o[o.Closed=1]="Closed",o))(q||{}),z=(t=>(t[t.ToggleDisclosure=0]="ToggleDisclosure",t[t.CloseDisclosure=1]="CloseDisclosure",t[t.SetButtonId=2]="SetButtonId",t[t.SetPanelId=3]="SetPanelId",t[t.LinkPanel=4]="LinkPanel",t[t.UnlinkPanel=5]="UnlinkPanel",t))(z||{});let Q={[0]:e=>({...e,disclosureState:(0,match/* match */.E)(e.disclosureState,{[0]:1,[1]:0})}),[1]:e=>e.disclosureState===1?e:{...e,disclosureState:1},[4](e){return e.linkedPanel===!0?e:{...e,linkedPanel:!0}},[5](e){return e.linkedPanel===!1?e:{...e,linkedPanel:!1}},[2](e,n){return e.buttonId===n.buttonId?e:{...e,buttonId:n.buttonId}},[3](e,n){return e.panelId===n.panelId?e:{...e,panelId:n.panelId}}},k=(0,react_.createContext)(null);k.displayName="DisclosureContext";function M(e){let n=(0,react_.useContext)(k);if(n===null){let o=new Error(`<${e} /> is missing a parent <Disclosure /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(o,M),o}return n}let v=(0,react_.createContext)(null);v.displayName="DisclosureAPIContext";function w(e){let n=(0,react_.useContext)(v);if(n===null){let o=new Error(`<${e} /> is missing a parent <Disclosure /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(o,w),o}return n}let H=(0,react_.createContext)(null);H.displayName="DisclosurePanelContext";function V(){return (0,react_.useContext)(H)}function Y(e,n){return (0,match/* match */.E)(n.type,Q,e,n)}let Z=react_.Fragment;function ee(e,n){let{defaultOpen:o=!1,...u}=e,T=(0,react_.useRef)(null),l=(0,use_sync_refs/* useSyncRefs */.T)(n,(0,use_sync_refs/* optionalRef */.h)(a=>{T.current=a},e.as===void 0||e.as===react_.Fragment)),t=(0,react_.useRef)(null),f=(0,react_.useRef)(null),s=(0,react_.useReducer)(Y,{disclosureState:o?0:1,linkedPanel:!1,buttonRef:f,panelRef:t,buttonId:null,panelId:null}),[{disclosureState:i,buttonId:c},D]=s,d=(0,use_event/* useEvent */.z)(a=>{D({type:1});let r=(0,owner/* getOwnerDocument */.r)(T);if(!r||!c)return;let p=(()=>a?a instanceof HTMLElement?a:a.current instanceof HTMLElement?a.current:r.getElementById(c):r.getElementById(c))();p==null||p.focus()}),P=(0,react_.useMemo)(()=>({close:d}),[d]),b=(0,react_.useMemo)(()=>({open:i===0,close:d}),[i,d]),y={ref:l};return react_.createElement(k.Provider,{value:s},react_.createElement(v.Provider,{value:P},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(i,{[0]:open_closed/* State */.ZM.Open,[1]:open_closed/* State */.ZM.Closed})},(0,render/* render */.sY)({ourProps:y,theirProps:u,slot:b,defaultTag:Z,name:"Disclosure"}))))}let te="button";function ne(e,n){let o=(0,use_id/* useId */.M)(),{id:u=`headlessui-disclosure-button-${o}`,...T}=e,[l,t]=M("Disclosure.Button"),f=V(),s=f===null?!1:f===l.panelId,i=(0,react_.useRef)(null),c=(0,use_sync_refs/* useSyncRefs */.T)(i,n,s?null:l.buttonRef);(0,react_.useEffect)(()=>{if(!s)return t({type:2,buttonId:u}),()=>{t({type:2,buttonId:null})}},[u,t,s]);let D=(0,use_event/* useEvent */.z)(r=>{var p;if(s){if(l.disclosureState===1)return;switch(r.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:r.preventDefault(),r.stopPropagation(),t({type:0}),(p=l.buttonRef.current)==null||p.focus();break}}else switch(r.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:r.preventDefault(),r.stopPropagation(),t({type:0});break}}),d=(0,use_event/* useEvent */.z)(r=>{switch(r.key){case keyboard/* Keys */.R.Space:r.preventDefault();break}}),P=(0,use_event/* useEvent */.z)(r=>{var p;(0,bugs/* isDisabledReactIssue7711 */.P)(r.currentTarget)||e.disabled||(s?(t({type:0}),(p=l.buttonRef.current)==null||p.focus()):t({type:0}))}),b=(0,react_.useMemo)(()=>({open:l.disclosureState===0}),[l]),y=(0,use_resolve_button_type/* useResolveButtonType */.f)(e,i),a=s?{ref:c,type:y,onKeyDown:D,onClick:P}:{ref:c,id:u,type:y,"aria-expanded":l.disclosureState===0,"aria-controls":l.linkedPanel?l.panelId:void 0,onKeyDown:D,onKeyUp:d,onClick:P};return (0,render/* render */.sY)({ourProps:a,theirProps:T,slot:b,defaultTag:te,name:"Disclosure.Button"})}let le="div",oe=render/* Features */.AN.RenderStrategy|render/* Features */.AN.Static;function re(e,n){let o=(0,use_id/* useId */.M)(),{id:u=`headlessui-disclosure-panel-${o}`,...T}=e,[l,t]=M("Disclosure.Panel"),{close:f}=w("Disclosure.Panel"),s=(0,use_sync_refs/* useSyncRefs */.T)(n,l.panelRef,P=>{a(()=>t({type:P?4:5}))});(0,react_.useEffect)(()=>(t({type:3,panelId:u}),()=>{t({type:3,panelId:null})}),[u,t]);let i=(0,open_closed/* useOpenClosed */.oJ)(),c=(()=>i!==null?(i&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open:l.disclosureState===0)(),D=(0,react_.useMemo)(()=>({open:l.disclosureState===0,close:f}),[l,f]),d={ref:s,id:u};return react_.createElement(H.Provider,{value:l.panelId},(0,render/* render */.sY)({ourProps:d,theirProps:T,slot:D,defaultTag:le,features:oe,visible:c,name:"Disclosure.Panel"}))}let se=(0,render/* forwardRefWithAs */.yV)(ee),ue=(0,render/* forwardRefWithAs */.yV)(ne),ie=(0,render/* forwardRefWithAs */.yV)(re),ve=Object.assign(se,{Button:ue,Panel:ie});
 
 
 /***/ }),
@@ -51868,7 +55388,7 @@ function d(e,r,n){let o=(0,use_latest_value/* useLatestValue */.E)(r);(0,react_.
 function use_window_event_s(e,r,n){let o=(0,use_latest_value/* useLatestValue */.E)(r);(0,react_.useEffect)(()=>{function t(i){o.current(i)}return window.addEventListener(e,t,n),()=>window.removeEventListener(e,t,n)},[e,n])}
 
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/hooks/use-outside-click.js
-function H(s,m,i=!0){let l=(0,react_.useRef)(!1);(0,react_.useEffect)(()=>{requestAnimationFrame(()=>{l.current=i})},[i]);function a(e,o){if(!l.current||e.defaultPrevented)return;let n=o(e);if(n===null||!n.getRootNode().contains(n))return;let E=function r(t){return typeof t=="function"?r(t()):Array.isArray(t)||t instanceof Set?t:[t]}(s);for(let r of E){if(r===null)continue;let t=r instanceof HTMLElement?r:r.current;if(t!=null&&t.contains(n)||e.composed&&e.composedPath().includes(t))return}return!(0,focus_management/* isFocusableElement */.sP)(n,focus_management/* FocusableMode */.tJ.Loose)&&n.tabIndex!==-1&&e.preventDefault(),m(e,n)}let u=(0,react_.useRef)(null);d("mousedown",e=>{var o,n;l.current&&(u.current=((n=(o=e.composedPath)==null?void 0:o.call(e))==null?void 0:n[0])||e.target)},!0),d("click",e=>{u.current&&(a(e,()=>u.current),u.current=null)},!0),use_window_event_s("blur",e=>a(e,()=>window.document.activeElement instanceof HTMLIFrameElement?window.document.activeElement:null),!0)}
+function h(s,m,a=!0){let i=(0,react_.useRef)(!1);(0,react_.useEffect)(()=>{requestAnimationFrame(()=>{i.current=a})},[a]);function c(e,r){if(!i.current||e.defaultPrevented)return;let t=r(e);if(t===null||!t.getRootNode().contains(t)||!t.isConnected)return;let E=function u(n){return typeof n=="function"?u(n()):Array.isArray(n)||n instanceof Set?n:[n]}(s);for(let u of E){if(u===null)continue;let n=u instanceof HTMLElement?u:u.current;if(n!=null&&n.contains(t)||e.composed&&e.composedPath().includes(n))return}return!(0,focus_management/* isFocusableElement */.sP)(t,focus_management/* FocusableMode */.tJ.Loose)&&t.tabIndex!==-1&&e.preventDefault(),m(e,t)}let o=(0,react_.useRef)(null);d("pointerdown",e=>{var r,t;i.current&&(o.current=((t=(r=e.composedPath)==null?void 0:r.call(e))==null?void 0:t[0])||e.target)},!0),d("mousedown",e=>{var r,t;i.current&&(o.current=((t=(r=e.composedPath)==null?void 0:r.call(e))==null?void 0:t[0])||e.target)},!0),d("click",e=>{o.current&&(c(e,()=>o.current),o.current=null)},!0),d("touchend",e=>c(e,()=>e.target instanceof HTMLElement?e.target:null),!0),use_window_event_s("blur",e=>c(e,()=>window.document.activeElement instanceof HTMLIFrameElement?window.document.activeElement:null),!0)}
 
 // EXTERNAL MODULE: ./node_modules/@headlessui/react/dist/hooks/use-tree-walker.js
 var use_tree_walker = __webpack_require__(42188);
@@ -51893,7 +55413,7 @@ let a=/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDF
 function use_text_value_b(c){let t=(0,react_.useRef)(""),r=(0,react_.useRef)("");return (0,use_event/* useEvent */.z)(()=>{let e=c.current;if(!e)return"";let u=e.innerText;if(t.current===u)return r.current;let n=g(e).trim().toLowerCase();return t.current=u,r.current=n,n})}
 
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/components/menu/menu.js
-var me=(r=>(r[r.Open=0]="Open",r[r.Closed=1]="Closed",r))(me||{}),de=(r=>(r[r.Pointer=0]="Pointer",r[r.Other=1]="Other",r))(de||{}),fe=(a=>(a[a.OpenMenu=0]="OpenMenu",a[a.CloseMenu=1]="CloseMenu",a[a.GoToItem=2]="GoToItem",a[a.Search=3]="Search",a[a.ClearSearch=4]="ClearSearch",a[a.RegisterItem=5]="RegisterItem",a[a.UnregisterItem=6]="UnregisterItem",a))(fe||{});function w(e,u=r=>r){let r=e.activeItemIndex!==null?e.items[e.activeItemIndex]:null,i=(0,focus_management/* sortByDomNode */.z2)(u(e.items.slice()),t=>t.dataRef.current.domRef.current),s=r?i.indexOf(r):null;return s===-1&&(s=null),{items:i,activeItemIndex:s}}let Te={[1](e){return e.menuState===1?e:{...e,activeItemIndex:null,menuState:1}},[0](e){return e.menuState===0?e:{...e,__demoMode:!1,menuState:0}},[2]:(e,u)=>{var s;let r=w(e),i=x(u,{resolveItems:()=>r.items,resolveActiveIndex:()=>r.activeItemIndex,resolveId:t=>t.id,resolveDisabled:t=>t.dataRef.current.disabled});return{...e,...r,searchQuery:"",activeItemIndex:i,activationTrigger:(s=u.trigger)!=null?s:1}},[3]:(e,u)=>{let i=e.searchQuery!==""?0:1,s=e.searchQuery+u.value.toLowerCase(),o=(e.activeItemIndex!==null?e.items.slice(e.activeItemIndex+i).concat(e.items.slice(0,e.activeItemIndex+i)):e.items).find(l=>{var m;return((m=l.dataRef.current.textValue)==null?void 0:m.startsWith(s))&&!l.dataRef.current.disabled}),a=o?e.items.indexOf(o):-1;return a===-1||a===e.activeItemIndex?{...e,searchQuery:s}:{...e,searchQuery:s,activeItemIndex:a,activationTrigger:1}},[4](e){return e.searchQuery===""?e:{...e,searchQuery:"",searchActiveItemIndex:null}},[5]:(e,u)=>{let r=w(e,i=>[...i,{id:u.id,dataRef:u.dataRef}]);return{...e,...r}},[6]:(e,u)=>{let r=w(e,i=>{let s=i.findIndex(t=>t.id===u.id);return s!==-1&&i.splice(s,1),i});return{...e,...r,activationTrigger:1}}},U=(0,react_.createContext)(null);U.displayName="MenuContext";function O(e){let u=(0,react_.useContext)(U);if(u===null){let r=new Error(`<${e} /> is missing a parent <Menu /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(r,O),r}return u}function ye(e,u){return (0,match/* match */.E)(u.type,Te,e,u)}let Ie=react_.Fragment;function Me(e,u){let{__demoMode:r=!1,...i}=e,s=(0,react_.useReducer)(ye,{__demoMode:r,menuState:r?0:1,buttonRef:(0,react_.createRef)(),itemsRef:(0,react_.createRef)(),items:[],searchQuery:"",activeItemIndex:null,activationTrigger:1}),[{menuState:t,itemsRef:o,buttonRef:a},l]=s,m=(0,use_sync_refs/* useSyncRefs */.T)(u);H([a,o],(g,R)=>{var p;l({type:1}),(0,focus_management/* isFocusableElement */.sP)(R,focus_management/* FocusableMode */.tJ.Loose)||(g.preventDefault(),(p=a.current)==null||p.focus())},t===0);let I=(0,use_event/* useEvent */.z)(()=>{l({type:1})}),A=(0,react_.useMemo)(()=>({open:t===0,close:I}),[t,I]),f={ref:m};return react_.createElement(U.Provider,{value:s},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(t,{[0]:open_closed/* State */.ZM.Open,[1]:open_closed/* State */.ZM.Closed})},(0,render/* render */.sY)({ourProps:f,theirProps:i,slot:A,defaultTag:Ie,name:"Menu"})))}let ge="button";function Re(e,u){var R;let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-button-${r}`,...s}=e,[t,o]=O("Menu.Button"),a=(0,use_sync_refs/* useSyncRefs */.T)(t.buttonRef,u),l=(0,use_disposables/* useDisposables */.G)(),m=(0,use_event/* useEvent */.z)(p=>{switch(p.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:case keyboard/* Keys */.R.ArrowDown:p.preventDefault(),p.stopPropagation(),o({type:0}),l.nextFrame(()=>o({type:2,focus:calculate_active_index_a.First}));break;case keyboard/* Keys */.R.ArrowUp:p.preventDefault(),p.stopPropagation(),o({type:0}),l.nextFrame(()=>o({type:2,focus:calculate_active_index_a.Last}));break}}),I=(0,use_event/* useEvent */.z)(p=>{switch(p.key){case keyboard/* Keys */.R.Space:p.preventDefault();break}}),A=(0,use_event/* useEvent */.z)(p=>{if((0,bugs/* isDisabledReactIssue7711 */.P)(p.currentTarget))return p.preventDefault();e.disabled||(t.menuState===0?(o({type:1}),l.nextFrame(()=>{var M;return(M=t.buttonRef.current)==null?void 0:M.focus({preventScroll:!0})})):(p.preventDefault(),o({type:0})))}),f=(0,react_.useMemo)(()=>({open:t.menuState===0}),[t]),g={ref:a,id:i,type:(0,use_resolve_button_type/* useResolveButtonType */.f)(e,t.buttonRef),"aria-haspopup":"menu","aria-controls":(R=t.itemsRef.current)==null?void 0:R.id,"aria-expanded":e.disabled?void 0:t.menuState===0,onKeyDown:m,onKeyUp:I,onClick:A};return (0,render/* render */.sY)({ourProps:g,theirProps:s,slot:f,defaultTag:ge,name:"Menu.Button"})}let Ae="div",be=render/* Features */.AN.RenderStrategy|render/* Features */.AN.Static;function Ee(e,u){var M,b;let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-items-${r}`,...s}=e,[t,o]=O("Menu.Items"),a=(0,use_sync_refs/* useSyncRefs */.T)(t.itemsRef,u),l=n(t.itemsRef),m=(0,use_disposables/* useDisposables */.G)(),I=(0,open_closed/* useOpenClosed */.oJ)(),A=(()=>I!==null?(I&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open:t.menuState===0)();(0,react_.useEffect)(()=>{let n=t.itemsRef.current;n&&t.menuState===0&&n!==(l==null?void 0:l.activeElement)&&n.focus({preventScroll:!0})},[t.menuState,t.itemsRef,l]),(0,use_tree_walker/* useTreeWalker */.B)({container:t.itemsRef.current,enabled:t.menuState===0,accept(n){return n.getAttribute("role")==="menuitem"?NodeFilter.FILTER_REJECT:n.hasAttribute("role")?NodeFilter.FILTER_SKIP:NodeFilter.FILTER_ACCEPT},walk(n){n.setAttribute("role","none")}});let f=(0,use_event/* useEvent */.z)(n=>{var E,P;switch(m.dispose(),n.key){case keyboard/* Keys */.R.Space:if(t.searchQuery!=="")return n.preventDefault(),n.stopPropagation(),o({type:3,value:n.key});case keyboard/* Keys */.R.Enter:if(n.preventDefault(),n.stopPropagation(),o({type:1}),t.activeItemIndex!==null){let{dataRef:S}=t.items[t.activeItemIndex];(P=(E=S.current)==null?void 0:E.domRef.current)==null||P.click()}(0,focus_management/* restoreFocusIfNecessary */.wI)(t.buttonRef.current);break;case keyboard/* Keys */.R.ArrowDown:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Next});case keyboard/* Keys */.R.ArrowUp:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Previous});case keyboard/* Keys */.R.Home:case keyboard/* Keys */.R.PageUp:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.First});case keyboard/* Keys */.R.End:case keyboard/* Keys */.R.PageDown:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Last});case keyboard/* Keys */.R.Escape:n.preventDefault(),n.stopPropagation(),o({type:1}),(0,disposables/* disposables */.k)().nextFrame(()=>{var S;return(S=t.buttonRef.current)==null?void 0:S.focus({preventScroll:!0})});break;case keyboard/* Keys */.R.Tab:n.preventDefault(),n.stopPropagation(),o({type:1}),(0,disposables/* disposables */.k)().nextFrame(()=>{(0,focus_management/* focusFrom */.EO)(t.buttonRef.current,n.shiftKey?focus_management/* Focus */.TO.Previous:focus_management/* Focus */.TO.Next)});break;default:n.key.length===1&&(o({type:3,value:n.key}),m.setTimeout(()=>o({type:4}),350));break}}),g=(0,use_event/* useEvent */.z)(n=>{switch(n.key){case keyboard/* Keys */.R.Space:n.preventDefault();break}}),R=(0,react_.useMemo)(()=>({open:t.menuState===0}),[t]),p={"aria-activedescendant":t.activeItemIndex===null||(M=t.items[t.activeItemIndex])==null?void 0:M.id,"aria-labelledby":(b=t.buttonRef.current)==null?void 0:b.id,id:i,onKeyDown:f,onKeyUp:g,role:"menu",tabIndex:0,ref:a};return (0,render/* render */.sY)({ourProps:p,theirProps:s,slot:R,defaultTag:Ae,features:be,visible:A,name:"Menu.Items"})}let Se=react_.Fragment;function Pe(e,u){let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-item-${r}`,disabled:s=!1,...t}=e,[o,a]=O("Menu.Item"),l=o.activeItemIndex!==null?o.items[o.activeItemIndex].id===i:!1,m=(0,react_.useRef)(null),I=(0,use_sync_refs/* useSyncRefs */.T)(u,m);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{if(o.__demoMode||o.menuState!==0||!l||o.activationTrigger===0)return;let T=(0,disposables/* disposables */.k)();return T.requestAnimationFrame(()=>{var v,B;(B=(v=m.current)==null?void 0:v.scrollIntoView)==null||B.call(v,{block:"nearest"})}),T.dispose},[o.__demoMode,m,l,o.menuState,o.activationTrigger,o.activeItemIndex]);let A=use_text_value_b(m),f=(0,react_.useRef)({disabled:s,domRef:m,get textValue(){return A()}});(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{f.current.disabled=s},[f,s]),(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>(a({type:5,id:i,dataRef:f}),()=>a({type:6,id:i})),[f,i]);let g=(0,use_event/* useEvent */.z)(()=>{a({type:1})}),R=(0,use_event/* useEvent */.z)(T=>{if(s)return T.preventDefault();a({type:1}),(0,focus_management/* restoreFocusIfNecessary */.wI)(o.buttonRef.current)}),p=(0,use_event/* useEvent */.z)(()=>{if(s)return a({type:2,focus:calculate_active_index_a.Nothing});a({type:2,focus:calculate_active_index_a.Specific,id:i})}),M=use_tracked_pointer_u(),b=(0,use_event/* useEvent */.z)(T=>M.update(T)),n=(0,use_event/* useEvent */.z)(T=>{M.wasMoved(T)&&(s||l||a({type:2,focus:calculate_active_index_a.Specific,id:i,trigger:0}))}),E=(0,use_event/* useEvent */.z)(T=>{M.wasMoved(T)&&(s||l&&a({type:2,focus:calculate_active_index_a.Nothing}))}),P=(0,react_.useMemo)(()=>({active:l,disabled:s,close:g}),[l,s,g]);return (0,render/* render */.sY)({ourProps:{id:i,ref:I,role:"menuitem",tabIndex:s===!0?void 0:-1,"aria-disabled":s===!0?!0:void 0,disabled:void 0,onClick:R,onFocus:p,onPointerEnter:b,onMouseEnter:b,onPointerMove:n,onMouseMove:n,onPointerLeave:E,onMouseLeave:E},theirProps:t,slot:P,defaultTag:Se,name:"Menu.Item"})}let ve=(0,render/* forwardRefWithAs */.yV)(Me),xe=(0,render/* forwardRefWithAs */.yV)(Re),he=(0,render/* forwardRefWithAs */.yV)(Ee),De=(0,render/* forwardRefWithAs */.yV)(Pe),it=Object.assign(ve,{Button:xe,Items:he,Item:De});
+var me=(r=>(r[r.Open=0]="Open",r[r.Closed=1]="Closed",r))(me||{}),de=(r=>(r[r.Pointer=0]="Pointer",r[r.Other=1]="Other",r))(de||{}),fe=(a=>(a[a.OpenMenu=0]="OpenMenu",a[a.CloseMenu=1]="CloseMenu",a[a.GoToItem=2]="GoToItem",a[a.Search=3]="Search",a[a.ClearSearch=4]="ClearSearch",a[a.RegisterItem=5]="RegisterItem",a[a.UnregisterItem=6]="UnregisterItem",a))(fe||{});function w(e,u=r=>r){let r=e.activeItemIndex!==null?e.items[e.activeItemIndex]:null,i=(0,focus_management/* sortByDomNode */.z2)(u(e.items.slice()),t=>t.dataRef.current.domRef.current),s=r?i.indexOf(r):null;return s===-1&&(s=null),{items:i,activeItemIndex:s}}let Te={[1](e){return e.menuState===1?e:{...e,activeItemIndex:null,menuState:1}},[0](e){return e.menuState===0?e:{...e,__demoMode:!1,menuState:0}},[2]:(e,u)=>{var s;let r=w(e),i=x(u,{resolveItems:()=>r.items,resolveActiveIndex:()=>r.activeItemIndex,resolveId:t=>t.id,resolveDisabled:t=>t.dataRef.current.disabled});return{...e,...r,searchQuery:"",activeItemIndex:i,activationTrigger:(s=u.trigger)!=null?s:1}},[3]:(e,u)=>{let i=e.searchQuery!==""?0:1,s=e.searchQuery+u.value.toLowerCase(),o=(e.activeItemIndex!==null?e.items.slice(e.activeItemIndex+i).concat(e.items.slice(0,e.activeItemIndex+i)):e.items).find(l=>{var m;return((m=l.dataRef.current.textValue)==null?void 0:m.startsWith(s))&&!l.dataRef.current.disabled}),a=o?e.items.indexOf(o):-1;return a===-1||a===e.activeItemIndex?{...e,searchQuery:s}:{...e,searchQuery:s,activeItemIndex:a,activationTrigger:1}},[4](e){return e.searchQuery===""?e:{...e,searchQuery:"",searchActiveItemIndex:null}},[5]:(e,u)=>{let r=w(e,i=>[...i,{id:u.id,dataRef:u.dataRef}]);return{...e,...r}},[6]:(e,u)=>{let r=w(e,i=>{let s=i.findIndex(t=>t.id===u.id);return s!==-1&&i.splice(s,1),i});return{...e,...r,activationTrigger:1}}},U=(0,react_.createContext)(null);U.displayName="MenuContext";function O(e){let u=(0,react_.useContext)(U);if(u===null){let r=new Error(`<${e} /> is missing a parent <Menu /> component.`);throw Error.captureStackTrace&&Error.captureStackTrace(r,O),r}return u}function ye(e,u){return (0,match/* match */.E)(u.type,Te,e,u)}let Ie=react_.Fragment;function Me(e,u){let{__demoMode:r=!1,...i}=e,s=(0,react_.useReducer)(ye,{__demoMode:r,menuState:r?0:1,buttonRef:(0,react_.createRef)(),itemsRef:(0,react_.createRef)(),items:[],searchQuery:"",activeItemIndex:null,activationTrigger:1}),[{menuState:t,itemsRef:o,buttonRef:a},l]=s,m=(0,use_sync_refs/* useSyncRefs */.T)(u);h([a,o],(g,R)=>{var p;l({type:1}),(0,focus_management/* isFocusableElement */.sP)(R,focus_management/* FocusableMode */.tJ.Loose)||(g.preventDefault(),(p=a.current)==null||p.focus())},t===0);let I=(0,use_event/* useEvent */.z)(()=>{l({type:1})}),A=(0,react_.useMemo)(()=>({open:t===0,close:I}),[t,I]),f={ref:m};return react_.createElement(U.Provider,{value:s},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(t,{[0]:open_closed/* State */.ZM.Open,[1]:open_closed/* State */.ZM.Closed})},(0,render/* render */.sY)({ourProps:f,theirProps:i,slot:A,defaultTag:Ie,name:"Menu"})))}let ge="button";function Re(e,u){var R;let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-button-${r}`,...s}=e,[t,o]=O("Menu.Button"),a=(0,use_sync_refs/* useSyncRefs */.T)(t.buttonRef,u),l=(0,use_disposables/* useDisposables */.G)(),m=(0,use_event/* useEvent */.z)(p=>{switch(p.key){case keyboard/* Keys */.R.Space:case keyboard/* Keys */.R.Enter:case keyboard/* Keys */.R.ArrowDown:p.preventDefault(),p.stopPropagation(),o({type:0}),l.nextFrame(()=>o({type:2,focus:calculate_active_index_a.First}));break;case keyboard/* Keys */.R.ArrowUp:p.preventDefault(),p.stopPropagation(),o({type:0}),l.nextFrame(()=>o({type:2,focus:calculate_active_index_a.Last}));break}}),I=(0,use_event/* useEvent */.z)(p=>{switch(p.key){case keyboard/* Keys */.R.Space:p.preventDefault();break}}),A=(0,use_event/* useEvent */.z)(p=>{if((0,bugs/* isDisabledReactIssue7711 */.P)(p.currentTarget))return p.preventDefault();e.disabled||(t.menuState===0?(o({type:1}),l.nextFrame(()=>{var M;return(M=t.buttonRef.current)==null?void 0:M.focus({preventScroll:!0})})):(p.preventDefault(),o({type:0})))}),f=(0,react_.useMemo)(()=>({open:t.menuState===0}),[t]),g={ref:a,id:i,type:(0,use_resolve_button_type/* useResolveButtonType */.f)(e,t.buttonRef),"aria-haspopup":"menu","aria-controls":(R=t.itemsRef.current)==null?void 0:R.id,"aria-expanded":t.menuState===0,onKeyDown:m,onKeyUp:I,onClick:A};return (0,render/* render */.sY)({ourProps:g,theirProps:s,slot:f,defaultTag:ge,name:"Menu.Button"})}let Ae="div",be=render/* Features */.AN.RenderStrategy|render/* Features */.AN.Static;function Ee(e,u){var M,b;let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-items-${r}`,...s}=e,[t,o]=O("Menu.Items"),a=(0,use_sync_refs/* useSyncRefs */.T)(t.itemsRef,u),l=n(t.itemsRef),m=(0,use_disposables/* useDisposables */.G)(),I=(0,open_closed/* useOpenClosed */.oJ)(),A=(()=>I!==null?(I&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open:t.menuState===0)();(0,react_.useEffect)(()=>{let n=t.itemsRef.current;n&&t.menuState===0&&n!==(l==null?void 0:l.activeElement)&&n.focus({preventScroll:!0})},[t.menuState,t.itemsRef,l]),(0,use_tree_walker/* useTreeWalker */.B)({container:t.itemsRef.current,enabled:t.menuState===0,accept(n){return n.getAttribute("role")==="menuitem"?NodeFilter.FILTER_REJECT:n.hasAttribute("role")?NodeFilter.FILTER_SKIP:NodeFilter.FILTER_ACCEPT},walk(n){n.setAttribute("role","none")}});let f=(0,use_event/* useEvent */.z)(n=>{var E,P;switch(m.dispose(),n.key){case keyboard/* Keys */.R.Space:if(t.searchQuery!=="")return n.preventDefault(),n.stopPropagation(),o({type:3,value:n.key});case keyboard/* Keys */.R.Enter:if(n.preventDefault(),n.stopPropagation(),o({type:1}),t.activeItemIndex!==null){let{dataRef:S}=t.items[t.activeItemIndex];(P=(E=S.current)==null?void 0:E.domRef.current)==null||P.click()}(0,focus_management/* restoreFocusIfNecessary */.wI)(t.buttonRef.current);break;case keyboard/* Keys */.R.ArrowDown:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Next});case keyboard/* Keys */.R.ArrowUp:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Previous});case keyboard/* Keys */.R.Home:case keyboard/* Keys */.R.PageUp:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.First});case keyboard/* Keys */.R.End:case keyboard/* Keys */.R.PageDown:return n.preventDefault(),n.stopPropagation(),o({type:2,focus:calculate_active_index_a.Last});case keyboard/* Keys */.R.Escape:n.preventDefault(),n.stopPropagation(),o({type:1}),(0,disposables/* disposables */.k)().nextFrame(()=>{var S;return(S=t.buttonRef.current)==null?void 0:S.focus({preventScroll:!0})});break;case keyboard/* Keys */.R.Tab:n.preventDefault(),n.stopPropagation(),o({type:1}),(0,disposables/* disposables */.k)().nextFrame(()=>{(0,focus_management/* focusFrom */.EO)(t.buttonRef.current,n.shiftKey?focus_management/* Focus */.TO.Previous:focus_management/* Focus */.TO.Next)});break;default:n.key.length===1&&(o({type:3,value:n.key}),m.setTimeout(()=>o({type:4}),350));break}}),g=(0,use_event/* useEvent */.z)(n=>{switch(n.key){case keyboard/* Keys */.R.Space:n.preventDefault();break}}),R=(0,react_.useMemo)(()=>({open:t.menuState===0}),[t]),p={"aria-activedescendant":t.activeItemIndex===null||(M=t.items[t.activeItemIndex])==null?void 0:M.id,"aria-labelledby":(b=t.buttonRef.current)==null?void 0:b.id,id:i,onKeyDown:f,onKeyUp:g,role:"menu",tabIndex:0,ref:a};return (0,render/* render */.sY)({ourProps:p,theirProps:s,slot:R,defaultTag:Ae,features:be,visible:A,name:"Menu.Items"})}let Se=react_.Fragment;function Pe(e,u){let r=(0,use_id/* useId */.M)(),{id:i=`headlessui-menu-item-${r}`,disabled:s=!1,...t}=e,[o,a]=O("Menu.Item"),l=o.activeItemIndex!==null?o.items[o.activeItemIndex].id===i:!1,m=(0,react_.useRef)(null),I=(0,use_sync_refs/* useSyncRefs */.T)(u,m);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{if(o.__demoMode||o.menuState!==0||!l||o.activationTrigger===0)return;let T=(0,disposables/* disposables */.k)();return T.requestAnimationFrame(()=>{var v,B;(B=(v=m.current)==null?void 0:v.scrollIntoView)==null||B.call(v,{block:"nearest"})}),T.dispose},[o.__demoMode,m,l,o.menuState,o.activationTrigger,o.activeItemIndex]);let A=use_text_value_b(m),f=(0,react_.useRef)({disabled:s,domRef:m,get textValue(){return A()}});(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{f.current.disabled=s},[f,s]),(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>(a({type:5,id:i,dataRef:f}),()=>a({type:6,id:i})),[f,i]);let g=(0,use_event/* useEvent */.z)(()=>{a({type:1})}),R=(0,use_event/* useEvent */.z)(T=>{if(s)return T.preventDefault();a({type:1}),(0,focus_management/* restoreFocusIfNecessary */.wI)(o.buttonRef.current)}),p=(0,use_event/* useEvent */.z)(()=>{if(s)return a({type:2,focus:calculate_active_index_a.Nothing});a({type:2,focus:calculate_active_index_a.Specific,id:i})}),M=use_tracked_pointer_u(),b=(0,use_event/* useEvent */.z)(T=>M.update(T)),n=(0,use_event/* useEvent */.z)(T=>{M.wasMoved(T)&&(s||l||a({type:2,focus:calculate_active_index_a.Specific,id:i,trigger:0}))}),E=(0,use_event/* useEvent */.z)(T=>{M.wasMoved(T)&&(s||l&&a({type:2,focus:calculate_active_index_a.Nothing}))}),P=(0,react_.useMemo)(()=>({active:l,disabled:s,close:g}),[l,s,g]);return (0,render/* render */.sY)({ourProps:{id:i,ref:I,role:"menuitem",tabIndex:s===!0?void 0:-1,"aria-disabled":s===!0?!0:void 0,disabled:void 0,onClick:R,onFocus:p,onPointerEnter:b,onMouseEnter:b,onPointerMove:n,onMouseMove:n,onPointerLeave:E,onMouseLeave:E},theirProps:t,slot:P,defaultTag:Se,name:"Menu.Item"})}let ve=(0,render/* forwardRefWithAs */.yV)(Me),xe=(0,render/* forwardRefWithAs */.yV)(Re),he=(0,render/* forwardRefWithAs */.yV)(Ee),De=(0,render/* forwardRefWithAs */.yV)(Pe),it=Object.assign(ve,{Button:xe,Items:he,Item:De});
 
 
 /***/ }),
@@ -51905,7 +55425,7 @@ var me=(r=>(r[r.Open=0]="Open",r[r.Closed=1]="Closed",r))(me||{}),de=(r=>(r[r.Po
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  u: () => (/* binding */ $e)
+  u: () => (/* binding */ tt)
 });
 
 // EXTERNAL MODULE: external "next/dist/compiled/react"
@@ -51932,12 +55452,12 @@ function once_l(r){let e={called:!1};return(...t)=>{if(!e.called)return e.called
 // EXTERNAL MODULE: ./node_modules/@headlessui/react/dist/utils/disposables.js + 1 modules
 var disposables = __webpack_require__(19334);
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/components/transitions/utils/transition.js
-function d(t,...e){t&&e.length>0&&t.classList.add(...e)}function v(t,...e){t&&e.length>0&&t.classList.remove(...e)}function F(t,e){let n=(0,disposables/* disposables */.k)();if(!t)return n.dispose;let{transitionDuration:m,transitionDelay:o}=getComputedStyle(t),[u,p]=[m,o].map(a=>{let[r=0]=a.split(",").filter(Boolean).map(i=>i.includes("ms")?parseFloat(i):parseFloat(i)*1e3).sort((i,f)=>f-i);return r}),l=u+p;if(l!==0){n.group(r=>{r.setTimeout(()=>{e(),r.dispose()},l),r.addEventListener(t,"transitionrun",i=>{i.target===i.currentTarget&&r.dispose()})});let a=n.addEventListener(t,"transitionend",r=>{r.target===r.currentTarget&&(e(),a())})}else e();return n.add(()=>e()),n.dispose}function y(t,e,n,m){let o=n?"enter":"leave",u=(0,disposables/* disposables */.k)(),p=m!==void 0?once_l(m):()=>{};o==="enter"&&(t.removeAttribute("hidden"),t.style.display="");let l=(0,match/* match */.E)(o,{enter:()=>e.enter,leave:()=>e.leave}),a=(0,match/* match */.E)(o,{enter:()=>e.enterTo,leave:()=>e.leaveTo}),r=(0,match/* match */.E)(o,{enter:()=>e.enterFrom,leave:()=>e.leaveFrom});return v(t,...e.enter,...e.enterTo,...e.enterFrom,...e.leave,...e.leaveFrom,...e.leaveTo,...e.entered),d(t,...l,...r),u.nextFrame(()=>{v(t,...r),d(t,...a),F(t,()=>(v(t,...l),d(t,...e.entered),p()))}),u.dispose}
+function g(t,...e){t&&e.length>0&&t.classList.add(...e)}function v(t,...e){t&&e.length>0&&t.classList.remove(...e)}function b(t,e){let n=(0,disposables/* disposables */.k)();if(!t)return n.dispose;let{transitionDuration:m,transitionDelay:a}=getComputedStyle(t),[u,p]=[m,a].map(l=>{let[r=0]=l.split(",").filter(Boolean).map(i=>i.includes("ms")?parseFloat(i):parseFloat(i)*1e3).sort((i,T)=>T-i);return r}),o=u+p;if(o!==0){n.group(r=>{r.setTimeout(()=>{e(),r.dispose()},o),r.addEventListener(t,"transitionrun",i=>{i.target===i.currentTarget&&r.dispose()})});let l=n.addEventListener(t,"transitionend",r=>{r.target===r.currentTarget&&(e(),l())})}else e();return n.add(()=>e()),n.dispose}function M(t,e,n,m){let a=n?"enter":"leave",u=(0,disposables/* disposables */.k)(),p=m!==void 0?once_l(m):()=>{};a==="enter"&&(t.removeAttribute("hidden"),t.style.display="");let o=(0,match/* match */.E)(a,{enter:()=>e.enter,leave:()=>e.leave}),l=(0,match/* match */.E)(a,{enter:()=>e.enterTo,leave:()=>e.leaveTo}),r=(0,match/* match */.E)(a,{enter:()=>e.enterFrom,leave:()=>e.leaveFrom});return v(t,...e.base,...e.enter,...e.enterTo,...e.enterFrom,...e.leave,...e.leaveFrom,...e.leaveTo,...e.entered),g(t,...e.base,...o,...r),u.nextFrame(()=>{v(t,...e.base,...o,...r),g(t,...e.base,...o,...l),b(t,()=>(v(t,...e.base,...o),g(t,...e.base,...e.entered),p()))}),u.dispose}
 
 // EXTERNAL MODULE: ./node_modules/@headlessui/react/dist/hooks/use-disposables.js
 var use_disposables = __webpack_require__(40566);
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/hooks/use-transition.js
-function use_transition_D({container:i,direction:t,classes:o,onStart:s,onStop:u}){let a=(0,use_is_mounted/* useIsMounted */.t)(),c=(0,use_disposables/* useDisposables */.G)(),r=(0,use_latest_value/* useLatestValue */.E)(t);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{let e=(0,disposables/* disposables */.k)();c.add(e.dispose);let n=i.current;if(n&&r.current!=="idle"&&a.current)return e.dispose(),s.current(r.current),e.add(y(n,o.current,r.current==="enter",()=>{e.dispose(),u.current(r.current)})),e.dispose},[t])}
+function E({immediate:t,container:s,direction:n,classes:u,onStart:a,onStop:c}){let l=(0,use_is_mounted/* useIsMounted */.t)(),d=(0,use_disposables/* useDisposables */.G)(),e=(0,use_latest_value/* useLatestValue */.E)(n);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{t&&(e.current="enter")},[t]),(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{let r=(0,disposables/* disposables */.k)();d.add(r.dispose);let i=s.current;if(i&&e.current!=="idle"&&l.current)return r.dispose(),a.current(e.current),r.add(M(i,u.current,e.current==="enter",()=>{r.dispose(),c.current(e.current)})),r.dispose},[n])}
 
 // EXTERNAL MODULE: ./node_modules/@headlessui/react/dist/hooks/use-event.js
 var use_event = __webpack_require__(78099);
@@ -51946,7 +55466,7 @@ var class_names = __webpack_require__(5943);
 // EXTERNAL MODULE: ./node_modules/@headlessui/react/dist/hooks/use-flags.js
 var use_flags = __webpack_require__(75381);
 ;// CONCATENATED MODULE: ./node_modules/@headlessui/react/dist/components/transitions/transition.js
-function x(t=""){return t.split(" ").filter(n=>n.trim().length>1)}let I=(0,react_.createContext)(null);I.displayName="TransitionContext";var Ce=(r=>(r.Visible="visible",r.Hidden="hidden",r))(Ce||{});function Ee(){let t=(0,react_.useContext)(I);if(t===null)throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");return t}function be(){let t=(0,react_.useContext)(_);if(t===null)throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");return t}let _=(0,react_.createContext)(null);_.displayName="NestingContext";function M(t){return"children"in t?M(t.children):t.current.filter(({el:n})=>n.current!==null).filter(({state:n})=>n==="visible").length>0}function re(t,n){let r=(0,use_latest_value/* useLatestValue */.E)(t),o=(0,react_.useRef)([]),N=(0,use_is_mounted/* useIsMounted */.t)(),H=(0,use_disposables/* useDisposables */.G)(),p=(0,use_event/* useEvent */.z)((s,e=render/* RenderStrategy */.l4.Hidden)=>{let a=o.current.findIndex(({el:i})=>i===s);a!==-1&&((0,match/* match */.E)(e,{[render/* RenderStrategy */.l4.Unmount](){o.current.splice(a,1)},[render/* RenderStrategy */.l4.Hidden](){o.current[a].state="hidden"}}),H.microTask(()=>{var i;!M(o)&&N.current&&((i=r.current)==null||i.call(r))}))}),P=(0,use_event/* useEvent */.z)(s=>{let e=o.current.find(({el:a})=>a===s);return e?e.state!=="visible"&&(e.state="visible"):o.current.push({el:s,state:"visible"}),()=>p(s,render/* RenderStrategy */.l4.Unmount)}),h=(0,react_.useRef)([]),v=(0,react_.useRef)(Promise.resolve()),T=(0,react_.useRef)({enter:[],leave:[],idle:[]}),g=(0,use_event/* useEvent */.z)((s,e,a)=>{h.current.splice(0),n&&(n.chains.current[e]=n.chains.current[e].filter(([i])=>i!==s)),n==null||n.chains.current[e].push([s,new Promise(i=>{h.current.push(i)})]),n==null||n.chains.current[e].push([s,new Promise(i=>{Promise.all(T.current[e].map(([l,R])=>R)).then(()=>i())})]),e==="enter"?v.current=v.current.then(()=>n==null?void 0:n.wait.current).then(()=>a(e)):a(e)}),f=(0,use_event/* useEvent */.z)((s,e,a)=>{Promise.all(T.current[e].splice(0).map(([i,l])=>l)).then(()=>{var i;(i=h.current.shift())==null||i()}).then(()=>a(e))});return (0,react_.useMemo)(()=>({children:o,register:P,unregister:p,onStart:g,onStop:f,wait:v,chains:T}),[P,p,o,g,f,T,v])}function Se(){}let xe=["beforeEnter","afterEnter","beforeLeave","afterLeave"];function ie(t){var r;let n={};for(let o of xe)n[o]=(r=t[o])!=null?r:Se;return n}function Pe(t){let n=(0,react_.useRef)(ie(t));return (0,react_.useEffect)(()=>{n.current=ie(t)},[t]),n}let Re="div",oe=render/* Features */.AN.RenderStrategy;function ye(t,n){let{beforeEnter:r,afterEnter:o,beforeLeave:N,afterLeave:H,enter:p,enterFrom:P,enterTo:h,entered:v,leave:T,leaveFrom:g,leaveTo:f,...s}=t,e=(0,react_.useRef)(null),a=(0,use_sync_refs/* useSyncRefs */.T)(e,n),i=s.unmount?render/* RenderStrategy */.l4.Unmount:render/* RenderStrategy */.l4.Hidden,{show:l,appear:R,initial:d}=Ee(),[u,U]=(0,react_.useState)(l?"visible":"hidden"),K=be(),{register:L,unregister:w}=K,j=(0,react_.useRef)(null);(0,react_.useEffect)(()=>L(e),[L,e]),(0,react_.useEffect)(()=>{if(i===render/* RenderStrategy */.l4.Hidden&&e.current){if(l&&u!=="visible"){U("visible");return}return (0,match/* match */.E)(u,{["hidden"]:()=>w(e),["visible"]:()=>L(e)})}},[u,e,L,w,l,i]);let k=(0,use_latest_value/* useLatestValue */.E)({enter:x(p),enterFrom:x(P),enterTo:x(h),entered:x(v),leave:x(T),leaveFrom:x(g),leaveTo:x(f)}),O=Pe({beforeEnter:r,afterEnter:o,beforeLeave:N,afterLeave:H}),G=(0,use_server_handoff_complete/* useServerHandoffComplete */.H)();(0,react_.useEffect)(()=>{if(G&&u==="visible"&&e.current===null)throw new Error("Did you forget to passthrough the `ref` to the actual DOM node?")},[e,u,G]);let B=d&&!R,ae=(()=>!G||B||j.current===l?"idle":l?"enter":"leave")(),D=(0,use_flags/* useFlags */.V)(0),le=(0,use_event/* useEvent */.z)(C=>(0,match/* match */.E)(C,{enter:()=>{D.addFlag(open_closed/* State */.ZM.Opening),O.current.beforeEnter()},leave:()=>{D.addFlag(open_closed/* State */.ZM.Closing),O.current.beforeLeave()},idle:()=>{}})),ue=(0,use_event/* useEvent */.z)(C=>(0,match/* match */.E)(C,{enter:()=>{D.removeFlag(open_closed/* State */.ZM.Opening),O.current.afterEnter()},leave:()=>{D.removeFlag(open_closed/* State */.ZM.Closing),O.current.afterLeave()},idle:()=>{}})),V=re(()=>{U("hidden"),w(e)},K);use_transition_D({container:e,classes:k,direction:ae,onStart:(0,use_latest_value/* useLatestValue */.E)(C=>{V.onStart(e,C,le)}),onStop:(0,use_latest_value/* useLatestValue */.E)(C=>{V.onStop(e,C,ue),C==="leave"&&!M(V)&&(U("hidden"),w(e))})}),(0,react_.useEffect)(()=>{B&&(i===render/* RenderStrategy */.l4.Hidden?j.current=null:j.current=l)},[l,B,u]);let J=s,Te={ref:a};return R&&l&&d&&(J={...J,className:(0,class_names/* classNames */.A)(s.className,...k.current.enter,...k.current.enterFrom)}),react_.createElement(_.Provider,{value:V},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(u,{["visible"]:open_closed/* State */.ZM.Open,["hidden"]:open_closed/* State */.ZM.Closed})|D.flags},(0,render/* render */.sY)({ourProps:Te,theirProps:J,defaultTag:Re,features:oe,visible:u==="visible",name:"Transition.Child"})))}function Ne(t,n){let{show:r,appear:o=!1,unmount:N,...H}=t,p=(0,react_.useRef)(null),P=(0,use_sync_refs/* useSyncRefs */.T)(p,n);(0,use_server_handoff_complete/* useServerHandoffComplete */.H)();let h=(0,open_closed/* useOpenClosed */.oJ)();if(r===void 0&&h!==null&&(r=(h&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open),![!0,!1].includes(r))throw new Error("A <Transition /> is used but it is missing a `show={true | false}` prop.");let[v,T]=(0,react_.useState)(r?"visible":"hidden"),g=re(()=>{T("hidden")}),[f,s]=(0,react_.useState)(!0),e=(0,react_.useRef)([r]);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{f!==!1&&e.current[e.current.length-1]!==r&&(e.current.push(r),s(!1))},[e,r]);let a=(0,react_.useMemo)(()=>({show:r,appear:o,initial:f}),[r,o,f]);(0,react_.useEffect)(()=>{if(r)T("visible");else if(!M(g))T("hidden");else{let d=p.current;if(!d)return;let u=d.getBoundingClientRect();u.x===0&&u.y===0&&u.width===0&&u.height===0&&T("hidden")}},[r,g]);let i={unmount:N},l=(0,use_event/* useEvent */.z)(()=>{var d;f&&s(!1),(d=t.beforeEnter)==null||d.call(t)}),R=(0,use_event/* useEvent */.z)(()=>{var d;f&&s(!1),(d=t.beforeLeave)==null||d.call(t)});return react_.createElement(_.Provider,{value:g},react_.createElement(I.Provider,{value:a},(0,render/* render */.sY)({ourProps:{...i,as:react_.Fragment,children:react_.createElement(se,{ref:P,...i,...H,beforeEnter:l,beforeLeave:R})},theirProps:{},defaultTag:react_.Fragment,features:oe,visible:v==="visible",name:"Transition"})))}function He(t,n){let r=(0,react_.useContext)(I)!==null,o=(0,open_closed/* useOpenClosed */.oJ)()!==null;return react_.createElement(react_.Fragment,null,!r&&o?react_.createElement(z,{ref:n,...t}):react_.createElement(se,{ref:n,...t}))}let z=(0,render/* forwardRefWithAs */.yV)(Ne),se=(0,render/* forwardRefWithAs */.yV)(ye),De=(0,render/* forwardRefWithAs */.yV)(He),$e=Object.assign(z,{Child:De,Root:z});
+function S(t=""){return t.split(" ").filter(n=>n.trim().length>1)}let _=(0,react_.createContext)(null);_.displayName="TransitionContext";var be=(r=>(r.Visible="visible",r.Hidden="hidden",r))(be||{});function Se(){let t=(0,react_.useContext)(_);if(t===null)throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");return t}function Ne(){let t=(0,react_.useContext)(transition_M);if(t===null)throw new Error("A <Transition.Child /> is used but it is missing a parent <Transition /> or <Transition.Root />.");return t}let transition_M=(0,react_.createContext)(null);transition_M.displayName="NestingContext";function U(t){return"children"in t?U(t.children):t.current.filter(({el:n})=>n.current!==null).filter(({state:n})=>n==="visible").length>0}function oe(t,n){let r=(0,use_latest_value/* useLatestValue */.E)(t),s=(0,react_.useRef)([]),y=(0,use_is_mounted/* useIsMounted */.t)(),D=(0,use_disposables/* useDisposables */.G)(),c=(0,use_event/* useEvent */.z)((i,e=render/* RenderStrategy */.l4.Hidden)=>{let a=s.current.findIndex(({el:o})=>o===i);a!==-1&&((0,match/* match */.E)(e,{[render/* RenderStrategy */.l4.Unmount](){s.current.splice(a,1)},[render/* RenderStrategy */.l4.Hidden](){s.current[a].state="hidden"}}),D.microTask(()=>{var o;!U(s)&&y.current&&((o=r.current)==null||o.call(r))}))}),x=(0,use_event/* useEvent */.z)(i=>{let e=s.current.find(({el:a})=>a===i);return e?e.state!=="visible"&&(e.state="visible"):s.current.push({el:i,state:"visible"}),()=>c(i,render/* RenderStrategy */.l4.Unmount)}),p=(0,react_.useRef)([]),h=(0,react_.useRef)(Promise.resolve()),u=(0,react_.useRef)({enter:[],leave:[],idle:[]}),v=(0,use_event/* useEvent */.z)((i,e,a)=>{p.current.splice(0),n&&(n.chains.current[e]=n.chains.current[e].filter(([o])=>o!==i)),n==null||n.chains.current[e].push([i,new Promise(o=>{p.current.push(o)})]),n==null||n.chains.current[e].push([i,new Promise(o=>{Promise.all(u.current[e].map(([f,P])=>P)).then(()=>o())})]),e==="enter"?h.current=h.current.then(()=>n==null?void 0:n.wait.current).then(()=>a(e)):a(e)}),d=(0,use_event/* useEvent */.z)((i,e,a)=>{Promise.all(u.current[e].splice(0).map(([o,f])=>f)).then(()=>{var o;(o=p.current.shift())==null||o()}).then(()=>a(e))});return (0,react_.useMemo)(()=>({children:s,register:x,unregister:c,onStart:v,onStop:d,wait:h,chains:u}),[x,c,s,v,d,u,h])}function xe(){}let Pe=["beforeEnter","afterEnter","beforeLeave","afterLeave"];function se(t){var r;let n={};for(let s of Pe)n[s]=(r=t[s])!=null?r:xe;return n}function Re(t){let n=(0,react_.useRef)(se(t));return (0,react_.useEffect)(()=>{n.current=se(t)},[t]),n}let ye="div",ae=render/* Features */.AN.RenderStrategy;function De(t,n){var K,Q;let{beforeEnter:r,afterEnter:s,beforeLeave:y,afterLeave:D,enter:c,enterFrom:x,enterTo:p,entered:h,leave:u,leaveFrom:v,leaveTo:d,...i}=t,e=(0,react_.useRef)(null),a=(0,use_sync_refs/* useSyncRefs */.T)(e,n),o=(K=i.unmount)==null||K?render/* RenderStrategy */.l4.Unmount:render/* RenderStrategy */.l4.Hidden,{show:f,appear:P,initial:T}=Se(),[l,j]=(0,react_.useState)(f?"visible":"hidden"),q=Ne(),{register:O,unregister:V}=q;(0,react_.useEffect)(()=>O(e),[O,e]),(0,react_.useEffect)(()=>{if(o===render/* RenderStrategy */.l4.Hidden&&e.current){if(f&&l!=="visible"){j("visible");return}return (0,match/* match */.E)(l,{["hidden"]:()=>V(e),["visible"]:()=>O(e)})}},[l,e,O,V,f,o]);let k=(0,use_latest_value/* useLatestValue */.E)({base:S(i.className),enter:S(c),enterFrom:S(x),enterTo:S(p),entered:S(h),leave:S(u),leaveFrom:S(v),leaveTo:S(d)}),w=Re({beforeEnter:r,afterEnter:s,beforeLeave:y,afterLeave:D}),G=(0,use_server_handoff_complete/* useServerHandoffComplete */.H)();(0,react_.useEffect)(()=>{if(G&&l==="visible"&&e.current===null)throw new Error("Did you forget to passthrough the `ref` to the actual DOM node?")},[e,l,G]);let ue=T&&!P,z=P&&f&&T,Te=(()=>!G||ue?"idle":f?"enter":"leave")(),H=(0,use_flags/* useFlags */.V)(0),de=(0,use_event/* useEvent */.z)(g=>(0,match/* match */.E)(g,{enter:()=>{H.addFlag(open_closed/* State */.ZM.Opening),w.current.beforeEnter()},leave:()=>{H.addFlag(open_closed/* State */.ZM.Closing),w.current.beforeLeave()},idle:()=>{}})),fe=(0,use_event/* useEvent */.z)(g=>(0,match/* match */.E)(g,{enter:()=>{H.removeFlag(open_closed/* State */.ZM.Opening),w.current.afterEnter()},leave:()=>{H.removeFlag(open_closed/* State */.ZM.Closing),w.current.afterLeave()},idle:()=>{}})),A=oe(()=>{j("hidden"),V(e)},q);E({immediate:z,container:e,classes:k,direction:Te,onStart:(0,use_latest_value/* useLatestValue */.E)(g=>{A.onStart(e,g,de)}),onStop:(0,use_latest_value/* useLatestValue */.E)(g=>{A.onStop(e,g,fe),g==="leave"&&!U(A)&&(j("hidden"),V(e))})});let R=i,me={ref:a};return z?R={...R,className:(0,class_names/* classNames */.A)(i.className,...k.current.enter,...k.current.enterFrom)}:(R.className=(0,class_names/* classNames */.A)(i.className,(Q=e.current)==null?void 0:Q.className),R.className===""&&delete R.className),react_.createElement(transition_M.Provider,{value:A},react_.createElement(open_closed/* OpenClosedProvider */.up,{value:(0,match/* match */.E)(l,{["visible"]:open_closed/* State */.ZM.Open,["hidden"]:open_closed/* State */.ZM.Closed})|H.flags},(0,render/* render */.sY)({ourProps:me,theirProps:R,defaultTag:ye,features:ae,visible:l==="visible",name:"Transition.Child"})))}function He(t,n){let{show:r,appear:s=!1,unmount:y=!0,...D}=t,c=(0,react_.useRef)(null),x=(0,use_sync_refs/* useSyncRefs */.T)(c,n);(0,use_server_handoff_complete/* useServerHandoffComplete */.H)();let p=(0,open_closed/* useOpenClosed */.oJ)();if(r===void 0&&p!==null&&(r=(p&open_closed/* State */.ZM.Open)===open_closed/* State */.ZM.Open),![!0,!1].includes(r))throw new Error("A <Transition /> is used but it is missing a `show={true | false}` prop.");let[h,u]=(0,react_.useState)(r?"visible":"hidden"),v=oe(()=>{u("hidden")}),[d,i]=(0,react_.useState)(!0),e=(0,react_.useRef)([r]);(0,use_iso_morphic_effect/* useIsoMorphicEffect */.e)(()=>{d!==!1&&e.current[e.current.length-1]!==r&&(e.current.push(r),i(!1))},[e,r]);let a=(0,react_.useMemo)(()=>({show:r,appear:s,initial:d}),[r,s,d]);(0,react_.useEffect)(()=>{if(r)u("visible");else if(!U(v))u("hidden");else{let T=c.current;if(!T)return;let l=T.getBoundingClientRect();l.x===0&&l.y===0&&l.width===0&&l.height===0&&u("hidden")}},[r,v]);let o={unmount:y},f=(0,use_event/* useEvent */.z)(()=>{var T;d&&i(!1),(T=t.beforeEnter)==null||T.call(t)}),P=(0,use_event/* useEvent */.z)(()=>{var T;d&&i(!1),(T=t.beforeLeave)==null||T.call(t)});return react_.createElement(transition_M.Provider,{value:v},react_.createElement(_.Provider,{value:a},(0,render/* render */.sY)({ourProps:{...o,as:react_.Fragment,children:react_.createElement(le,{ref:x,...o,...D,beforeEnter:f,beforeLeave:P})},theirProps:{},defaultTag:react_.Fragment,features:ae,visible:h==="visible",name:"Transition"})))}function Fe(t,n){let r=(0,react_.useContext)(_)!==null,s=(0,open_closed/* useOpenClosed */.oJ)()!==null;return react_.createElement(react_.Fragment,null,!r&&s?react_.createElement(W,{ref:n,...t}):react_.createElement(le,{ref:n,...t}))}let W=(0,render/* forwardRefWithAs */.yV)(He),le=(0,render/* forwardRefWithAs */.yV)(De),Le=(0,render/* forwardRefWithAs */.yV)(Fe),tt=Object.assign(W,{Child:Le,Root:W});
 
 
 /***/ }),
@@ -52069,12 +55589,13 @@ function i(t){var n;if(t.type)return t.type;let e=(n=t.as)!=null?n:"button";if(t
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+var react__WEBPACK_IMPORTED_MODULE_0___namespace_cache;
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   H: () => (/* binding */ l)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18038);
 /* harmony import */ var _utils_env_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(62402);
-function l(){let[e,f]=(0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.isHandoffComplete);return e&&_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.isHandoffComplete===!1&&f(!1),(0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(()=>{e!==!0&&f(!0)},[e]),(0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(()=>_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.handoff(),[]),e}
+function s(){let r=typeof document=="undefined";return"useSyncExternalStore" in /*#__PURE__*/ (react__WEBPACK_IMPORTED_MODULE_0___namespace_cache || (react__WEBPACK_IMPORTED_MODULE_0___namespace_cache = __webpack_require__.t(react__WEBPACK_IMPORTED_MODULE_0__, 2)))?(o=>o.useSyncExternalStore)(/*#__PURE__*/ (react__WEBPACK_IMPORTED_MODULE_0___namespace_cache || (react__WEBPACK_IMPORTED_MODULE_0___namespace_cache = __webpack_require__.t(react__WEBPACK_IMPORTED_MODULE_0__, 2))))(()=>()=>{},()=>!1,()=>!r):!1}function l(){let r=s(),[e,n]=react__WEBPACK_IMPORTED_MODULE_0__.useState(_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.isHandoffComplete);return e&&_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.isHandoffComplete===!1&&n(!1),react__WEBPACK_IMPORTED_MODULE_0__.useEffect(()=>{e!==!0&&n(!0)},[e]),react__WEBPACK_IMPORTED_MODULE_0__.useEffect(()=>_utils_env_js__WEBPACK_IMPORTED_MODULE_1__/* .env */ .O.handoff(),[]),r?!1:e}
 
 
 /***/ }),
@@ -52141,9 +55662,9 @@ function r(n){let e=n.parentElement,l=null;for(;e&&!(e instanceof HTMLFieldSetEl
 
 "use strict";
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (/* binding */ e)
+/* harmony export */   A: () => (/* binding */ t)
 /* harmony export */ });
-function e(...n){return n.filter(Boolean).join(" ")}
+function t(...r){return Array.from(new Set(r.flatMap(n=>typeof n=="string"?n.split(" "):[]))).filter(Boolean).join(" ")}
 
 
 /***/ }),
@@ -53169,9 +56690,7 @@ class Query extends removable/* Removable */.F {
       }
     }
 
-    if (!Array.isArray(this.options.queryKey)) {
-      if (false) {}
-    }
+    if (false) {}
 
     const abortController = (0,utils/* getAbortController */.G9)(); // Create query function context
 
@@ -53361,7 +56880,8 @@ class Query extends removable/* Removable */.F {
           const error = action.error;
 
           if ((0,retryer/* isCancelledError */.DV)(error) && error.revert && this.revertState) {
-            return { ...this.revertState
+            return { ...this.revertState,
+              fetchStatus: 'idle'
             };
           }
 
@@ -56472,8 +59992,9 @@ const reduceDescriptors = (obj, reducer) => {
   const reducedDescriptors = {};
 
   forEach(descriptors, (descriptor, name) => {
-    if (reducer(descriptor, name, obj) !== false) {
-      reducedDescriptors[name] = descriptor;
+    let ret;
+    if ((ret = reducer(descriptor, name, obj)) !== false) {
+      reducedDescriptors[name] = ret || descriptor;
     }
   });
 
@@ -57337,10 +60858,6 @@ function formDataToJSON(formData) {
 
 
 
-const DEFAULT_CONTENT_TYPE = {
-  'Content-Type': undefined
-};
-
 /**
  * It takes a string, tries to parse it, and if it fails, it returns the stringified version
  * of the input
@@ -57370,7 +60887,7 @@ const defaults = {
 
   transitional: defaults_transitional,
 
-  adapter: ['xhr', 'http'],
+  adapter: node.isNode ? 'http' : 'xhr',
 
   transformRequest: [function transformRequest(data, headers) {
     const contentType = headers.getContentType() || '';
@@ -57479,17 +60996,14 @@ const defaults = {
 
   headers: {
     common: {
-      'Accept': 'application/json, text/plain, */*'
+      'Accept': 'application/json, text/plain, */*',
+      'Content-Type': undefined
     }
   }
 };
 
-utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+utils.forEach(['delete', 'get', 'head', 'post', 'put', 'patch'], (method) => {
   defaults.headers[method] = {};
-});
-
-utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
 });
 
 /* harmony default export */ const lib_defaults = (defaults);
@@ -57836,7 +61350,17 @@ class AxiosHeaders {
 
 AxiosHeaders.accessor(['Content-Type', 'Content-Length', 'Accept', 'Accept-Encoding', 'User-Agent', 'Authorization']);
 
-utils.freezeMethods(AxiosHeaders.prototype);
+// reserved names hotfix
+utils.reduceDescriptors(AxiosHeaders.prototype, ({value}, key) => {
+  let mapped = key[0].toUpperCase() + key.slice(1); // map `set` => `Set`
+  return {
+    get: () => value,
+    set(headerValue) {
+      this[mapped] = headerValue;
+    }
+  }
+});
+
 utils.freezeMethods(AxiosHeaders);
 
 /* harmony default export */ const core_AxiosHeaders = (AxiosHeaders);
@@ -58004,7 +61528,7 @@ var follow_redirects = __webpack_require__(71794);
 // EXTERNAL MODULE: external "zlib"
 var external_zlib_ = __webpack_require__(59796);
 ;// CONCATENATED MODULE: ./node_modules/axios/lib/env/data.js
-const VERSION = "1.4.0";
+const VERSION = "1.5.0";
 ;// CONCATENATED MODULE: ./node_modules/axios/lib/helpers/parseProtocol.js
 
 
@@ -58929,10 +62453,12 @@ const wrapAsync = (asyncExecutor) => {
       auth,
       protocol,
       family,
-      lookup,
       beforeRedirect: dispatchBeforeRedirect,
       beforeRedirects: {}
     };
+
+    // cacheable-lookup integration hotfix
+    !utils.isUndefined(lookup) && (options.lookup = lookup);
 
     if (config.socketPath) {
       options.socketPath = config.socketPath;
@@ -60001,15 +63527,13 @@ class Axios {
     // Set config.method
     config.method = (config.method || this.defaults.method || 'get').toLowerCase();
 
-    let contextHeaders;
-
     // Flatten headers
-    contextHeaders = headers && utils.merge(
+    let contextHeaders = headers && utils.merge(
       headers.common,
       headers[config.method]
     );
 
-    contextHeaders && utils.forEach(
+    headers && utils.forEach(
       ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
       (method) => {
         delete headers[method];
@@ -60392,6 +63916,7 @@ Object.entries(HttpStatusCode).forEach(([key, value]) => {
 
 
 
+
 /**
  * Create an instance of Axios
  *
@@ -60452,6 +63977,8 @@ axios.mergeConfig = mergeConfig;
 axios.AxiosHeaders = core_AxiosHeaders;
 
 axios.formToJSON = thing => helpers_formDataToJSON(utils.isHTMLForm(thing) ? new FormData(thing) : thing);
+
+axios.getAdapter = adapters.getAdapter;
 
 axios.HttpStatusCode = helpers_HttpStatusCode;
 

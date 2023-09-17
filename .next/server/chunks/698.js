@@ -1,17 +1,6 @@
-exports.id = 881;
-exports.ids = [881];
+exports.id = 698;
+exports.ids = [698];
 exports.modules = {
-
-/***/ 32763:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-Promise.resolve(/* import() eager */).then(__webpack_require__.t.bind(__webpack_require__, 31232, 23));
-Promise.resolve(/* import() eager */).then(__webpack_require__.t.bind(__webpack_require__, 52987, 23));
-Promise.resolve(/* import() eager */).then(__webpack_require__.t.bind(__webpack_require__, 50831, 23));
-Promise.resolve(/* import() eager */).then(__webpack_require__.t.bind(__webpack_require__, 56926, 23));
-Promise.resolve(/* import() eager */).then(__webpack_require__.t.bind(__webpack_require__, 44282, 23))
-
-/***/ }),
 
 /***/ 59268:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
@@ -170,8 +159,8 @@ var useMutation = __webpack_require__(30012);
 var apis = __webpack_require__(83850);
 // EXTERNAL MODULE: ./node_modules/cogo-toast/dist/index.js
 var dist = __webpack_require__(99690);
-// EXTERNAL MODULE: ./node_modules/react-loader-spinner/dist/esm/index.js + 34 modules
-var esm = __webpack_require__(70320);
+// EXTERNAL MODULE: ./node_modules/react-loader-spinner/dist/esm/index.js + 35 modules
+var esm = __webpack_require__(22602);
 // EXTERNAL MODULE: ./node_modules/@tanstack/react-query/build/lib/QueryClientProvider.mjs
 var QueryClientProvider = __webpack_require__(212);
 ;// CONCATENATED MODULE: ./src/component/navbar.js

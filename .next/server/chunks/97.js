@@ -219,7 +219,9 @@ var shouldRenderFormState = (formStateData, _proxyFormState, updateFormState, is
 var convertToArrayPayload = (value) => (Array.isArray(value) ? value : [value]);
 
 var shouldSubscribeByName = (name, signalName, exact) => exact && signalName
-    ? name === signalName
+    ? name === signalName ||
+        (Array.isArray(name) &&
+            name.some((currentName) => currentName && exact && currentName === signalName))
     : !name ||
         !signalName ||
         name === signalName ||
@@ -411,7 +413,7 @@ function set(object, path, value) {
  */
 function useController(props) {
     const methods = useFormContext();
-    const { name, control = methods.control, shouldUnregister } = props;
+    const { name, disabled, control = methods.control, shouldUnregister } = props;
     const isArrayField = isNameInFieldArray(control._names.array, name);
     const value = useWatch({
         control,
@@ -452,10 +454,18 @@ function useController(props) {
                 : updateMounted(name, false);
         };
     }, [name, control, isArrayField, shouldUnregister]);
+    React.useEffect(() => {
+        control._updateDisabledField({
+            disabled,
+            fields: control._fields,
+            name,
+        });
+    }, [disabled, name, control]);
     return {
         field: {
             name,
             value,
+            disabled,
             onChange: React.useCallback((event) => _registerProps.current.onChange({
                 target: {
                     value: getEventValue(event),
@@ -1711,7 +1721,7 @@ function createFormControl(props = {}, flushRootRender) {
     };
     const _executeSchema = async (name) => _options.resolver(_formValues, _options.context, getResolverOptions(name || _names.mount, _fields, _options.criteriaMode, _options.shouldUseNativeValidation));
     const executeSchemaAndUpdateState = async (names) => {
-        const { errors } = await _executeSchema();
+        const { errors } = await _executeSchema(names);
         if (names) {
             for (const name of names) {
                 const error = get(errors, name);
@@ -2039,6 +2049,15 @@ function createFormControl(props = {}, flushRootRender) {
         });
         !options.keepIsValid && _updateValid();
     };
+    const _updateDisabledField = ({ disabled, name, field, fields, }) => {
+        if (isBoolean(disabled)) {
+            const value = disabled
+                ? undefined
+                : get(_formValues, name, getFieldValue(field ? field._f : get(fields, name)._f));
+            set(_formValues, name, value);
+            updateTouchAndDirty(name, value, false, false, true);
+        }
+    };
     const register = (name, options = {}) => {
         let field = get(_fields, name);
         const disabledIsDefined = isBoolean(options.disabled);
@@ -2052,12 +2071,16 @@ function createFormControl(props = {}, flushRootRender) {
             },
         });
         _names.mount.add(name);
-        field
-            ? disabledIsDefined &&
-                set(_formValues, name, options.disabled
-                    ? undefined
-                    : get(_formValues, name, getFieldValue(field._f)))
-            : updateValidAndValue(name, true, options.value);
+        if (field) {
+            _updateDisabledField({
+                field,
+                disabled: options.disabled,
+                name,
+            });
+        }
+        else {
+            updateValidAndValue(name, true, options.value);
+        }
         return {
             ...(disabledIsDefined ? { disabled: options.disabled } : {}),
             ...(_options.progressive
@@ -2185,7 +2208,7 @@ function createFormControl(props = {}, flushRootRender) {
         }
     };
     const _reset = (formValues, keepStateOptions = {}) => {
-        const updatedValues = formValues || _defaultValues;
+        const updatedValues = formValues ? cloneObject(formValues) : _defaultValues;
         const cloneUpdatedValues = cloneObject(updatedValues);
         const values = formValues && !isEmptyObject(formValues)
             ? cloneUpdatedValues
@@ -2310,6 +2333,7 @@ function createFormControl(props = {}, flushRootRender) {
             _updateValid,
             _removeUnmounted,
             _updateFieldArray,
+            _updateDisabledField,
             _getFieldArray,
             _reset,
             _resetDefaultValues,
