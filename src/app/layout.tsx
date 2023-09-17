@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 import Navbar from "@/component/navbar";
 import "./globals.css";
 import type { Metadata } from "next";

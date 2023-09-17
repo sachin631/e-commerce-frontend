@@ -588,25 +588,6 @@ function Example() {
 
 /***/ }),
 
-/***/ 53076:
-/***/ ((__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) => {
-
-"use strict";
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(93258);
-
-const api = axios__WEBPACK_IMPORTED_MODULE_0__/* ["default"] */ .Z.create({
-    baseURL: "http://localhost:27017",
-    withCredentials: true,
-    headers: {
-        "Access-Control-Allow-Credentials": true,
-        "Content-Type": "application/json"
-    }
-});
-/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = ((/* unused pure expression or super */ null && (api)));
-
-
-/***/ }),
-
 /***/ 93161:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -648,7 +629,7 @@ module.exports = __webpack_require__(90696)
 var __webpack_require__ = require("../../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [904,881], () => (__webpack_exec__(90208)));
+var __webpack_exports__ = __webpack_require__.X(0, [904,698,843], () => (__webpack_exec__(90208)));
 module.exports = __webpack_exports__;
 
 })();

@@ -1,15 +1,15 @@
 {
   "/page": "/",
   "/cart/page": "/cart",
+  "/dashboard/page": "/dashboard",
   "/checkout/page": "/checkout",
   "/login/page": "/login",
-  "/dashboard/page": "/dashboard",
   "/product/page": "/product",
-  "/signup/page": "/signup",
   "/profile/page": "/profile",
   "/sucess/page": "/sucess",
+  "/signup/page": "/signup",
   "/updateProfile/page": "/updateProfile",
-  "/admin/productAdmin/page": "/admin/productAdmin",
   "/admin/createAdminProduct/page": "/admin/createAdminProduct",
+  "/admin/productAdmin/page": "/admin/productAdmin",
   "/product/[id]/page": "/product/[id]"
 }
