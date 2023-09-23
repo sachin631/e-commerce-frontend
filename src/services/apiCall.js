@@ -6,12 +6,14 @@ import axios from "axios";
 export const commonRequest = async (method, url, body, header) => {
   try {
     const config = {
+      baseURL:"https://e-commerce-backend-xh0l.onrender.com",
       method,
       url,
       data: body,
       headers: header ? { ...header } : { "Content-Type": "application/json" },
       withCredentials: true,
       credentials: "include",
+     
     };
 
     const response = await axios(config);
